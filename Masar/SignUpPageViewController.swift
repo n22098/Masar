@@ -1,5 +1,5 @@
 //
-//  SignInPageViewController.swift
+//  SignUpPageViewController.swift
 //  Masar
 //
 //  Created by BP-36-201-13 on 07/12/2025.
@@ -7,7 +7,7 @@
 
 import UIKit
 
-class SignInPageViewController: UIViewController {
+class SignUpPageViewController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
