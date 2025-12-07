@@ -70,7 +70,7 @@
                                                 <state key="normal" title="Button"/>
                                                 <buttonConfiguration key="configuration" style="plain" title="Register As a Seeker"/>
                                                 <connections>
-                                                    <segue destination="kFI-yE-roE" kind="show" id="A1V-eI-zRz"/>
+                                                    <segue destination="kFI-yE-roE" kind="show" id="TUa-e0-7rD"/>
                                                 </connections>
                                             </button>
                                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="iLY-Nm-EXz">
@@ -78,7 +78,7 @@
                                                 <state key="normal" title="Button"/>
                                                 <buttonConfiguration key="configuration" style="plain" title="Forget Password?"/>
                                                 <connections>
-                                                    <segue destination="AB7-py-3Y2" kind="show" id="bHb-Xr-4PA"/>
+                                                    <segue destination="AB7-py-3Y2" kind="show" id="y4l-E0-Uyn"/>
                                                 </connections>
                                             </button>
                                         </subviews>
@@ -112,18 +112,17 @@
                         <rect key="frame" x="0.0" y="0.0" width="393" height="852"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
-                            <stackView opaque="NO" contentMode="scaleToFill" ambiguous="YES" axis="vertical" spacing="30" translatesAutoresizingMaskIntoConstraints="NO" id="gjM-Vp-vcU">
-                                <rect key="frame" x="71" y="171" width="250" height="508.33333333333326"/>
+                            <stackView opaque="NO" contentMode="scaleToFill" misplaced="YES" axis="vertical" spacing="30" translatesAutoresizingMaskIntoConstraints="NO" id="gjM-Vp-vcU">
+                                <rect key="frame" x="71" y="171" width="251" height="572.33333333333337"/>
                                 <subviews>
                                     <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="Logo" translatesAutoresizingMaskIntoConstraints="NO" id="rj0-lh-onn">
-                                        <rect key="frame" x="0.0" y="0.0" width="250" height="120"/>
-                                        <constraints>
-                                            <constraint firstAttribute="height" constant="120" id="4d1-C6-LpC"/>
-                                            <constraint firstAttribute="width" constant="250" id="6Sw-Bx-vS2"/>
-                                        </constraints>
+                                        <rect key="frame" x="0.0" y="0.0" width="251" height="120"/>
                                     </imageView>
                                     <textField opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="248" contentHorizontalAlignment="left" contentVerticalAlignment="center" borderStyle="roundedRect" placeholder="Name" textAlignment="natural" minimumFontSize="17" translatesAutoresizingMaskIntoConstraints="NO" id="bHE-AY-8Gt">
-                                        <rect key="frame" x="0.0" y="150" width="250" height="34"/>
+                                        <rect key="frame" x="0.0" y="150" width="251" height="34"/>
+                                        <constraints>
+                                            <constraint firstAttribute="height" constant="34" id="HdK-2k-k3m"/>
+                                        </constraints>
                                         <fontDescription key="fontDescription" type="system" pointSize="14"/>
                                         <textInputTraits key="textInputTraits"/>
                                         <connections>
@@ -131,23 +130,43 @@
                                         </connections>
                                     </textField>
                                     <textField opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="248" contentHorizontalAlignment="left" contentVerticalAlignment="center" borderStyle="roundedRect" placeholder="Email" textAlignment="natural" minimumFontSize="17" translatesAutoresizingMaskIntoConstraints="NO" id="MYS-vc-RLx">
-                                        <rect key="frame" x="0.0" y="214" width="250" height="34"/>
+                                        <rect key="frame" x="0.0" y="214" width="251" height="34"/>
+                                        <constraints>
+                                            <constraint firstAttribute="height" constant="34" id="Ulm-xm-e5N"/>
+                                        </constraints>
                                         <fontDescription key="fontDescription" type="system" pointSize="14"/>
                                         <textInputTraits key="textInputTraits"/>
                                         <connections>
                                             <action selector="emailField:" destination="9zy-Hs-HoV" eventType="editingDidEnd" id="ajA-ot-S74"/>
                                         </connections>
                                     </textField>
-                                    <textField opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="248" contentHorizontalAlignment="left" contentVerticalAlignment="center" borderStyle="roundedRect" placeholder="username" textAlignment="natural" minimumFontSize="17" translatesAutoresizingMaskIntoConstraints="NO" id="C8L-Bp-SZl">
-                                        <rect key="frame" x="0.0" y="278" width="250" height="34"/>
+                                    <textField opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="248" contentHorizontalAlignment="left" contentVerticalAlignment="center" borderStyle="roundedRect" placeholder="Phone Number" textAlignment="natural" minimumFontSize="17" translatesAutoresizingMaskIntoConstraints="NO" id="C8L-Bp-SZl">
+                                        <rect key="frame" x="0.0" y="278" width="251" height="34"/>
+                                        <constraints>
+                                            <constraint firstAttribute="height" constant="34" id="s45-e4-Cbd"/>
+                                        </constraints>
                                         <fontDescription key="fontDescription" type="system" pointSize="14"/>
                                         <textInputTraits key="textInputTraits"/>
                                         <connections>
                                             <action selector="nameField:" destination="9zy-Hs-HoV" eventType="editingDidEnd" id="mY4-LL-087"/>
                                         </connections>
                                     </textField>
+                                    <textField opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="248" contentHorizontalAlignment="left" contentVerticalAlignment="center" borderStyle="roundedRect" placeholder="Username" textAlignment="natural" minimumFontSize="17" translatesAutoresizingMaskIntoConstraints="NO" id="3OH-ch-o16">
+                                        <rect key="frame" x="0.0" y="342" width="251" height="34"/>
+                                        <constraints>
+                                            <constraint firstAttribute="height" constant="34" id="AFz-mp-pSw"/>
+                                        </constraints>
+                                        <fontDescription key="fontDescription" type="system" pointSize="14"/>
+                                        <textInputTraits key="textInputTraits"/>
+                                        <connections>
+                                            <action selector="nameField:" destination="9zy-Hs-HoV" eventType="editingDidEnd" id="kko-EG-hjZ"/>
+                                        </connections>
+                                    </textField>
                                     <textField opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="248" contentHorizontalAlignment="left" contentVerticalAlignment="center" borderStyle="roundedRect" placeholder="Password" textAlignment="natural" minimumFontSize="17" translatesAutoresizingMaskIntoConstraints="NO" id="T48-Sm-Gwa">
-                                        <rect key="frame" x="0.0" y="342" width="250" height="34"/>
+                                        <rect key="frame" x="0.0" y="406" width="251" height="34"/>
+                                        <constraints>
+                                            <constraint firstAttribute="height" constant="34" id="O6f-rp-Kzg"/>
+                                        </constraints>
                                         <fontDescription key="fontDescription" type="system" pointSize="14"/>
                                         <textInputTraits key="textInputTraits"/>
                                         <connections>
@@ -155,7 +174,10 @@
                                         </connections>
                                     </textField>
                                     <textField opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="248" contentHorizontalAlignment="left" contentVerticalAlignment="center" borderStyle="roundedRect" placeholder="Confirm Password" textAlignment="natural" minimumFontSize="17" translatesAutoresizingMaskIntoConstraints="NO" id="PYg-wi-qXH">
-                                        <rect key="frame" x="0.0" y="406" width="250" height="34"/>
+                                        <rect key="frame" x="0.0" y="470" width="251" height="34"/>
+                                        <constraints>
+                                            <constraint firstAttribute="height" constant="34" id="wXs-vo-AmK"/>
+                                        </constraints>
                                         <fontDescription key="fontDescription" type="system" pointSize="14"/>
                                         <textInputTraits key="textInputTraits"/>
                                         <connections>
@@ -163,7 +185,10 @@
                                         </connections>
                                     </textField>
                                     <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="Ajq-eu-X16">
-                                        <rect key="frame" x="0.0" y="470" width="250" height="38.333333333333314"/>
+                                        <rect key="frame" x="0.0" y="534" width="251" height="38.333333333333371"/>
+                                        <constraints>
+                                            <constraint firstAttribute="height" constant="38.333333333333371" id="E6M-kn-Btk"/>
+                                        </constraints>
                                         <state key="normal" title="Button"/>
                                         <buttonConfiguration key="configuration" style="gray" title="Sign Up"/>
                                         <connections>
@@ -172,28 +197,26 @@
                                         </connections>
                                     </button>
                                 </subviews>
-                                <constraints>
-                                    <constraint firstAttribute="trailing" secondItem="bHE-AY-8Gt" secondAttribute="trailing" constant="30" id="1zg-pv-GQ2"/>
-                                    <constraint firstAttribute="trailing" secondItem="C8L-Bp-SZl" secondAttribute="trailing" constant="30" id="5Tq-zx-wQT"/>
-                                    <constraint firstItem="bHE-AY-8Gt" firstAttribute="leading" secondItem="gjM-Vp-vcU" secondAttribute="leading" constant="30" id="7VX-2J-hwL"/>
-                                    <constraint firstItem="PYg-wi-qXH" firstAttribute="leading" secondItem="gjM-Vp-vcU" secondAttribute="leading" constant="30" id="LFv-pc-nET"/>
-                                    <constraint firstAttribute="trailing" secondItem="T48-Sm-Gwa" secondAttribute="trailing" constant="30" id="TNs-7Z-QiX"/>
-                                    <constraint firstAttribute="trailing" secondItem="PYg-wi-qXH" secondAttribute="trailing" constant="30" id="U5h-hA-dge"/>
-                                    <constraint firstAttribute="trailing" secondItem="MYS-vc-RLx" secondAttribute="trailing" constant="30" id="Yr0-IK-jin"/>
-                                    <constraint firstItem="MYS-vc-RLx" firstAttribute="leading" secondItem="gjM-Vp-vcU" secondAttribute="leading" constant="30" id="tFw-LY-2gO"/>
-                                    <constraint firstItem="C8L-Bp-SZl" firstAttribute="leading" secondItem="gjM-Vp-vcU" secondAttribute="leading" constant="30" id="yBb-S7-Xrq"/>
-                                    <constraint firstItem="T48-Sm-Gwa" firstAttribute="leading" secondItem="gjM-Vp-vcU" secondAttribute="leading" constant="30" id="yqI-3l-AG1"/>
-                                </constraints>
                             </stackView>
                         </subviews>
                         <viewLayoutGuide key="safeArea" id="Ohf-w9-gPi"/>
                         <color key="backgroundColor" systemColor="systemBackgroundColor"/>
                         <constraints>
-                            <constraint firstAttribute="trailingMargin" secondItem="gjM-Vp-vcU" secondAttribute="trailing" constant="56" id="4dj-fw-XJE"/>
-                            <constraint firstItem="gjM-Vp-vcU" firstAttribute="leading" secondItem="t4n-PR-MJd" secondAttribute="leadingMargin" constant="55" id="Ni6-so-8C3"/>
+                            <constraint firstItem="gjM-Vp-vcU" firstAttribute="leading" secondItem="Ohf-w9-gPi" secondAttribute="leading" constant="71" id="D6X-hh-FIL"/>
+                            <constraint firstItem="gjM-Vp-vcU" firstAttribute="centerX" secondItem="t4n-PR-MJd" secondAttribute="centerX" id="Tp7-Df-hey"/>
+                            <constraint firstItem="gjM-Vp-vcU" firstAttribute="top" secondItem="Ohf-w9-gPi" secondAttribute="top" constant="9" id="YyD-la-lu3"/>
+                            <constraint firstItem="Ohf-w9-gPi" firstAttribute="bottom" secondItem="gjM-Vp-vcU" secondAttribute="bottom" constant="40.666666666666629" id="dA8-bY-fH8"/>
                         </constraints>
                     </view>
                     <navigationItem key="navigationItem" title="Sign Up " id="e6e-tR-hQi"/>
+                    <connections>
+                        <outlet property="confirmPasswordField" destination="PYg-wi-qXH" id="70W-Di-RUZ"/>
+                        <outlet property="emailField" destination="MYS-vc-RLx" id="9Ta-hR-TC4"/>
+                        <outlet property="nameField" destination="bHE-AY-8Gt" id="W7g-Zs-IbL"/>
+                        <outlet property="passwordField" destination="T48-Sm-Gwa" id="ejI-nV-fig"/>
+                        <outlet property="phoneNumberField" destination="C8L-Bp-SZl" id="9Up-UK-0Q3"/>
+                        <outlet property="usernameField" destination="3OH-ch-o16" id="nVV-sL-Hgb"/>
+                    </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="nqK-VT-L7Z" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
                 <exit id="9zy-Hs-HoV" userLabel="Exit" sceneMemberID="exit"/>
