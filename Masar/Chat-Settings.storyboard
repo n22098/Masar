@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="23727" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES">
+    <device id="retina6_12" orientation="portrait" appearance="light"/>
+    <dependencies>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="23721"/>
+        <capability name="Safe area layout guides" minToolsVersion="9.0"/>
+        <capability name="System colors in document resources" minToolsVersion="11.0"/>
+        <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
+    </dependencies>
+    <scenes>
+        <!--Navigation Controller-->
+        <scene sceneID="jau-DU-5Iw">
+            <objects>
+                <navigationController id="sXF-Pv-2oB" sceneMemberID="viewController">
+                    <navigationItem key="navigationItem" id="9GN-VM-7av"/>
+                    <navigationBar key="navigationBar" contentMode="scaleToFill" id="UNt-H4-4yh">
+                        <rect key="frame" x="0.0" y="118" width="393" height="44"/>
+                        <autoresizingMask key="autoresizingMask"/>
+                    </navigationBar>
+                    <connections>
+                        <segue destination="HdJ-Jr-cQ9" kind="relationship" relationship="rootViewController" id="2nm-hH-B8w"/>
+                    </connections>
+                </navigationController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="ODW-yw-tuo" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="-140" y="-73"/>
+        </scene>
+        <!--Sign In Page View Controller-->
+        <scene sceneID="47W-n8-nlf">
+            <objects>
+                <viewController id="HdJ-Jr-cQ9" customClass="SignInPageViewController" customModule="Masar" customModuleProvider="target" sceneMemberID="viewController">
+                    <view key="view" contentMode="scaleToFill" ambiguous="YES" id="qJ3-wh-3im">
+                        <rect key="frame" x="0.0" y="0.0" width="393" height="852"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <subviews>
+                            <view contentMode="scaleToFill" ambiguous="YES" translatesAutoresizingMaskIntoConstraints="NO" id="Vq4-Ue-i8W">
+                                <rect key="frame" x="-2" y="0.0" width="395" height="100"/>
+                                <subviews>
+                                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" ambiguous="YES" text="Messages" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="Wil-aT-e6O">
+                                        <rect key="frame" x="146" y="60" width="102" height="27"/>
+                                        <fontDescription key="fontDescription" type="system" weight="semibold" pointSize="22"/>
+                                        <color key="textColor" red="0.97118557930000005" green="1" blue="0.98235941469999999" alpha="1" colorSpace="custom" customColorSpace="displayP3"/>
+                                        <nil key="highlightedColor"/>
+                                    </label>
+                                </subviews>
+                                <color key="backgroundColor" systemColor="systemIndigoColor"/>
+                                <constraints>
+                                    <constraint firstItem="Wil-aT-e6O" firstAttribute="top" secondItem="Vq4-Ue-i8W" secondAttribute="top" constant="60" id="TUa-AM-Ehb"/>
+                                    <constraint firstAttribute="height" constant="120" id="fIN-mI-cKf"/>
+                                </constraints>
+                            </view>
+                            <view contentMode="scaleToFill" ambiguous="YES" translatesAutoresizingMaskIntoConstraints="NO" id="Z13-Db-bMH">
+                                <rect key="frame" x="75" y="136" width="240" height="128"/>
+                                <color key="backgroundColor" systemColor="systemBackgroundColor"/>
+                                <constraints>
+                                    <constraint firstAttribute="height" constant="90" id="GXV-1m-Q4b"/>
+                                </constraints>
+                            </view>
+                        </subviews>
+                        <viewLayoutGuide key="safeArea" id="aKa-To-z1V"/>
+                        <color key="backgroundColor" systemColor="systemBackgroundColor"/>
+                        <constraints>
+                            <constraint firstItem="Vq4-Ue-i8W" firstAttribute="leading" secondItem="qJ3-wh-3im" secondAttribute="leading" constant="9" id="02C-eB-C3T"/>
+                            <constraint firstItem="aKa-To-z1V" firstAttribute="bottom" secondItem="Vq4-Ue-i8W" secondAttribute="bottom" constant="670" id="EKf-DG-Bqa"/>
+                            <constraint firstItem="Vq4-Ue-i8W" firstAttribute="leading" secondItem="qJ3-wh-3im" secondAttribute="leading" id="HOJ-tC-6SB"/>
+                            <constraint firstItem="aKa-To-z1V" firstAttribute="bottom" secondItem="Vq4-Ue-i8W" secondAttribute="bottom" constant="120" id="Hmf-8D-a4y"/>
+                            <constraint firstItem="Vq4-Ue-i8W" firstAttribute="leading" secondItem="qJ3-wh-3im" secondAttribute="leadingMargin" constant="-18" id="IrH-MY-9gC"/>
+                            <constraint firstItem="Vq4-Ue-i8W" firstAttribute="top" secondItem="qJ3-wh-3im" secondAttribute="top" constant="55" id="Mzs-UL-7vv"/>
+                            <constraint firstAttribute="trailingMargin" secondItem="Vq4-Ue-i8W" secondAttribute="trailing" constant="-16" id="N1u-FC-DPc"/>
+                            <constraint firstItem="aKa-To-z1V" firstAttribute="bottom" secondItem="Vq4-Ue-i8W" secondAttribute="bottom" constant="120" id="doW-0t-FVO"/>
+                            <constraint firstItem="Vq4-Ue-i8W" firstAttribute="top" secondItem="qJ3-wh-3im" secondAttribute="top" id="rol-mh-Dau"/>
+                        </constraints>
+                    </view>
+                    <navigationItem key="navigationItem" id="VU1-ZE-OZc"/>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="nw1-vL-8eZ" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="638.93129770992368" y="-73.239436619718319"/>
+        </scene>
+    </scenes>
+    <resources>
+        <systemColor name="systemBackgroundColor">
+            <color white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+        </systemColor>
+        <systemColor name="systemIndigoColor">
+            <color red="0.34509803919999998" green="0.33725490200000002" blue="0.83921568629999999" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+        </systemColor>
+    </resources>
+</document>
