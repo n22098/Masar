@@ -112,7 +112,7 @@
                         <rect key="frame" x="0.0" y="0.0" width="393" height="852"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
-                            <stackView opaque="NO" contentMode="scaleToFill" misplaced="YES" axis="vertical" spacing="30" translatesAutoresizingMaskIntoConstraints="NO" id="gjM-Vp-vcU">
+                            <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" spacing="30" translatesAutoresizingMaskIntoConstraints="NO" id="gjM-Vp-vcU">
                                 <rect key="frame" x="71" y="171" width="251" height="572.33333333333337"/>
                                 <subviews>
                                     <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="Logo" translatesAutoresizingMaskIntoConstraints="NO" id="rj0-lh-onn">
@@ -240,6 +240,9 @@
                                 <rect key="frame" x="30" y="300" width="333" height="39"/>
                                 <state key="normal" title="Button"/>
                                 <buttonConfiguration key="configuration" style="gray" title="Submit"/>
+                                <connections>
+                                    <segue destination="ooL-Dz-SKV" kind="show" id="XjV-qb-AHA"/>
+                                </connections>
                             </button>
                         </subviews>
                         <viewLayoutGuide key="safeArea" id="NQf-kZ-wFV"/>
@@ -257,7 +260,89 @@
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="LQa-Je-cjD" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="2401" y="-75"/>
+            <point key="canvasLocation" x="2363" y="-73"/>
+        </scene>
+        <!--OTP Code-->
+        <scene sceneID="lt5-UP-hbG">
+            <objects>
+                <viewController id="ooL-Dz-SKV" sceneMemberID="viewController">
+                    <view key="view" contentMode="scaleToFill" id="fsX-QD-kLN">
+                        <rect key="frame" x="0.0" y="0.0" width="393" height="852"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <subviews>
+                            <stackView opaque="NO" contentMode="scaleToFill" ambiguous="YES" axis="vertical" spacing="30" translatesAutoresizingMaskIntoConstraints="NO" id="wWt-oX-n5r">
+                                <rect key="frame" x="30" y="238.99999999999994" width="333" height="102.33333333333331"/>
+                                <subviews>
+                                    <textField opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="248" contentHorizontalAlignment="left" contentVerticalAlignment="center" borderStyle="roundedRect" placeholder="Enter Code OTP" textAlignment="natural" minimumFontSize="17" translatesAutoresizingMaskIntoConstraints="NO" id="h6O-Ra-r1x">
+                                        <rect key="frame" x="0.0" y="0.0" width="333" height="34"/>
+                                        <fontDescription key="fontDescription" type="system" pointSize="14"/>
+                                        <textInputTraits key="textInputTraits"/>
+                                    </textField>
+                                    <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="DMX-l9-cxO">
+                                        <rect key="frame" x="0.0" y="64" width="333" height="38.333333333333343"/>
+                                        <state key="normal" title="Button"/>
+                                        <buttonConfiguration key="configuration" style="gray" title="Submit"/>
+                                        <connections>
+                                            <segue destination="1Do-Pf-O3a" kind="show" id="GLg-jH-Gnn"/>
+                                        </connections>
+                                    </button>
+                                </subviews>
+                            </stackView>
+                        </subviews>
+                        <viewLayoutGuide key="safeArea" id="1oA-Hu-HXS"/>
+                        <color key="backgroundColor" systemColor="systemBackgroundColor"/>
+                        <constraints>
+                            <constraint firstItem="wWt-oX-n5r" firstAttribute="leading" secondItem="1oA-Hu-HXS" secondAttribute="leading" constant="30" id="SdU-dO-8K9"/>
+                            <constraint firstItem="1oA-Hu-HXS" firstAttribute="trailing" secondItem="wWt-oX-n5r" secondAttribute="trailing" constant="30" id="frg-u0-iUh"/>
+                        </constraints>
+                    </view>
+                    <navigationItem key="navigationItem" title="OTP Code" id="guY-q5-Y0x"/>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="ptX-At-xz0" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="3004" y="-73"/>
+        </scene>
+        <!--View Controller-->
+        <scene sceneID="c4f-eH-XfV">
+            <objects>
+                <viewController id="1Do-Pf-O3a" sceneMemberID="viewController">
+                    <view key="view" contentMode="scaleToFill" id="eiU-mO-ABP">
+                        <rect key="frame" x="0.0" y="0.0" width="393" height="852"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <subviews>
+                            <stackView opaque="NO" contentMode="scaleToFill" ambiguous="YES" axis="vertical" spacing="20" translatesAutoresizingMaskIntoConstraints="NO" id="0ye-zR-zZ4">
+                                <rect key="frame" x="30" y="239" width="333" height="146.33333333333337"/>
+                                <subviews>
+                                    <textField opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="248" contentHorizontalAlignment="left" contentVerticalAlignment="center" borderStyle="roundedRect" placeholder="Enter New Password" textAlignment="natural" minimumFontSize="17" translatesAutoresizingMaskIntoConstraints="NO" id="Dqx-ee-uEX">
+                                        <rect key="frame" x="0.0" y="0.0" width="333" height="34"/>
+                                        <fontDescription key="fontDescription" type="system" pointSize="14"/>
+                                        <textInputTraits key="textInputTraits"/>
+                                    </textField>
+                                    <textField opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="248" contentHorizontalAlignment="left" contentVerticalAlignment="center" borderStyle="roundedRect" placeholder="Re-Enter Password" textAlignment="natural" minimumFontSize="17" translatesAutoresizingMaskIntoConstraints="NO" id="szw-Pc-tTV">
+                                        <rect key="frame" x="0.0" y="54" width="333" height="34"/>
+                                        <fontDescription key="fontDescription" type="system" pointSize="14"/>
+                                        <textInputTraits key="textInputTraits"/>
+                                    </textField>
+                                    <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="OZc-HE-H34">
+                                        <rect key="frame" x="0.0" y="108" width="333" height="38.333333333333343"/>
+                                        <state key="normal" title="Button"/>
+                                        <buttonConfiguration key="configuration" style="plain" title="Button"/>
+                                    </button>
+                                </subviews>
+                            </stackView>
+                        </subviews>
+                        <viewLayoutGuide key="safeArea" id="pbc-b6-fTg"/>
+                        <color key="backgroundColor" systemColor="systemBackgroundColor"/>
+                        <constraints>
+                            <constraint firstItem="0ye-zR-zZ4" firstAttribute="leading" secondItem="pbc-b6-fTg" secondAttribute="leading" constant="30" id="5De-dE-ciI"/>
+                            <constraint firstItem="pbc-b6-fTg" firstAttribute="trailing" secondItem="0ye-zR-zZ4" secondAttribute="trailing" constant="30" id="Vkj-gH-JTn"/>
+                        </constraints>
+                    </view>
+                    <navigationItem key="navigationItem" id="QI4-3D-whm"/>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="IFy-sY-GJe" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="3666" y="-73"/>
         </scene>
         <!--View Controller-->
         <scene sceneID="ple-Ri-OSc">
@@ -281,7 +366,7 @@
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="HiQ-WI-Gc5" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="3160" y="-73"/>
+            <point key="canvasLocation" x="4515" y="-113"/>
         </scene>
     </scenes>
     <resources>
