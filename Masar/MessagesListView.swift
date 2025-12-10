@@ -9,10 +9,39 @@ import SwiftUI
 
 struct MessagesListView: View {
     var body: some View {
-        Text(/*@START_MENU_TOKEN@*/"Hello, World!"/*@END_MENU_TOKEN@*/)
+        NavigationView {
+            VStack {
+                NavigationLink(destination: ChatView()) {
+                    HStack(spacing: 16) {
+                        Image(systemName: "person.circle.fill")
+                            .resizable()
+                            .frame(width: 55, height: 55)
+                            .foregroundColor(.purple)
+
+                        VStack(alignment: .leading) {
+                            Text("Sayed Husain")
+                                .font(.headline)
+                            Text("Software Engineer")
+                                .font(.subheadline)
+                                .foregroundColor(.gray)
+                        }
+
+                        Spacer()
+                        Image(systemName: "chevron.right")
+                            .foregroundColor(.gray)
+                    }
+                    .padding()
+                }
+                Spacer()
+            }
+            .navigationTitle("Messages")
+        }
     }
 }
 
 #Preview {
     MessagesListView()
 }
+
+
+

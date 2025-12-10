@@ -5,14 +5,11 @@
 //  Created by BP-36-201-07 on 10/12/2025.
 //
 
-import SwiftUI
+import Foundation
 
-struct ChatMessage: View {
-    var body: some View {
-        Text(/*@START_MENU_TOKEN@*/"Hello, World!"/*@END_MENU_TOKEN@*/)
-    }
-}
-
-#Preview {
-    ChatMessage()
+struct ChatMessage: Identifiable {
+    let id = UUID()
+    let text: String
+    let isFromUser: Bool
+    let time: String
 }
