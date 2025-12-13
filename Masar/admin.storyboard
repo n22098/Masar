@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="23727" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES">
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="23727" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES" initialViewController="FVD-cu-Id8">
     <device id="retina6_12" orientation="portrait" appearance="light"/>
     <dependencies>
         <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="23721"/>
@@ -21,7 +21,53 @@
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="Ief-a0-LHa" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="48" y="-2"/>
+            <point key="canvasLocation" x="-862" y="-611"/>
+        </scene>
+        <!--Root View Controller-->
+        <scene sceneID="cnr-x8-Auw">
+            <objects>
+                <tableViewController id="P9m-BS-P7D" sceneMemberID="viewController">
+                    <tableView key="view" clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="default" rowHeight="-1" estimatedRowHeight="-1" sectionHeaderHeight="-1" estimatedSectionHeaderHeight="-1" sectionFooterHeight="-1" estimatedSectionFooterHeight="-1" id="0g9-XQ-l3d">
+                        <rect key="frame" x="0.0" y="0.0" width="393" height="852"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <color key="backgroundColor" systemColor="systemBackgroundColor"/>
+                        <prototypes>
+                            <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" preservesSuperviewLayoutMargins="YES" selectionStyle="default" indentationWidth="10" id="yOj-8d-XU0">
+                                <rect key="frame" x="0.0" y="50" width="393" height="47.666667938232422"/>
+                                <autoresizingMask key="autoresizingMask"/>
+                                <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" preservesSuperviewLayoutMargins="YES" insetsLayoutMarginsFromSafeArea="NO" tableViewCell="yOj-8d-XU0" id="Rxv-Q9-l6h">
+                                    <rect key="frame" x="0.0" y="0.0" width="393" height="47.666667938232422"/>
+                                    <autoresizingMask key="autoresizingMask"/>
+                                </tableViewCellContentView>
+                            </tableViewCell>
+                        </prototypes>
+                        <connections>
+                            <outlet property="dataSource" destination="P9m-BS-P7D" id="oPu-kq-Gxn"/>
+                            <outlet property="delegate" destination="P9m-BS-P7D" id="BnM-EX-TPg"/>
+                        </connections>
+                    </tableView>
+                    <navigationItem key="navigationItem" title="Root View Controller" id="pqO-pP-w1b"/>
+                </tableViewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="SCP-NR-a9U" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="2334" y="-1898"/>
+        </scene>
+        <!--Admin Dashboard-->
+        <scene sceneID="EnV-b4-nEA">
+            <objects>
+                <navigationController id="hSx-a9-aWA" sceneMemberID="viewController">
+                    <tabBarItem key="tabBarItem" title="Admin Dashboard" image="waveform.path.ecg.text.page" catalog="system" id="PZm-kI-pU2"/>
+                    <navigationBar key="navigationBar" contentMode="scaleToFill" largeTitles="YES" id="7qd-R3-kNP">
+                        <rect key="frame" x="0.0" y="118" width="393" height="96"/>
+                        <autoresizingMask key="autoresizingMask"/>
+                    </navigationBar>
+                    <connections>
+                        <segue destination="P9m-BS-P7D" kind="relationship" relationship="rootViewController" id="wLc-B7-tKm"/>
+                    </connections>
+                </navigationController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="ZSJ-Cr-Mm8" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="1428" y="-1898"/>
         </scene>
         <!--moderation tool-->
         <scene sceneID="9Jd-Yp-VuG">
@@ -205,7 +251,7 @@
                 </tableViewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="LgD-pl-YgR" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="2423.6641221374043" y="739.43661971830988"/>
+            <point key="canvasLocation" x="2761" y="1196"/>
         </scene>
         <!--Profile-->
         <scene sceneID="C5C-9q-rZj">
@@ -234,15 +280,15 @@
                 </tableViewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="HnN-lG-r8x" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="2395" y="1487"/>
+            <point key="canvasLocation" x="2476" y="2389"/>
         </scene>
         <!--Profile-->
         <scene sceneID="cmV-1e-y1q">
             <objects>
                 <navigationController id="qRU-ee-AGs" sceneMemberID="viewController">
                     <tabBarItem key="tabBarItem" title="Profile" image="person.crop.circle" catalog="system" id="c30-ZM-lfG"/>
-                    <navigationBar key="navigationBar" contentMode="scaleToFill" id="QcP-4l-YU3">
-                        <rect key="frame" x="0.0" y="118" width="393" height="44"/>
+                    <navigationBar key="navigationBar" contentMode="scaleToFill" largeTitles="YES" id="QcP-4l-YU3">
+                        <rect key="frame" x="0.0" y="118" width="393" height="96"/>
                         <autoresizingMask key="autoresizingMask"/>
                     </navigationBar>
                     <connections>
@@ -251,15 +297,15 @@
                 </navigationController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="BEr-Ay-yXh" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="1491" y="1487"/>
+            <point key="canvasLocation" x="1520" y="1977"/>
         </scene>
         <!-- user management-->
         <scene sceneID="R12-g9-ZH8">
             <objects>
                 <navigationController id="Kbj-8c-wdz" sceneMemberID="viewController">
                     <tabBarItem key="tabBarItem" title=" user management" image="person.2.badge.key" catalog="system" id="Yao-te-xje"/>
-                    <navigationBar key="navigationBar" contentMode="scaleToFill" id="VNK-Sf-3tq">
-                        <rect key="frame" x="0.0" y="118" width="393" height="44"/>
+                    <navigationBar key="navigationBar" contentMode="scaleToFill" largeTitles="YES" id="VNK-Sf-3tq">
+                        <rect key="frame" x="0.0" y="118" width="393" height="96"/>
                         <autoresizingMask key="autoresizingMask"/>
                     </navigationBar>
                     <connections>
@@ -268,15 +314,15 @@
                 </navigationController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="Zs0-pJ-TaQ" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="1521" y="740"/>
+            <point key="canvasLocation" x="1520" y="970"/>
         </scene>
         <!--moderation tool-->
         <scene sceneID="6Ch-bV-X3D">
             <objects>
                 <navigationController id="ubw-G6-nV2" sceneMemberID="viewController">
                     <tabBarItem key="tabBarItem" title="moderation tool" image="chart.bar.horizontal.page" catalog="system" id="AQd-s6-dY0"/>
-                    <navigationBar key="navigationBar" contentMode="scaleToFill" id="jAc-eu-2mM">
-                        <rect key="frame" x="0.0" y="118" width="393" height="44"/>
+                    <navigationBar key="navigationBar" contentMode="scaleToFill" largeTitles="YES" id="jAc-eu-2mM">
+                        <rect key="frame" x="0.0" y="118" width="393" height="96"/>
                         <autoresizingMask key="autoresizingMask"/>
                     </navigationBar>
                     <connections>
@@ -287,10 +333,10 @@
             </objects>
             <point key="canvasLocation" x="1436" y="-122"/>
         </scene>
-        <!--Tab Bar Controller-->
+        <!--Test-->
         <scene sceneID="RKX-st-Gr5">
             <objects>
-                <tabBarController id="FVD-cu-Id8" sceneMemberID="viewController">
+                <tabBarController title="Test" id="FVD-cu-Id8" sceneMemberID="viewController">
                     <tabBar key="tabBar" contentMode="scaleToFill" insetsLayoutMarginsFromSafeArea="NO" id="2so-AE-K5m">
                         <rect key="frame" x="0.0" y="0.0" width="393" height="49"/>
                         <autoresizingMask key="autoresizingMask"/>
@@ -399,6 +445,7 @@
         <image name="chart.bar.horizontal.page" catalog="system" width="115" height="128"/>
         <image name="person.2.badge.key" catalog="system" width="128" height="90"/>
         <image name="person.crop.circle" catalog="system" width="128" height="123"/>
+        <image name="waveform.path.ecg.text.page" catalog="system" width="115" height="128"/>
         <systemColor name="systemBackgroundColor">
             <color white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
         </systemColor>
