@@ -1,0 +1,184 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Bucket
+   uuid = "B32B0851-0EBF-4C6E-87A2-CFA1A2D66D7A"
+   type = "1"
+   version = "2.0">
+   <Breakpoints>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "A474D05B-B7A4-4C60-9D8F-BCE8492AEB42"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "Masar/SignInPageViewController.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "18"
+            endingLineNumber = "18"
+            landmarkName = "SignInPageViewController"
+            landmarkType = "3">
+            <Locations>
+               <Location
+                  uuid = "A474D05B-B7A4-4C60-9D8F-BCE8492AEB42 - fc7e473face07685"
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "Masar.SignInPageViewController.usernameField.getter : Swift.Optional&lt;__C.UITextField&gt;"
+                  moduleName = "Masar.debug.dylib"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/bp-36-201-10/Desktop/Masar/Masar/SignInPageViewController.swift"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "0"
+                  endingLineNumber = "0">
+               </Location>
+               <Location
+                  uuid = "A474D05B-B7A4-4C60-9D8F-BCE8492AEB42 - aee987be94a6aa89"
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "Masar.SignInPageViewController.usernameField.setter : Swift.Optional&lt;__C.UITextField&gt;"
+                  moduleName = "Masar.debug.dylib"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/bp-36-201-10/Desktop/Masar/Masar/SignInPageViewController.swift"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "0"
+                  endingLineNumber = "0">
+               </Location>
+               <Location
+                  uuid = "A474D05B-B7A4-4C60-9D8F-BCE8492AEB42 - 429e51cb4454939a"
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "Masar.SignInPageViewController.usernameField.modify : Swift.Optional&lt;__C.UITextField&gt;"
+                  moduleName = "Masar.debug.dylib"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/bp-36-201-10/Desktop/Masar/Masar/SignInPageViewController.swift"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "0"
+                  endingLineNumber = "0">
+               </Location>
+               <Location
+                  uuid = "A474D05B-B7A4-4C60-9D8F-BCE8492AEB42 - 42a9639c8b127701"
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "Masar.SignInPageViewController.init(nibName: Swift.Optional&lt;Swift.String&gt;, bundle: Swift.Optional&lt;__C.NSBundle&gt;) -&gt; Masar.SignInPageViewController"
+                  moduleName = "Masar.debug.dylib"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/bp-36-201-10/Desktop/Masar/Masar/SignInPageViewController.swift"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "18"
+                  endingLineNumber = "18">
+               </Location>
+               <Location
+                  uuid = "A474D05B-B7A4-4C60-9D8F-BCE8492AEB42 - 8504af7962a1a20a"
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "Masar.SignInPageViewController.init(coder: __C.NSCoder) -&gt; Swift.Optional&lt;Masar.SignInPageViewController&gt;"
+                  moduleName = "Masar.debug.dylib"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/bp-36-201-10/Desktop/Masar/Masar/SignInPageViewController.swift"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "18"
+                  endingLineNumber = "18">
+               </Location>
+            </Locations>
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "75B283B0-CE82-4854-93BD-7C329EA634E5"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "Masar/SignUpAsASeekerPageViewController.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "13"
+            endingLineNumber = "13"
+            landmarkName = "unknown"
+            landmarkType = "0">
+            <Locations>
+               <Location
+                  uuid = "75B283B0-CE82-4854-93BD-7C329EA634E5 - 46ee91d91ac4dda7"
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "Masar.SignUpAsASeekerPageViewController.__allocating_init(nibName: Swift.Optional&lt;Swift.String&gt;, bundle: Swift.Optional&lt;__C.NSBundle&gt;) -&gt; Masar.SignUpAsASeekerPageViewController"
+                  moduleName = "Masar.debug.dylib"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/bp-36-201-10/Desktop/Masar/Masar/SignUpAsASeekerPageViewController.swift"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "0"
+                  endingLineNumber = "0">
+               </Location>
+               <Location
+                  uuid = "75B283B0-CE82-4854-93BD-7C329EA634E5 - a431c2bd1d20a67"
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "Masar.SignUpAsASeekerPageViewController.init(nibName: Swift.Optional&lt;Swift.String&gt;, bundle: Swift.Optional&lt;__C.NSBundle&gt;) -&gt; Masar.SignUpAsASeekerPageViewController"
+                  moduleName = "Masar.debug.dylib"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/bp-36-201-10/Desktop/Masar/Masar/SignUpAsASeekerPageViewController.swift"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "17"
+                  endingLineNumber = "17">
+               </Location>
+               <Location
+                  uuid = "75B283B0-CE82-4854-93BD-7C329EA634E5 - 481d8d750f31da15"
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "Masar.SignUpAsASeekerPageViewController.__allocating_init(coder: __C.NSCoder) -&gt; Swift.Optional&lt;Masar.SignUpAsASeekerPageViewController&gt;"
+                  moduleName = "Masar.debug.dylib"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/bp-36-201-10/Desktop/Masar/Masar/SignUpAsASeekerPageViewController.swift"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "0"
+                  endingLineNumber = "0">
+               </Location>
+               <Location
+                  uuid = "75B283B0-CE82-4854-93BD-7C329EA634E5 - 2b7909595342f955"
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "Masar.SignUpAsASeekerPageViewController.init(coder: __C.NSCoder) -&gt; Swift.Optional&lt;Masar.SignUpAsASeekerPageViewController&gt;"
+                  moduleName = "Masar.debug.dylib"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/bp-36-201-10/Desktop/Masar/Masar/SignUpAsASeekerPageViewController.swift"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "17"
+                  endingLineNumber = "17">
+               </Location>
+               <Location
+                  uuid = "75B283B0-CE82-4854-93BD-7C329EA634E5 - 37e773233579e1bb"
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "Masar.SignUpAsASeekerPageViewController.__deallocating_deinit"
+                  moduleName = "Masar.debug.dylib"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/bp-36-201-10/Desktop/Masar/Masar/SignUpAsASeekerPageViewController.swift"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "0"
+                  endingLineNumber = "0">
+               </Location>
+            </Locations>
+         </BreakpointContent>
+      </BreakpointProxy>
+   </Breakpoints>
+</Bucket>
