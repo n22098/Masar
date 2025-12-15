@@ -26,11 +26,12 @@ final class MessagesListViewController: UIViewController, UITableViewDelegate {
     private let containerView = UIView()
 
     private let user = User(
-        id: UUID(),
+        id: "user_1",
         name: "Sayed Husain",
-        subtitle: "Software Engineer",
+        username: "sayed",
         avatarEmoji: "👨🏻"
     )
+
 
 
     override func viewDidLoad() {
@@ -44,23 +45,39 @@ final class MessagesListViewController: UIViewController, UITableViewDelegate {
     private func loadMockData() {
         conversations = [
             Conversation(
-                id: UUID(),
-                user: User(id: UUID(), name: "Sayed Husain", subtitle: "Software Engineer", avatarEmoji: "👨🏻"),
+                id: "conversation_1",
+                user: User(
+                    id: "user_sayed",
+                    name: "Sayed Husain",
+                    username: "sayed_h",
+                    avatarEmoji: "👨🏻"
+                ),
                 lastMessage: "Sure, send me your requirements",
                 lastUpdated: Date()
             ),
             Conversation(
-                id: UUID(),
-                user: User(id: UUID(), name: "Aisha Noor", subtitle: "UI Designer", avatarEmoji: "👩🏽‍🎨"),
+                id: "conversation_2",
+                user: User(
+                    id: "user_aisha",
+                    name: "Aisha Noor",
+                    username: "aisha_noor",
+                    avatarEmoji: "👩🏽‍🎨"
+                ),
                 lastMessage: "I’ll update the Figma today",
                 lastUpdated: Date()
             ),
             Conversation(
-                id: UUID(),
-                user: User(id: UUID(), name: "Omar Khalid", subtitle: "Backend Developer", avatarEmoji: "👨🏾‍💻"),
+                id: "conversation_3",
+                user: User(
+                    id: "user_omar",
+                    name: "Omar Khalid",
+                    username: "omar_k",
+                    avatarEmoji: "👨🏾‍💻"
+                ),
                 lastMessage: "API is ready",
                 lastUpdated: Date()
             )
+
         ]
     }
 
@@ -120,7 +137,7 @@ final class MessagesListViewController: UIViewController, UITableViewDelegate {
         containerView.addSubview(nameLabel)
 
         subtitleLabel.translatesAutoresizingMaskIntoConstraints = false
-        subtitleLabel.text = user.subtitle
+        subtitleLabel.text = "@\(user.username)"
         subtitleLabel.font = UIFont.systemFont(ofSize: 14)
         subtitleLabel.textColor = .secondaryLabel
         containerView.addSubview(subtitleLabel)
@@ -172,20 +189,48 @@ final class MessagesListViewController: UIViewController, UITableViewDelegate {
     }
 
     @objc private func openChat() {
+
+        let currentUserId = "current_user"
+        let otherUserId = user.id
+
         let messages: [Message] = [
-            Message(id: UUID(), text: "Hello, I need to create a website for my work", isIncoming: true, date: Date()),
-            Message(id: UUID(), text: """
-Sure, send me your requirement details
-and I will help you with my template
-or create new one if you have
-specific design
-""", isIncoming: false, date: Date()),
-            Message(id: UUID(), text: "Ok Thanks, I will send you after a few hours", isIncoming: true, date: Date()),
-            Message(id: UUID(), text: "Thanks!", isIncoming: false, date: Date())
-            
+            Message(
+                id: "msg_1",
+                senderId: otherUserId,
+                receiverId: currentUserId,
+                text: "Hello, I need to create a website for my work",
+                timestamp: Date()
+            ),
+            Message(
+                id: "msg_2",
+                senderId: currentUserId,
+                receiverId: otherUserId,
+                text: """
+    Sure, send me your requirement details
+    and I will help you with my template
+    or create new one if you have
+    specific design
+    """,
+                timestamp: Date()
+            ),
+            Message(
+                id: "msg_3",
+                senderId: otherUserId,
+                receiverId: currentUserId,
+                text: "Ok Thanks, I will send you after a few hours",
+                timestamp: Date()
+            ),
+            Message(
+                id: "msg_4",
+                senderId: currentUserId,
+                receiverId: otherUserId,
+                text: "Thanks!",
+                timestamp: Date()
+            )
         ]
 
         let chatVC = ChatViewController(user: user, messages: messages)
         navigationController?.pushViewController(chatVC, animated: true)
     }
+
 }

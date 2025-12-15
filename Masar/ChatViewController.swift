@@ -13,6 +13,11 @@ final class ChatViewController: UIViewController, UITextFieldDelegate {
     private let user: User
     private var messages: [Message]
     private var inputBottomConstraint: NSLayoutConstraint!
+    private var currentUserId: String {
+        AuthService.shared.currentUserId ?? ""
+    }
+
+
 
 
     private let headerView = UIView()
@@ -53,6 +58,18 @@ final class ChatViewController: UIViewController, UITextFieldDelegate {
         setupTableView()
         setupInputBar()
         scrollToBottom(animated: false)
+        
+        ChatService.shared.listenForMessages(
+            currentUserId: currentUserId,
+            otherUserId: user.id
+        ) { [weak self] messages in
+            DispatchQueue.main.async {
+                self?.messages = messages
+                self?.tableView.reloadData()
+                self?.scrollToBottom(animated: true)
+            }
+        }
+
 
 // keyboard - inpout
         NotificationCenter.default.addObserver(
@@ -97,7 +114,7 @@ final class ChatViewController: UIViewController, UITextFieldDelegate {
         nameLabel.font = UIFont.systemFont(ofSize: 16, weight: .semibold)
          
 
-        subtitleLabel.text = user.subtitle
+        subtitleLabel.text = "@\(user.username)"
         subtitleLabel.textColor = UIColor(white: 1, alpha: 0.8)
         subtitleLabel.font = UIFont.systemFont(ofSize: 13)
 
@@ -242,30 +259,31 @@ final class ChatViewController: UIViewController, UITextFieldDelegate {
 
     //send keyboard input to chat
     @objc private func didTapSend() {
-        guard let text = textField.text, !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return }
+        guard
+            let text = textField.text,
+            !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
+            !currentUserId.isEmpty
+        else {
+            return
+        }
 
-        let newMessage = Message(
-            id: UUID(),
+        ChatService.shared.sendMessage(
             text: text,
-            isIncoming: false,
-            date: Date()
+            from: currentUserId,
+            to: user.id
         )
-        messages.append(newMessage)
-        textField.text = nil
 
-        let indexPath = IndexPath(row: messages.count - 1, section: 0)
-        tableView.insertRows(at: [indexPath], with: .automatic)
-        scrollToBottom(animated: true)
         textField.text = nil
-        textField.becomeFirstResponder()
-
     }
+
 
     private func scrollToBottom(animated: Bool) {
         guard messages.count > 0 else { return }
         let indexPath = IndexPath(row: messages.count - 1, section: 0)
         tableView.scrollToRow(at: indexPath, at: .bottom, animated: animated)
     }
+
+
 
 //keyboard
     @objc private func keyboardWillChangeFrame(_ notification: Notification) {
@@ -307,7 +325,11 @@ extension ChatViewController: UITableViewDataSource, UITableViewDelegate {
             withIdentifier: MessageCell.reuseIdentifier,
             for: indexPath
         ) as! MessageCell
-        cell.configure(with: messages[indexPath.row])
+        cell.configure(
+            with: messages[indexPath.row],
+            currentUserId: currentUserId
+        )
+
         return cell
     }
 

@@ -73,13 +73,15 @@ final class MessageCell: UITableViewCell {
         trailingConstraint.isActive = false
     }
 
-    func configure(with message: Message) {
+    func configure(with message: Message, currentUserId: String) {
         messageLabel.text = message.text
 
         leadingConstraint.isActive = false
         trailingConstraint.isActive = false
 
-        if message.isIncoming {
+        let isIncoming = message.senderId != currentUserId
+
+        if isIncoming {
             leadingConstraint.isActive = true
         } else {
             trailingConstraint.isActive = true
@@ -87,12 +89,12 @@ final class MessageCell: UITableViewCell {
 
         let formatter = DateFormatter()
         formatter.dateFormat = "h:mma"
-        timeLabel.text = formatter.string(from: message.date).lowercased()
+        timeLabel.text = formatter.string(from: message.timestamp).lowercased()
 
         leadingConstraint.isActive = false
         trailingConstraint.isActive = false
 
-        if message.isIncoming {
+        if isIncoming {
             bubbleView.backgroundColor = UIColor(red: 218/255, green: 245/255, blue: 189/255, alpha: 1)
             leadingConstraint.isActive = true
         } else {

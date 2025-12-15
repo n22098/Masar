@@ -67,6 +67,7 @@ final class ConversationCell: UITableViewCell {
     func configure(with user: User) {
         avatarLabel.text = user.avatarEmoji
         nameLabel.text = user.name
-        subtitleLabel.text = user.subtitle
+        subtitleLabel.text = "@\(user.username)"
+
     }
 }

@@ -15,7 +15,13 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         _ scene: UIScene,
         willConnectTo session: UISceneSession,
         options connectionOptions: UIScene.ConnectionOptions
-    ) {
+    )
+    {
+        
+        AuthService.shared.signInIfNeeded {
+            print("Signed in with uid:", AuthService.shared.currentUserId ?? "")
+        }
+
         guard let windowScene = scene as? UIWindowScene else { return }
 
         window = UIWindow(windowScene: windowScene)

@@ -7,8 +7,9 @@
 import Foundation
 
 struct Conversation {
-    let id: UUID
+    let id: String
     let user: User
     let lastMessage: String
     let lastUpdated: Date
 }
+
