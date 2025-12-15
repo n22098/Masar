@@ -161,6 +161,15 @@ final class MessagesListViewController: UIViewController, UITableViewDelegate {
 
             navigationController?.pushViewController(chatVC, animated: true)
         }
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        navigationController?.setNavigationBarHidden(true, animated: false)
+    }
+
+    override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+        navigationController?.setNavigationBarHidden(false, animated: false)
+    }
 
     @objc private func openChat() {
         let messages: [Message] = [
