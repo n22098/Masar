@@ -28,7 +28,7 @@ Masar is a platform that connects individuals who offer skills and services with
 
 Our mission is to empower local communities by making it easy to discover, collaborate, and grow together.
 
-Thank you for using Masar.
+Thank you for using Our Service Masar.
 """
 
         view.addSubview(textView)
