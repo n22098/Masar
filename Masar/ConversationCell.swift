@@ -11,6 +11,7 @@ final class ConversationCell: UITableViewCell {
 
     static let reuseIdentifier = "ConversationCell"
 
+
     private let avatarLabel = UILabel()
     private let nameLabel = UILabel()
     private let subtitleLabel = UILabel()

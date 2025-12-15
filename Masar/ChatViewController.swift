@@ -7,11 +7,12 @@
 
 import UIKit
 
-final class ChatViewController: UIViewController {
+final class ChatViewController: UIViewController, UITextFieldDelegate {
 
 
     private let user: User
     private var messages: [Message]
+    private var inputBottomConstraint: NSLayoutConstraint!
 
 
     private let headerView = UIView()
@@ -37,6 +38,13 @@ final class ChatViewController: UIViewController {
 
     required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
 
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+            self.textField.becomeFirstResponder()
+        }
+    }
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -131,6 +139,7 @@ final class ChatViewController: UIViewController {
         tableView.delegate = self
         tableView.register(MessageCell.self, forCellReuseIdentifier: MessageCell.reuseIdentifier)
         view.addSubview(tableView)
+        tableView.keyboardDismissMode = .interactive
 
         NSLayoutConstraint.activate([
             tableView.topAnchor.constraint(equalTo: headerView.bottomAnchor),
@@ -138,8 +147,22 @@ final class ChatViewController: UIViewController {
             tableView.trailingAnchor.constraint(equalTo: view.trailingAnchor)
         ])
     }
+   
 
     private func setupInputBar() {
+        
+        
+        textField.returnKeyType = .send
+
+        textField.delegate = self
+        textField.isUserInteractionEnabled = true
+        //keyboard;
+        let tap = UITapGestureRecognizer(target: self, action: #selector(focusTextField))
+        tap.cancelsTouchesInView = false
+        inputContainer.addGestureRecognizer(tap)
+
+        inputContainer.isUserInteractionEnabled = true
+
         inputContainer.translatesAutoresizingMaskIntoConstraints = false
         inputContainer.backgroundColor = .white
         inputContainer.layer.borderColor = UIColor.systemGray4.cgColor
@@ -164,9 +187,11 @@ final class ChatViewController: UIViewController {
         sendButton.addTarget(self, action: #selector(didTapSend), for: .touchUpInside)
         inputContainer.addSubview(sendButton)
 
-        let bottomConstraint = inputContainer.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor)
-        bottomConstraint.identifier = "inputBottom"
-        bottomConstraint.isActive = true
+        inputBottomConstraint = inputContainer.bottomAnchor.constraint(
+            equalTo: view.safeAreaLayoutGuide.bottomAnchor
+        )
+        inputBottomConstraint.isActive = true
+
 
         NSLayoutConstraint.activate([
             inputContainer.leadingAnchor.constraint(equalTo: view.leadingAnchor),
@@ -190,10 +215,20 @@ final class ChatViewController: UIViewController {
         ])
     }
 
-//popup
+//make it so enter key sends message
+    
     @objc private func didTapBack() {
         navigationController?.popViewController(animated: true)
     }
+    @objc private func focusTextField() {
+        textField.becomeFirstResponder()
+    }
+    func textFieldShouldReturn(_ textField: UITextField) -> Bool {
+        didTapSend()
+        return true
+    }
+
+
 
     //send keyboard input to chat
     @objc private func didTapSend() {
@@ -211,6 +246,9 @@ final class ChatViewController: UIViewController {
         let indexPath = IndexPath(row: messages.count - 1, section: 0)
         tableView.insertRows(at: [indexPath], with: .automatic)
         scrollToBottom(animated: true)
+        textField.text = nil
+        textField.becomeFirstResponder()
+
     }
 
     private func scrollToBottom(animated: Bool) {
@@ -223,36 +261,26 @@ final class ChatViewController: UIViewController {
     @objc private func keyboardWillChangeFrame(_ notification: Notification) {
         guard
             let userInfo = notification.userInfo,
-            let keyboardFrameValue = userInfo[UIResponder.keyboardFrameEndUserInfoKey] as? NSValue,
+            let keyboardFrame = userInfo[UIResponder.keyboardFrameEndUserInfoKey] as? CGRect,
             let duration = userInfo[UIResponder.keyboardAnimationDurationUserInfoKey] as? Double,
-            let curveRaw = userInfo[UIResponder.keyboardAnimationCurveUserInfoKey] as? UInt
+            let curve = userInfo[UIResponder.keyboardAnimationCurveUserInfoKey] as? UInt
         else { return }
 
-        let keyboardFrame = keyboardFrameValue.cgRectValue
-        let isHidden = keyboardFrame.origin.y >= UIScreen.main.bounds.height
-        let bottomInset = isHidden ? 0 : keyboardFrame.height - view.safeAreaInsets.bottom
+        let keyboardVisible = keyboardFrame.origin.y < UIScreen.main.bounds.height
+        let height = keyboardVisible ? keyboardFrame.height - view.safeAreaInsets.bottom : 0
 
-        if let bottomConstraint = inputContainer
-            .constraintsAffectingLayout(for: .vertical)
-            .first(where: { $0.identifier == "inputBottom" }) {
-            bottomConstraint.constant = -bottomInset
-        } else if let bottomConstraint = view
-            .constraints
-            .first(where: { $0.firstItem as? UIView == inputContainer && $0.identifier == "inputBottom" }) {
-            bottomConstraint.constant = -bottomInset
-        }
+        inputBottomConstraint.constant = -height
 
         UIView.animate(
             withDuration: duration,
             delay: 0,
-            options: UIView.AnimationOptions(rawValue: curveRaw << 16),
+            options: UIView.AnimationOptions(rawValue: curve << 16),
             animations: {
                 self.view.layoutIfNeeded()
-                self.scrollToBottom(animated: false)
-            },
-            completion: nil
+            }
         )
     }
+
 }
 
  //delegates

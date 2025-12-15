@@ -49,11 +49,15 @@ final class MessageCell: UITableViewCell {
         leadingConstraint = bubbleView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16)
         trailingConstraint = bubbleView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16)
 //below is spacing
+        messageLabel.setContentHuggingPriority(.required, for: .horizontal)
+        messageLabel.setContentCompressionResistancePriority(.required, for: .horizontal)
+        leadingConstraint.isActive = false
+        trailingConstraint.isActive = false
+
         NSLayoutConstraint.activate([
             bubbleView.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 14),
             bubbleView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -10),
-            bubbleView.widthAnchor.constraint(lessThanOrEqualTo: contentView.widthAnchor, multiplier: 0.7),
-
+            
             leadingConstraint,
             trailingConstraint,
 
@@ -65,29 +69,38 @@ final class MessageCell: UITableViewCell {
             timeLabel.trailingAnchor.constraint(equalTo: bubbleView.trailingAnchor),
             timeLabel.topAnchor.constraint(equalTo: bubbleView.bottomAnchor, constant: 2)
         ])
+        leadingConstraint.isActive = false
+        trailingConstraint.isActive = false
     }
 
     func configure(with message: Message) {
         messageLabel.text = message.text
 
+        leadingConstraint.isActive = false
+        trailingConstraint.isActive = false
+
+        if message.isIncoming {
+            leadingConstraint.isActive = true
+        } else {
+            trailingConstraint.isActive = true
+        }
+
         let formatter = DateFormatter()
         formatter.dateFormat = "h:mma"
         timeLabel.text = formatter.string(from: message.date).lowercased()
 
+        leadingConstraint.isActive = false
+        trailingConstraint.isActive = false
+
         if message.isIncoming {
             bubbleView.backgroundColor = UIColor(red: 218/255, green: 245/255, blue: 189/255, alpha: 1)
-            messageLabel.textColor = .label
-
             leadingConstraint.isActive = true
-            trailingConstraint.isActive = false
         } else {
             bubbleView.backgroundColor = .white
             bubbleView.layer.borderColor = UIColor.systemGray4.cgColor
             bubbleView.layer.borderWidth = 1
-            messageLabel.textColor = .label
-
-            leadingConstraint.isActive = false
             trailingConstraint.isActive = true
         }
     }
+
 }

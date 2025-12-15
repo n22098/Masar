@@ -7,9 +7,14 @@
 
 import UIKit
 
-final class MessagesListViewController: UIViewController {
+final class MessagesListViewController: UIViewController, UITableViewDelegate {
 
 
+    
+    private let tableView = UITableView()
+    private var conversations: [Conversation] = []
+    
+    
     private let headerView = UIView()
     private let headerTitleLabel = UILabel()
 
@@ -34,6 +39,31 @@ final class MessagesListViewController: UIViewController {
         setupHeader()
         setupContent()
     }
+    
+    
+    private func loadMockData() {
+        conversations = [
+            Conversation(
+                id: UUID(),
+                user: User(id: UUID(), name: "Sayed Husain", subtitle: "Software Engineer", avatarEmoji: "👨🏻"),
+                lastMessage: "Sure, send me your requirements",
+                lastUpdated: Date()
+            ),
+            Conversation(
+                id: UUID(),
+                user: User(id: UUID(), name: "Aisha Noor", subtitle: "UI Designer", avatarEmoji: "👩🏽‍🎨"),
+                lastMessage: "I’ll update the Figma today",
+                lastUpdated: Date()
+            ),
+            Conversation(
+                id: UUID(),
+                user: User(id: UUID(), name: "Omar Khalid", subtitle: "Backend Developer", avatarEmoji: "👨🏾‍💻"),
+                lastMessage: "API is ready",
+                lastUpdated: Date()
+            )
+        ]
+    }
+
 
     private func setupHeader() {
         headerView.translatesAutoresizingMaskIntoConstraints = false
@@ -121,7 +151,16 @@ final class MessagesListViewController: UIViewController {
             subtitleLabel.trailingAnchor.constraint(lessThanOrEqualTo: chevronImageView.leadingAnchor, constant: -8)
         ])
     }
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+            let conversation = conversations[indexPath.row]
 
+            let chatVC = ChatViewController(
+                user: conversation.user,
+                messages: []
+            )
+
+            navigationController?.pushViewController(chatVC, animated: true)
+        }
 
     @objc private func openChat() {
         let messages: [Message] = [
