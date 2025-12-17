@@ -33,7 +33,7 @@ class ProviderCell: UITableViewCell {
         onButtonTapped?()
     }
 
-    func configure(with provider: ServiceProvider) {
+    func configure(with provider: ServiceProviderModel) {
         nameLabel.text = provider.name
         roleLabel.text = provider.role
         avatarImageView.image = UIImage(named: provider.imageName) ?? UIImage(systemName: "person.circle.fill")

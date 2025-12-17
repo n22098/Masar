@@ -13,7 +13,7 @@ enum ServiceCategory {
     case digitalServices
 }
 
-struct ServiceProvider {
+struct erviceProviderModel {
     let name: String
     let role: String
     let rating: String
