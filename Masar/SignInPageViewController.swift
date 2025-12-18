@@ -7,13 +7,27 @@
     ///////////
     //import UIKit
 
+import UIKit
+import FirebaseAuth
+import FirebaseFirestore
 
- 
-
-    import UIKit
-    import FirebaseAuth
-    import FirebaseFirestore
-
+struct UserProfile: Codable {
+    let uid: String
+    let name: String
+    let email: String
+    let phone: String
+    let username: String
+    let role: String?
+    
+    init(uid: String, data: [String: Any]) {
+        self.uid = uid
+        self.name = data["name"] as? String ?? ""
+        self.email = data["email"] as? String ?? ""
+        self.phone = data["phone"] as? String ?? ""
+        self.username = data["username"] as? String ?? ""
+        self.role = data["role"] as? String
+    }
+}
     class SignInPageViewController: UIViewController {
         @IBOutlet weak var usernameField: UITextField!
         @IBOutlet weak var passwordField: UITextField!
@@ -23,75 +37,63 @@
 
         override func viewDidLoad() {
             super.viewDidLoad()
-            passwordField.isSecureTextEntry = true
         }
 
         @IBAction func signInBtnTapped(_ sender: UIButton) {
-
-            guard
-                let input = usernameField.text?.trimmingCharacters(in: .whitespacesAndNewlines),
-                !input.isEmpty,
-                let password = passwordField.text,
-                !password.isEmpty
-            else {
-                showAlert(title: "Warning", message: "Please fill in all fields.")
+            // Dismiss keyboard
+            view.endEditing(true)
+            
+            // Gather inputs (assume usernameField is email)
+            let email = usernameField.text?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+            let password = passwordField.text ?? ""
+            
+            // Validate
+            guard !email.isEmpty, !password.isEmpty else {
+                showAlert(title: "Missing Information", message: "Please enter your email and password.")
                 return
             }
-
-            if input.contains("@") {
-                // 📧 Email login
-                signInWithEmail(email: input, password: password)
-            } else {
-                // 👤 Username login
-                signInWithUsername(username: input.lowercased(), password: password)
-            }
-        }
-
-        // MARK: - Email Login
-        private func signInWithEmail(email: String, password: String) {
-            Auth.auth().signIn(withEmail: email, password: password) { _, error in
-                if let _ = error {
-                    self.showAlert(title: "Login Failed", message: "Invalid email or password.")
+            
+            // Disable button to prevent multiple taps
+            sender.isEnabled = false
+            
+            // Firebase Auth sign-in
+            Auth.auth().signIn(withEmail: email, password: password) { [weak self] result, error in
+                guard let self = self else { return }
+                if let error = error {
+                    sender.isEnabled = true
+                    self.showAlert(title: "Sign In Failed", message: error.localizedDescription)
                     return
                 }
-                self.goToProfilePage()
-            }
-        }
-
-        // MARK: - Username Login
-        private func signInWithUsername(username: String, password: String) {
-            db.collection("users")
-                .whereField("username", isEqualTo: username)
-                .getDocuments { snapshot, error in
-
-                    if let _ = error {
-                        self.showAlert(title: "Error", message: "Something went wrong.")
-                        return
-                    }
-
-                    guard
-                        let document = snapshot?.documents.first,
-                        let email = document["email"] as? String
-                    else {
-                        self.showAlert(title: "Login Failed", message: "Username not found.")
-                        return
-                    }
-
-                    self.signInWithEmail(email: email, password: password)
+                
+                guard let uid = result?.user.uid else {
+                    sender.isEnabled = true
+                    self.showAlert(title: "Sign In Failed", message: "Unable to retrieve user information.")
+                    return
                 }
-        }
-
-        // MARK: - Navigation
-        private func goToProfilePage() {
-            DispatchQueue.main.async {
-                self.performSegue(withIdentifier: "goToProfile", sender: self)
+                
+                // Fetch user profile from Firestore and pass to ProfilePageViewController
+                self.db.collection("users").document(uid).getDocument { snapshot, err in
+                    sender.isEnabled = true
+                    if let err = err {
+                        self.showAlert(title: "Profile Error", message: err.localizedDescription)
+                        return
+                    }
+                    
+                    let data = snapshot?.data() ?? [:]
+                    let profile = UserProfile(uid: uid, data: data)
+                    
+                    let storyboard = UIStoryboard(name: "Main", bundle: nil)
+                    let profileVC = storyboard.instantiateViewController(withIdentifier: "ProfilePageViewController") as! ProfilePageViewController
+                    profileVC.userProfile = profile
+                    self.navigationController?.pushViewController(profileVC, animated: true)
+                }
             }
         }
-
-        // MARK: - Alert
-        private func showAlert(title: String, message: String) {
-            let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
-            alert.addAction(UIAlertAction(title: "OK", style: .default))
-            present(alert, animated: true)
+        
+        // MARK: - Helpers
+        private func showAlert(title: String, message: String, completion: ((UIAlertAction) -> Void)? = nil) {
+            let ac = UIAlertController(title: title, message: message, preferredStyle: .alert)
+            ac.addAction(UIAlertAction(title: "OK", style: .default, handler: completion))
+            present(ac, animated: true)
         }
     }
