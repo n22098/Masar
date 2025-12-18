@@ -1,9 +1,3 @@
-//
-//  SceneDelegate.swift
-//  Masar
-//
-//  Created by BP-36-201-13 on 04/12/2025.
-//
 import UIKit
 
 class SceneDelegate: UIResponder, UIWindowSceneDelegate {
@@ -22,6 +16,9 @@ appearance.configureWithOpaqueBackground()
 
 appearance.backgroundColor = UIColor(red: 98/255, green: 87/255, blue: 227/255, alpha: 1)
 
+appearance.titleTextAttributes = [
+.foregroundColor: UIColor.white
+]
 
 appearance.largeTitleTextAttributes = [
 .foregroundColor: UIColor.white
