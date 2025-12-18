@@ -11,5 +11,5 @@ struct BookingModel {
     let providerName: String
     let date: String
     let price: String
-    let status: BookingStatus
+    var status: BookingStatus
 }

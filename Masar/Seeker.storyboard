@@ -830,7 +830,7 @@
                 </tableViewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="boS-0k-XFv" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="3179" y="-1182"/>
+            <point key="canvasLocation" x="2969" y="-1182"/>
         </scene>
         <!--Service Information-->
         <scene sceneID="g59-a8-t92">
@@ -1011,59 +1011,44 @@
                                     <rect key="frame" x="0.0" y="0.0" width="353" height="110"/>
                                     <autoresizingMask key="autoresizingMask"/>
                                     <subviews>
-                                        <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Label" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="q2y-Tw-huf">
+                                        <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" text="Label" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="q2y-Tw-huf">
                                             <rect key="frame" x="272" y="36" width="114" height="20.333333333333329"/>
+                                            <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                             <fontDescription key="fontDescription" type="system" pointSize="17"/>
                                             <nil key="textColor"/>
                                             <nil key="highlightedColor"/>
                                         </label>
-                                        <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" spacing="11" translatesAutoresizingMaskIntoConstraints="NO" id="4hH-Qg-Lfq">
-                                            <rect key="frame" x="60" y="15" width="150" height="80"/>
+                                        <stackView opaque="NO" contentMode="scaleToFill" fixedFrame="YES" axis="vertical" spacing="11" translatesAutoresizingMaskIntoConstraints="NO" id="4hH-Qg-Lfq">
+                                            <rect key="frame" x="60" y="15" width="41.333333333333343" height="83"/>
                                             <subviews>
                                                 <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Label" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="UYp-EU-wVZ">
-                                                    <rect key="frame" x="0.0" y="0.0" width="150" height="17.333333333333332"/>
+                                                    <rect key="frame" x="0.0" y="0.0" width="41.333333333333336" height="20.333333333333332"/>
                                                     <fontDescription key="fontDescription" type="system" pointSize="17"/>
                                                     <nil key="textColor"/>
                                                     <nil key="highlightedColor"/>
                                                 </label>
                                                 <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Label" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="YKE-nJ-Vb0">
-                                                    <rect key="frame" x="0.0" y="28.333333333333336" width="150" height="20.333333333333336"/>
-                                                    <constraints>
-                                                        <constraint firstAttribute="height" constant="20.333333333333336" id="MN8-hg-tnJ"/>
-                                                    </constraints>
+                                                    <rect key="frame" x="0.0" y="31.333333333333336" width="41.333333333333336" height="20.333333333333336"/>
                                                     <fontDescription key="fontDescription" type="system" pointSize="17"/>
                                                     <nil key="textColor"/>
                                                     <nil key="highlightedColor"/>
                                                 </label>
                                                 <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Label" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="rla-A6-l5S">
-                                                    <rect key="frame" x="0.0" y="59.666666666666679" width="150" height="20.333333333333336"/>
-                                                    <constraints>
-                                                        <constraint firstAttribute="height" constant="20.333333333333329" id="kTN-Tg-pl9"/>
-                                                    </constraints>
+                                                    <rect key="frame" x="0.0" y="62.666666666666664" width="41.333333333333336" height="20.333333333333336"/>
                                                     <fontDescription key="fontDescription" type="system" pointSize="17"/>
                                                     <nil key="textColor"/>
                                                     <nil key="highlightedColor"/>
                                                 </label>
                                             </subviews>
-                                            <constraints>
-                                                <constraint firstAttribute="width" constant="150" id="lYb-hG-eKP"/>
-                                            </constraints>
                                         </stackView>
                                     </subviews>
-                                    <constraints>
-                                        <constraint firstItem="4hH-Qg-Lfq" firstAttribute="leading" secondItem="G4w-p9-Eya" secondAttribute="leadingMargin" constant="40" id="PNC-Xm-ssp"/>
-                                        <constraint firstItem="q2y-Tw-huf" firstAttribute="top" secondItem="G4w-p9-Eya" secondAttribute="topMargin" constant="24" id="ceC-hQ-0Yh"/>
-                                        <constraint firstItem="q2y-Tw-huf" firstAttribute="leading" secondItem="4hH-Qg-Lfq" secondAttribute="trailing" constant="62" id="e9g-eZ-hkG"/>
-                                        <constraint firstItem="4hH-Qg-Lfq" firstAttribute="top" secondItem="G4w-p9-Eya" secondAttribute="topMargin" constant="3" id="fcL-Qa-8Vb"/>
-                                        <constraint firstAttribute="trailingMargin" secondItem="q2y-Tw-huf" secondAttribute="trailing" constant="-53" id="o7L-Bb-IbT"/>
-                                        <constraint firstItem="4hH-Qg-Lfq" firstAttribute="centerY" secondItem="G4w-p9-Eya" secondAttribute="centerY" id="tCp-OB-719"/>
-                                    </constraints>
                                 </tableViewCellContentView>
                                 <connections>
                                     <outlet property="dateLabel" destination="rla-A6-l5S" id="4ao-dP-eAL"/>
                                     <outlet property="providerNameLabel" destination="UYp-EU-wVZ" id="84g-rf-qzW"/>
                                     <outlet property="serviceNameLabel" destination="YKE-nJ-Vb0" id="egZ-jp-fY9"/>
                                     <outlet property="statusLabel" destination="q2y-Tw-huf" id="2Sl-io-RmQ"/>
+                                    <segue destination="zH3-RC-p2t" kind="show" identifier="showBookingDetails" id="HCp-0j-LpD"/>
                                 </connections>
                             </tableViewCell>
                         </prototypes>
@@ -1075,20 +1060,7 @@
                     <navigationItem key="navigationItem" id="Vcx-7r-aOU">
                         <nil key="title"/>
                         <barButtonItem key="leftBarButtonItem" image="rectangle.portrait.and.arrow.forward" catalog="system" id="yxC-Ob-m4H"/>
-                        <segmentedControl key="titleView" opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="top" segmentControlStyle="bar" selectedSegmentIndex="0" id="D0D-ct-Sbh">
-                            <rect key="frame" x="66.666666666666686" y="6" width="260" height="32"/>
-                            <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                            <segments>
-                                <segment title="Upcoming"/>
-                                <segment title="Completed"/>
-                                <segment title="Canceled"/>
-                            </segments>
-                        </segmentedControl>
                     </navigationItem>
-                    <connections>
-                        <outlet property="filterSegment" destination="D0D-ct-Sbh" id="NnN-AQ-qmb"/>
-                        <segue destination="zH3-RC-p2t" kind="show" identifier="BookingHistoryCell" id="y3B-fh-HKt"/>
-                    </connections>
                 </tableViewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="mB1-3q-6aS" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
@@ -1097,7 +1069,7 @@
         <!--Booking History-->
         <scene sceneID="y8A-nL-3vQ">
             <objects>
-                <tableViewController id="zH3-RC-p2t" customClass="viewBookingTableViewController" customModule="Masar" customModuleProvider="target" sceneMemberID="viewController">
+                <tableViewController id="zH3-RC-p2t" customClass="BookingHistoryDetailsViewController" customModule="Masar" customModuleProvider="target" sceneMemberID="viewController">
                     <tableView key="view" clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="static" style="insetGrouped" separatorStyle="default" rowHeight="-1" estimatedRowHeight="-1" sectionHeaderHeight="18" estimatedSectionHeaderHeight="-1" sectionFooterHeight="18" estimatedSectionFooterHeight="-1" id="cUb-Bt-3Qv">
                         <rect key="frame" x="0.0" y="0.0" width="393" height="852"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
@@ -1135,7 +1107,7 @@
                                             </constraints>
                                         </tableViewCellContentView>
                                     </tableViewCell>
-                                    <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" preservesSuperviewLayoutMargins="YES" selectionStyle="default" indentationWidth="10" reuseIdentifier="InstructionCell" rowHeight="58" id="LDI-Gd-dxU" customClass="BookingDetailsConfirmedTableViewCell" customModule="Masar" customModuleProvider="target">
+                                    <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" preservesSuperviewLayoutMargins="YES" selectionStyle="default" indentationWidth="10" reuseIdentifier="Booking date" rowHeight="58" id="LDI-Gd-dxU" customClass="BookingDetailsConfirmedTableViewCell" customModule="Masar" customModuleProvider="target">
                                         <rect key="frame" x="20" y="75" width="353" height="58"/>
                                         <autoresizingMask key="autoresizingMask"/>
                                         <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" preservesSuperviewLayoutMargins="YES" insetsLayoutMarginsFromSafeArea="NO" tableViewCell="LDI-Gd-dxU" id="Bg7-2Q-QVJ">
@@ -1358,7 +1330,7 @@
                                             </constraints>
                                         </tableViewCellContentView>
                                     </tableViewCell>
-                                    <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" preservesSuperviewLayoutMargins="YES" selectionStyle="default" indentationWidth="10" reuseIdentifier="InstructionCell" rowHeight="126" id="iiE-jE-MBI" customClass="BookingDetailsConfirmedTableViewCell" customModule="Masar" customModuleProvider="target">
+                                    <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" preservesSuperviewLayoutMargins="YES" selectionStyle="default" indentationWidth="10" reuseIdentifier="Description" rowHeight="126" id="iiE-jE-MBI" customClass="BookingDetailsConfirmedTableViewCell" customModule="Masar" customModuleProvider="target">
                                         <rect key="frame" x="20" y="481" width="353" height="126"/>
                                         <autoresizingMask key="autoresizingMask"/>
                                         <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" preservesSuperviewLayoutMargins="YES" insetsLayoutMarginsFromSafeArea="NO" tableViewCell="iiE-jE-MBI" id="kIN-I2-Mc6">
@@ -1393,7 +1365,7 @@
                                             </constraints>
                                         </tableViewCellContentView>
                                     </tableViewCell>
-                                    <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" preservesSuperviewLayoutMargins="YES" selectionStyle="default" indentationWidth="10" reuseIdentifier="PackageInncludeCell" rowHeight="155" id="TaZ-e6-c1Z" customClass="BookingDetailsConfirmedTableViewCell" customModule="Masar" customModuleProvider="target">
+                                    <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" preservesSuperviewLayoutMargins="YES" selectionStyle="default" indentationWidth="10" reuseIdentifier="ItemInncludeCell" rowHeight="155" id="TaZ-e6-c1Z" customClass="BookingDetailsConfirmedTableViewCell" customModule="Masar" customModuleProvider="target">
                                         <rect key="frame" x="20" y="607" width="353" height="155"/>
                                         <autoresizingMask key="autoresizingMask"/>
                                         <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" preservesSuperviewLayoutMargins="YES" insetsLayoutMarginsFromSafeArea="NO" tableViewCell="TaZ-e6-c1Z" id="K7e-qa-b44">
@@ -1437,25 +1409,15 @@
                         </connections>
                     </tableView>
                     <navigationItem key="navigationItem" title="Booking History" id="4Ge-wK-cxG">
-                        <barButtonItem key="rightBarButtonItem" systemItem="cancel" id="Ibx-4t-qGQ">
-                            <connections>
-                                <action selector="cancelbtn:" destination="zH3-RC-p2t" id="wMZ-jz-cCS"/>
-                            </connections>
-                        </barButtonItem>
+                        <barButtonItem key="rightBarButtonItem" systemItem="cancel" id="Ibx-4t-qGQ"/>
                     </navigationItem>
                     <connections>
-                        <outlet property="Datelet" destination="Bg7-2Q-QVJ" id="kUq-OH-Npx"/>
-                        <outlet property="NameLet" destination="ttr-eH-HKm" id="ew8-ZJ-WGU"/>
-                        <outlet property="Packagecell" destination="TaZ-e6-c1Z" id="J0K-yT-Mbb"/>
-                        <outlet property="Placelet" destination="g3e-4C-mTT" id="Fx3-i0-I1K"/>
-                        <outlet property="Pricelet" destination="RJH-Wd-ABS" id="Nh2-Fl-6VC"/>
-                        <outlet property="cancelling" destination="Ibx-4t-qGQ" id="faY-h0-J7u"/>
-                        <outlet property="dateLabel" destination="jWp-58-emL" id="qGj-YB-Anb"/>
-                        <outlet property="descriptlet" destination="Zhr-fl-5PZ" id="EhS-kB-4Og"/>
-                        <outlet property="instructionLabel" destination="Mkm-fv-yRi" id="gTg-7v-1qZ"/>
-                        <outlet property="instructlet" destination="afh-t6-hIc" id="nuA-gf-66j"/>
-                        <outlet property="packageinclude" destination="7KU-jL-AtS" id="Vnl-XR-9hh"/>
-                        <outlet property="stlabel" destination="xId-uT-8v9" id="Yye-Ve-LWn"/>
+                        <outlet property="dateLabel" destination="4dT-IK-Glc" id="WLV-1Y-R47"/>
+                        <outlet property="locationLabel" destination="YmY-Po-1Dg" id="9WQ-sF-xkk"/>
+                        <outlet property="nameLabel" destination="mam-ku-WcF" id="bQH-yT-DGY"/>
+                        <outlet property="priceLabel" destination="AGH-zD-KJN" id="BIt-t4-eEt"/>
+                        <outlet property="skillsLabel" destination="afh-t6-hIc" id="iP0-ey-WdB"/>
+                        <outlet property="statusLabel" destination="xUc-fv-Xc9" id="qp3-Hd-j8n"/>
                     </connections>
                 </tableViewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="0dw-Ih-XU9" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
