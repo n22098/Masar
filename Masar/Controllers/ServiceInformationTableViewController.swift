@@ -87,22 +87,21 @@ class ServiceInformationTableViewController: UITableViewController {
     
     // MARK: - Actions
     @IBAction func requestButtonTapped(_ sender: UIButton) {
-        // 👇 التعديل: الانتقال للصفحة الرابعة (Booking Form) بدلاً من إظهار Alert
+        // طباعة للتأكد أن الزر يعمل
+        print("🔵 Booking Button Tapped")
+        
+        // تنفيذ الانتقال يدوياً
         performSegue(withIdentifier: "showBookingForm", sender: nil)
     }
-    
-    // في ملف ServiceInformationTableViewController.swift
     
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
         if segue.identifier == "showBookingForm" {
             if let destVC = segue.destination as? ServiceDetailsBookingTableViewController {
-                
-                // نقل البيانات
                 destVC.receivedServiceName = self.receivedServiceName
                 destVC.receivedServicePrice = self.receivedServicePrice
-                
-                // 👇 إضافة: إرسال موقع الموظف للصفحة الأخيرة
                 destVC.receivedLocation = self.providerData?.location
+                
+                print("✅ Data passed: \(receivedServiceName ?? "Nil")")
             }
         }
     }

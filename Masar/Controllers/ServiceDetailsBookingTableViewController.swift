@@ -2,63 +2,82 @@ import UIKit
 
 class ServiceDetailsBookingTableViewController: UITableViewController {
 
-    // MARK: - Variables (استقبال البيانات)
-    var receivedServiceName: String?
-    var receivedServicePrice: String?
-    var receivedLocation: String? // متغير جديد لاستقبال الموقع
-    
     // MARK: - Outlets
-    // 1. التاريخ (الوحيد القابل للتعديل)
     @IBOutlet weak var datePicker: UIDatePicker!
-    
-    // 2. باقي الحقول (Labels للعرض فقط - ممنوع الكتابة)
     @IBOutlet weak var serviceNameLabel: UILabel!
     @IBOutlet weak var priceLabel: UILabel!
     @IBOutlet weak var locationLabel: UILabel!
-    
     @IBOutlet weak var confirmButton: UIButton!
+
+    // MARK: - Data
+    var receivedServiceName: String?
+    var receivedServicePrice: String?
+    var receivedLocation: String?
 
     // MARK: - Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
         setupUI()
-        populateData()
+        fillData()
     }
-    
-    // MARK: - Setup
+
+    // MARK: - UI Setup
     func setupUI() {
-        title = "Check Out" // تغيير العنوان ليكون مناسباً
-        tableView.backgroundColor = UIColor(red: 248/255, green: 248/255, blue: 252/255, alpha: 1.0)
-        
-        // تجميل الزر
-        if let btn = confirmButton {
-            btn.layer.cornerRadius = 8
-            btn.backgroundColor = UIColor(red: 0.35, green: 0.34, blue: 0.91, alpha: 1.0)
-        }
+        title = "Check Out"
+        confirmButton.layer.cornerRadius = 8
     }
-    
-    func populateData() {
-        // عرض البيانات المستلمة في النصوص الثابتة
-        serviceNameLabel?.text = receivedServiceName
-        priceLabel?.text = receivedServicePrice
-        locationLabel?.text = receivedLocation ?? "Online" // لو ما وصلنا موقع، نكتب Online
+
+    func fillData() {
+        serviceNameLabel.text = receivedServiceName ?? ""
+        priceLabel.text = receivedServicePrice ?? ""
+        locationLabel.text = receivedLocation ?? "Online"
     }
-    
-    // MARK: - Actions
-    @IBAction func confirmBookingTapped(_ sender: UIButton) {
-        // لا نحتاج للتحقق من الكتابة لأن البيانات ثابتة
-        
-        // رسالة النجاح مباشرة
-        let dateString = datePicker.date.formatted(date: .long, time: .shortened)
-        
-        let successAlert = UIAlertController(title: "Booking Confirmed! 🎉",
-                                           message: "Service: \(receivedServiceName ?? "")\nDate: \(dateString)",
-                                           preferredStyle: .alert)
-        
-        successAlert.addAction(UIAlertAction(title: "Done", style: .default) { _ in
-            self.navigationController?.popToRootViewController(animated: true)
+
+    // MARK: - Book Button
+    @IBAction func bookButtonPressed(_ sender: Any) {
+
+        let confirmAlert = UIAlertController(
+            title: "Confirm Booking",
+            message: "Are you sure you want to proceed?",
+            preferredStyle: .alert
+        )
+
+        confirmAlert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
+
+        confirmAlert.addAction(UIAlertAction(title: "Yes", style: .default) { _ in
+            self.showSuccessAlert()
         })
-        
+
+        present(confirmAlert, animated: true)
+    }
+
+    // MARK: - Success Alert
+    func showSuccessAlert() {
+
+        let dateString = datePicker.date.formatted(
+            date: .long,
+            time: .shortened
+        )
+
+        let successAlert = UIAlertController(
+            title: "Success! 🎉",
+            message: "Booking confirmed for \(receivedServiceName ?? "")\nDate: \(dateString)",
+            preferredStyle: .alert
+        )
+
+        successAlert.addAction(
+            UIAlertAction(title: "Done", style: .default) { _ in
+
+                // 🔁 رجوع لصفحة البداية
+                self.navigationController?.popToRootViewController(animated: false)
+
+                // 🏠 اختيار أول Tab (Search)
+                if let tabBar = self.tabBarController {
+                    tabBar.selectedIndex = 0
+                }
+            }
+        )
+
         present(successAlert, animated: true)
     }
 }

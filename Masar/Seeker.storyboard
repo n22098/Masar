@@ -811,12 +811,18 @@
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                 <state key="normal" title="Button"/>
                                 <buttonConfiguration key="configuration" style="plain" title="Book"/>
+                                <connections>
+                                    <action selector="bookButtonPressed:" destination="E1O-cI-JqD" eventType="touchUpInside" id="2mW-FE-Gkw"/>
+                                </connections>
                             </button>
+                            <connections>
+                                <action selector="bookButtonPressed:" destination="E1O-cI-JqD" id="o2f-6V-GCv"/>
+                            </connections>
                         </barButtonItem>
                     </navigationItem>
                     <connections>
-                        <outlet property="confirmButton" destination="G6x-Fe-aX7" id="esw-RM-rMe"/>
-                        <outlet property="datePicker" destination="pxg-i9-ekM" id="y6S-um-1JG"/>
+                        <outlet property="confirmButton" destination="G6x-Fe-aX7" id="X0z-y4-p8i"/>
+                        <outlet property="datePicker" destination="pxg-i9-ekM" id="aAr-1u-IYV"/>
                         <outlet property="locationLabel" destination="aQ3-3Q-Xl0" id="dS3-91-AXn"/>
                         <outlet property="priceLabel" destination="BkQ-jR-ISv" id="zKU-IS-KdL"/>
                         <outlet property="serviceNameLabel" destination="Iiu-l8-v6r" id="mDu-Wj-TFy"/>
@@ -824,7 +830,7 @@
                 </tableViewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="boS-0k-XFv" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="3036" y="-1182"/>
+            <point key="canvasLocation" x="3179" y="-1182"/>
         </scene>
         <!--Service Information-->
         <scene sceneID="g59-a8-t92">
@@ -956,7 +962,7 @@
                                                     <state key="normal" title="Button"/>
                                                     <buttonConfiguration key="configuration" style="gray" title="Booking"/>
                                                     <connections>
-                                                        <segue destination="E1O-cI-JqD" kind="show" identifier="showDetails" id="QXC-Xh-fhu"/>
+                                                        <segue destination="E1O-cI-JqD" kind="show" id="2Y8-mM-dfE"/>
                                                     </connections>
                                                 </button>
                                             </subviews>
@@ -992,7 +998,7 @@
         <!--Booking History Table View Controller-->
         <scene sceneID="p00-g9-NcK">
             <objects>
-                <tableViewController storyboardIdentifier="bookHistory" id="YBA-9O-4t7" customClass="BookingHistoryTableViewController" customModule="Masar" customModuleProvider="target" sceneMemberID="viewController">
+                <tableViewController storyboardIdentifier="BookingHistoryVC" id="YBA-9O-4t7" customClass="BookingHistoryTableViewController" customModule="Masar" customModuleProvider="target" sceneMemberID="viewController">
                     <tableView key="view" clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="insetGrouped" separatorStyle="default" rowHeight="-1" estimatedRowHeight="-1" sectionHeaderHeight="18" estimatedSectionHeaderHeight="-1" sectionFooterHeight="18" estimatedSectionFooterHeight="-1" id="UK8-kF-s90">
                         <rect key="frame" x="0.0" y="0.0" width="393" height="852"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
@@ -1054,8 +1060,10 @@
                                     </constraints>
                                 </tableViewCellContentView>
                                 <connections>
+                                    <outlet property="dateLabel" destination="rla-A6-l5S" id="4ao-dP-eAL"/>
                                     <outlet property="providerNameLabel" destination="UYp-EU-wVZ" id="84g-rf-qzW"/>
                                     <outlet property="serviceNameLabel" destination="YKE-nJ-Vb0" id="egZ-jp-fY9"/>
+                                    <outlet property="statusLabel" destination="q2y-Tw-huf" id="2Sl-io-RmQ"/>
                                 </connections>
                             </tableViewCell>
                         </prototypes>
@@ -1089,7 +1097,7 @@
         <!--Booking History-->
         <scene sceneID="y8A-nL-3vQ">
             <objects>
-                <tableViewController id="zH3-RC-p2t" customClass="viewBookingTableViewController" customModule="LabCaught" customModuleProvider="target" sceneMemberID="viewController">
+                <tableViewController id="zH3-RC-p2t" customClass="viewBookingTableViewController" customModule="Masar" customModuleProvider="target" sceneMemberID="viewController">
                     <tableView key="view" clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="static" style="insetGrouped" separatorStyle="default" rowHeight="-1" estimatedRowHeight="-1" sectionHeaderHeight="18" estimatedSectionHeaderHeight="-1" sectionFooterHeight="18" estimatedSectionFooterHeight="-1" id="cUb-Bt-3Qv">
                         <rect key="frame" x="0.0" y="0.0" width="393" height="852"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
@@ -1097,7 +1105,7 @@
                         <sections>
                             <tableViewSection id="y09-vG-GAc">
                                 <cells>
-                                    <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" preservesSuperviewLayoutMargins="YES" selectionStyle="default" indentationWidth="10" reuseIdentifier="schedule" rowHeight="57" id="4dT-IK-Glc" customClass="BookingDetailsConfirmedTableViewCell" customModule="LabCaught" customModuleProvider="target">
+                                    <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" preservesSuperviewLayoutMargins="YES" selectionStyle="default" indentationWidth="10" reuseIdentifier="schedule" rowHeight="57" id="4dT-IK-Glc" customClass="BookingDetailsConfirmedTableViewCell" customModule="Masar" customModuleProvider="target">
                                         <rect key="frame" x="20" y="18" width="353" height="57"/>
                                         <autoresizingMask key="autoresizingMask"/>
                                         <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" preservesSuperviewLayoutMargins="YES" insetsLayoutMarginsFromSafeArea="NO" tableViewCell="4dT-IK-Glc" id="kFv-Of-6Kw">
@@ -1127,7 +1135,7 @@
                                             </constraints>
                                         </tableViewCellContentView>
                                     </tableViewCell>
-                                    <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" preservesSuperviewLayoutMargins="YES" selectionStyle="default" indentationWidth="10" reuseIdentifier="InstructionCell" rowHeight="58" id="LDI-Gd-dxU" customClass="BookingDetailsConfirmedTableViewCell" customModule="LabCaught" customModuleProvider="target">
+                                    <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" preservesSuperviewLayoutMargins="YES" selectionStyle="default" indentationWidth="10" reuseIdentifier="InstructionCell" rowHeight="58" id="LDI-Gd-dxU" customClass="BookingDetailsConfirmedTableViewCell" customModule="Masar" customModuleProvider="target">
                                         <rect key="frame" x="20" y="75" width="353" height="58"/>
                                         <autoresizingMask key="autoresizingMask"/>
                                         <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" preservesSuperviewLayoutMargins="YES" insetsLayoutMarginsFromSafeArea="NO" tableViewCell="LDI-Gd-dxU" id="Bg7-2Q-QVJ">
@@ -1154,7 +1162,7 @@
                                             </constraints>
                                         </tableViewCellContentView>
                                     </tableViewCell>
-                                    <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" preservesSuperviewLayoutMargins="YES" selectionStyle="default" indentationWidth="10" reuseIdentifier="State" rowHeight="58" id="xUc-fv-Xc9" customClass="BookingDetailsConfirmedTableViewCell" customModule="LabCaught" customModuleProvider="target">
+                                    <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" preservesSuperviewLayoutMargins="YES" selectionStyle="default" indentationWidth="10" reuseIdentifier="State" rowHeight="58" id="xUc-fv-Xc9" customClass="BookingDetailsConfirmedTableViewCell" customModule="Masar" customModuleProvider="target">
                                         <rect key="frame" x="20" y="133" width="353" height="58"/>
                                         <autoresizingMask key="autoresizingMask"/>
                                         <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" preservesSuperviewLayoutMargins="YES" insetsLayoutMarginsFromSafeArea="NO" tableViewCell="xUc-fv-Xc9" id="Efv-mu-z9n">
@@ -1193,7 +1201,7 @@
                                             </constraints>
                                         </tableViewCellContentView>
                                     </tableViewCell>
-                                    <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" preservesSuperviewLayoutMargins="YES" selectionStyle="default" indentationWidth="10" reuseIdentifier="Loc" rowHeight="58" id="YmY-Po-1Dg" customClass="BookingDetailsConfirmedTableViewCell" customModule="LabCaught" customModuleProvider="target">
+                                    <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" preservesSuperviewLayoutMargins="YES" selectionStyle="default" indentationWidth="10" reuseIdentifier="Loc" rowHeight="58" id="YmY-Po-1Dg" customClass="BookingDetailsConfirmedTableViewCell" customModule="Masar" customModuleProvider="target">
                                         <rect key="frame" x="20" y="191" width="353" height="58"/>
                                         <autoresizingMask key="autoresizingMask"/>
                                         <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" preservesSuperviewLayoutMargins="YES" insetsLayoutMarginsFromSafeArea="NO" tableViewCell="YmY-Po-1Dg" id="2le-aN-hJH">
@@ -1219,7 +1227,7 @@
                                             </constraints>
                                         </tableViewCellContentView>
                                     </tableViewCell>
-                                    <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" preservesSuperviewLayoutMargins="YES" selectionStyle="default" indentationWidth="10" reuseIdentifier="labe" rowHeight="58" id="Nuc-ZE-Xkf" customClass="BookingDetailsConfirmedTableViewCell" customModule="LabCaught" customModuleProvider="target">
+                                    <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" preservesSuperviewLayoutMargins="YES" selectionStyle="default" indentationWidth="10" reuseIdentifier="labe" rowHeight="58" id="Nuc-ZE-Xkf" customClass="BookingDetailsConfirmedTableViewCell" customModule="Masar" customModuleProvider="target">
                                         <rect key="frame" x="20" y="249" width="353" height="58"/>
                                         <autoresizingMask key="autoresizingMask"/>
                                         <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" preservesSuperviewLayoutMargins="YES" insetsLayoutMarginsFromSafeArea="NO" tableViewCell="Nuc-ZE-Xkf" id="cqT-T4-Vk2">
@@ -1245,7 +1253,7 @@
                                             </constraints>
                                         </tableViewCellContentView>
                                     </tableViewCell>
-                                    <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" preservesSuperviewLayoutMargins="YES" selectionStyle="default" indentationWidth="10" reuseIdentifier="InstructionCell" rowHeight="58" id="mam-ku-WcF" customClass="BookingDetailsConfirmedTableViewCell" customModule="LabCaught" customModuleProvider="target">
+                                    <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" preservesSuperviewLayoutMargins="YES" selectionStyle="default" indentationWidth="10" reuseIdentifier="InstructionCell" rowHeight="58" id="mam-ku-WcF" customClass="BookingDetailsConfirmedTableViewCell" customModule="Masar" customModuleProvider="target">
                                         <rect key="frame" x="20" y="307" width="353" height="58"/>
                                         <autoresizingMask key="autoresizingMask"/>
                                         <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" preservesSuperviewLayoutMargins="YES" insetsLayoutMarginsFromSafeArea="NO" tableViewCell="mam-ku-WcF" id="2Yl-Nt-YjT">
@@ -1280,7 +1288,7 @@
                                             </constraints>
                                         </tableViewCellContentView>
                                     </tableViewCell>
-                                    <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" preservesSuperviewLayoutMargins="YES" selectionStyle="default" indentationWidth="10" reuseIdentifier="InstructionCell" rowHeight="58" id="AGH-zD-KJN" customClass="BookingDetailsConfirmedTableViewCell" customModule="LabCaught" customModuleProvider="target">
+                                    <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" preservesSuperviewLayoutMargins="YES" selectionStyle="default" indentationWidth="10" reuseIdentifier="InstructionCell" rowHeight="58" id="AGH-zD-KJN" customClass="BookingDetailsConfirmedTableViewCell" customModule="Masar" customModuleProvider="target">
                                         <rect key="frame" x="20" y="365" width="353" height="58"/>
                                         <autoresizingMask key="autoresizingMask"/>
                                         <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" preservesSuperviewLayoutMargins="YES" insetsLayoutMarginsFromSafeArea="NO" tableViewCell="AGH-zD-KJN" id="TAe-hh-HUH">
@@ -1315,7 +1323,7 @@
                                             </constraints>
                                         </tableViewCellContentView>
                                     </tableViewCell>
-                                    <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" preservesSuperviewLayoutMargins="YES" selectionStyle="default" indentationWidth="10" reuseIdentifier="InstructionCell" rowHeight="58" id="afh-t6-hIc" customClass="BookingDetailsConfirmedTableViewCell" customModule="LabCaught" customModuleProvider="target">
+                                    <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" preservesSuperviewLayoutMargins="YES" selectionStyle="default" indentationWidth="10" reuseIdentifier="InstructionCell" rowHeight="58" id="afh-t6-hIc" customClass="BookingDetailsConfirmedTableViewCell" customModule="Masar" customModuleProvider="target">
                                         <rect key="frame" x="20" y="423" width="353" height="58"/>
                                         <autoresizingMask key="autoresizingMask"/>
                                         <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" preservesSuperviewLayoutMargins="YES" insetsLayoutMarginsFromSafeArea="NO" tableViewCell="afh-t6-hIc" id="VdT-dr-f8t">
@@ -1350,7 +1358,7 @@
                                             </constraints>
                                         </tableViewCellContentView>
                                     </tableViewCell>
-                                    <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" preservesSuperviewLayoutMargins="YES" selectionStyle="default" indentationWidth="10" reuseIdentifier="InstructionCell" rowHeight="126" id="iiE-jE-MBI" customClass="BookingDetailsConfirmedTableViewCell" customModule="LabCaught" customModuleProvider="target">
+                                    <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" preservesSuperviewLayoutMargins="YES" selectionStyle="default" indentationWidth="10" reuseIdentifier="InstructionCell" rowHeight="126" id="iiE-jE-MBI" customClass="BookingDetailsConfirmedTableViewCell" customModule="Masar" customModuleProvider="target">
                                         <rect key="frame" x="20" y="481" width="353" height="126"/>
                                         <autoresizingMask key="autoresizingMask"/>
                                         <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" preservesSuperviewLayoutMargins="YES" insetsLayoutMarginsFromSafeArea="NO" tableViewCell="iiE-jE-MBI" id="kIN-I2-Mc6">
@@ -1385,7 +1393,7 @@
                                             </constraints>
                                         </tableViewCellContentView>
                                     </tableViewCell>
-                                    <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" preservesSuperviewLayoutMargins="YES" selectionStyle="default" indentationWidth="10" reuseIdentifier="PackageInncludeCell" rowHeight="155" id="TaZ-e6-c1Z" customClass="BookingDetailsConfirmedTableViewCell" customModule="LabCaught" customModuleProvider="target">
+                                    <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" preservesSuperviewLayoutMargins="YES" selectionStyle="default" indentationWidth="10" reuseIdentifier="PackageInncludeCell" rowHeight="155" id="TaZ-e6-c1Z" customClass="BookingDetailsConfirmedTableViewCell" customModule="Masar" customModuleProvider="target">
                                         <rect key="frame" x="20" y="607" width="353" height="155"/>
                                         <autoresizingMask key="autoresizingMask"/>
                                         <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" preservesSuperviewLayoutMargins="YES" insetsLayoutMarginsFromSafeArea="NO" tableViewCell="TaZ-e6-c1Z" id="K7e-qa-b44">
