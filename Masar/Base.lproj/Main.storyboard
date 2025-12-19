@@ -527,7 +527,6 @@
                         <outlet property="confirmPasswordTextField" destination="yCf-Xd-gfs" id="Gjv-wp-d9d"/>
                         <outlet property="currentPasswordTextField" destination="L6c-Zg-kkJ" id="b5c-dj-lnB"/>
                         <outlet property="newPasswordTextField" destination="Jsz-L8-MO3" id="BJM-9l-pfF"/>
-                        <outlet property="resetButton" destination="qMl-m3-abV" id="9JH-Vm-XLK"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="KW2-66-Rm8" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
