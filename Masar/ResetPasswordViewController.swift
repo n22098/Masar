@@ -1,13 +1,13 @@
 //
-//  SignUpAsAProviderPageViewController.swift
+//  ResetPasswordViewController.swift
 //  Masar
 //
-//  Created by BP-36-201-13 on 14/12/2025.
+//  Created by BP-36-201-13 on 19/12/2025.
 //
 
 import UIKit
 
-class SignUpAsAProviderPageViewController: UIViewController {
+class ResetPasswordViewController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()

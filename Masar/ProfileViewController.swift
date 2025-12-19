@@ -1,13 +1,13 @@
 //
-//  userInfoViewController.swift
+//  ProfileViewController.swift
 //  Masar
 //
-//  Created by BP-36-201-13 on 18/12/2025.
+//  Created by BP-36-201-13 on 19/12/2025.
 //
 
 import UIKit
 
-class userInfoViewController: UIViewController {
+class ProfileViewController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
