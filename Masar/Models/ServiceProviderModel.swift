@@ -10,4 +10,7 @@ struct ServiceProviderModel {
     let availability: String
     let location: String
     let phone: String
+    
+    // ✅ Add this
+    var services: [ServiceModel]? // List of services this provider offers
 }
