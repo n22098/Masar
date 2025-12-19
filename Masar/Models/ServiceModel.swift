@@ -1,6 +1,6 @@
 import Foundation
 
-struct ServiceModel {
+struct ServiceModel: Codable {
     var id: String
     var name: String
     var price: String
@@ -34,5 +34,18 @@ struct ServiceModel {
         self.features = features
         self.category = category
         self.isActive = isActive
+    }
+    
+    // Coding Keys to match JSON if needed
+    enum CodingKeys: String, CodingKey {
+        case id
+        case name
+        case price
+        case description
+        case icon
+        case deliveryTime
+        case features
+        case category
+        case isActive
     }
 }

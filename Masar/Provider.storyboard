@@ -533,7 +533,7 @@
         <!--S-->
         <scene sceneID="paY-zx-RUi">
             <objects>
-                <tabBarController title="S" id="9UV-s1-WUi" sceneMemberID="viewController">
+                <tabBarController storyboardIdentifier="MainTabBarController" title="S" id="9UV-s1-WUi" customClass="MainTabBarController" customModule="Masar" customModuleProvider="target" sceneMemberID="viewController">
                     <tabBar key="tabBar" contentMode="scaleToFill" insetsLayoutMarginsFromSafeArea="NO" id="rmy-0B-uFu">
                         <rect key="frame" x="0.0" y="0.0" width="393" height="49"/>
                         <autoresizingMask key="autoresizingMask"/>
@@ -1366,7 +1366,7 @@
         <!--Provider Tool-->
         <scene sceneID="pQU-RH-Spc">
             <objects>
-                <tableViewController storyboardIdentifier="admin" id="jFD-PO-lvJ" customClass="moderationTooltableviewcontroller" customModule="Masar" customModuleProvider="target" sceneMemberID="viewController">
+                <tableViewController storyboardIdentifier="ProviderDashboardTableViewController" id="jFD-PO-lvJ" customClass="ProviderDashboardTableViewController" customModule="Masar" customModuleProvider="target" sceneMemberID="viewController">
                     <tableView key="view" clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="static" style="plain" separatorStyle="default" rowHeight="-1" estimatedRowHeight="-1" sectionHeaderHeight="-1" estimatedSectionHeaderHeight="-1" sectionFooterHeight="-1" estimatedSectionFooterHeight="-1" id="1Pk-ma-wk9">
                         <rect key="frame" x="0.0" y="0.0" width="393" height="852"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
@@ -1751,7 +1751,7 @@
                                                     <nil key="highlightedColor"/>
                                                 </label>
                                                 <datePicker contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" datePickerMode="date" translatesAutoresizingMaskIntoConstraints="NO" id="1f8-kD-F9d">
-                                                    <rect key="frame" x="217" y="7" width="113" height="28"/>
+                                                    <rect key="frame" x="214" y="7" width="114" height="28"/>
                                                     <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMaxY="YES"/>
                                                     <date key="minimumDate" timeIntervalSinceReferenceDate="694267200">
                                                         <!--2023-01-01 12:00:00 +0000-->
@@ -1965,7 +1965,7 @@
                                                     <nil key="highlightedColor"/>
                                                 </label>
                                                 <datePicker contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" datePickerMode="date" translatesAutoresizingMaskIntoConstraints="NO" id="v4i-p1-2za">
-                                                    <rect key="frame" x="217" y="7" width="113" height="28"/>
+                                                    <rect key="frame" x="215" y="7" width="114" height="28"/>
                                                     <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMaxY="YES"/>
                                                     <date key="minimumDate" timeIntervalSinceReferenceDate="694267200">
                                                         <!--2023-01-01 12:00:00 +0000-->
@@ -2055,17 +2055,6 @@
                     </tableView>
                     <navigationItem key="navigationItem" id="UJS-Oy-t77">
                         <nil key="title"/>
-                        <barButtonItem key="leftBarButtonItem" image="rectangle.portrait.and.arrow.forward" catalog="system" id="duO-Rk-Crz"/>
-                        <segmentedControl key="titleView" opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="top" segmentControlStyle="bar" selectedSegmentIndex="0" id="tt8-zD-dNn">
-                            <rect key="frame" x="66.666666666666686" y="5.6666666666666679" width="260" height="33"/>
-                            <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                            <segments>
-                                <segment title="Upcoming"/>
-                                <segment title="Completed"/>
-                                <segment title="Cancelled"/>
-                            </segments>
-                            <color key="selectedSegmentTintColor" red="0.37254901959999998" green="0.40000000000000002" blue="0.5568627451" alpha="1" colorSpace="custom" customColorSpace="displayP3"/>
-                        </segmentedControl>
                     </navigationItem>
                 </tableViewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="b4e-mY-Aix" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
