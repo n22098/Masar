@@ -27,176 +27,87 @@ class SearchTableViewController: UITableViewController {
         return sc
     }()
     
+    // تم تحديث البيانات لتشمل الحقول الجديدة (aboutMe, portfolio, etc.)
     var allProviders: [ServiceProviderModel] = [
-        // IT Solutions (5 providers)
+        // IT Solutions
         ServiceProviderModel(
-            id: "1",
-            name: "Sayed Husain",
-            role: "Software Engineer",
-            imageName: "it1",
-            rating: 4.9,
-            skills: ["HTML", "CSS", "JS", "PHP", "MySQL"],
-            availability: "Sat-Thu",
-            location: "Online",
-            phone: "36666222"
+            id: "1", name: "Sayed Husain", role: "Software Engineer", imageName: "it1", rating: 4.9,
+            skills: ["HTML", "CSS", "JS", "PHP", "MySQL"], availability: "Sat-Thu", location: "Online", phone: "36666222",
+            services: [], aboutMe: "Professional Software Engineer", portfolio: [], certifications: [], reviews: [], experience: "5 Years", completedProjects: 20
         ),
         ServiceProviderModel(
-            id: "2",
-            name: "Joe Dean",
-            role: "Network Technician",
-            imageName: "it2",
-            rating: 4.5,
-            skills: ["Networking", "Security"],
-            availability: "Sun-Thu",
-            location: "Manama",
-            phone: "33333333"
+            id: "2", name: "Joe Dean", role: "Network Technician", imageName: "it2", rating: 4.5,
+            skills: ["Networking", "Security"], availability: "Sun-Thu", location: "Manama", phone: "33333333",
+            services: [], aboutMe: "Network Security Expert", portfolio: [], certifications: [], reviews: [], experience: "3 Years", completedProjects: 15
         ),
         ServiceProviderModel(
-            id: "3",
-            name: "Amin Altajer",
-            role: "Computer Repair",
-            imageName: "it3",
-            rating: 4.8,
-            skills: ["Hardware", "Software"],
-            availability: "Daily",
-            location: "Riffa",
-            phone: "39999999"
+            id: "3", name: "Amin Altajer", role: "Computer Repair", imageName: "it3", rating: 4.8,
+            skills: ["Hardware", "Software"], availability: "Daily", location: "Riffa", phone: "39999999",
+            services: [], aboutMe: "Expert in Hardware Repair", portfolio: [], certifications: [], reviews: [], experience: "7 Years", completedProjects: 50
         ),
         ServiceProviderModel(
-            id: "7",
-            name: "Ahmed Ali",
-            role: "IT Support Engineer",
-            imageName: "it4",
-            rating: 4.7,
-            skills: ["Windows", "Linux", "Cloud"],
-            availability: "Mon-Fri",
-            location: "Manama",
-            phone: "35555555"
+            id: "7", name: "Ahmed Ali", role: "IT Support Engineer", imageName: "it4", rating: 4.7,
+            skills: ["Windows", "Linux", "Cloud"], availability: "Mon-Fri", location: "Manama", phone: "35555555",
+            services: [], aboutMe: "Cloud & System Admin", portfolio: [], certifications: [], reviews: [], experience: "4 Years", completedProjects: 12
         ),
         ServiceProviderModel(
-            id: "8",
-            name: "Mohammed Hassan",
-            role: "Database Administrator",
-            imageName: "it5",
-            rating: 4.6,
-            skills: ["SQL", "Oracle", "MongoDB"],
-            availability: "Sun-Thu",
-            location: "Online",
-            phone: "34444444"
+            id: "8", name: "Mohammed Hassan", role: "Database Administrator", imageName: "it5", rating: 4.6,
+            skills: ["SQL", "Oracle", "MongoDB"], availability: "Sun-Thu", location: "Online", phone: "34444444",
+            services: [], aboutMe: "Database Optimization Pro", portfolio: [], certifications: [], reviews: [], experience: "6 Years", completedProjects: 30
         ),
         
-        // Teaching (5 providers)
+        // Teaching
         ServiceProviderModel(
-            id: "4",
-            name: "Kashmala Saleem",
-            role: "Math Teacher",
-            imageName: "t1",
-            rating: 5.0,
-            skills: ["Math", "Physics"],
-            availability: "Weekends",
-            location: "Online",
-            phone: "34444444"
+            id: "4", name: "Kashmala Saleem", role: "Math Teacher", imageName: "t1", rating: 5.0,
+            skills: ["Math", "Physics"], availability: "Weekends", location: "Online", phone: "34444444",
+            services: [], aboutMe: "Certified Math Teacher", portfolio: [], certifications: [], reviews: [], experience: "4 Years", completedProjects: 100
         ),
         ServiceProviderModel(
-            id: "9",
-            name: "Fatima Ahmed",
-            role: "English Teacher",
-            imageName: "t2",
-            rating: 4.8,
-            skills: ["English", "Grammar"],
-            availability: "Daily",
-            location: "Riffa",
-            phone: "36111111"
+            id: "9", name: "Fatima Ahmed", role: "English Teacher", imageName: "t2", rating: 4.8,
+            skills: ["English", "Grammar"], availability: "Daily", location: "Riffa", phone: "36111111",
+            services: [], aboutMe: "English Literature Expert", portfolio: [], certifications: [], reviews: [], experience: "5 Years", completedProjects: 80
         ),
         ServiceProviderModel(
-            id: "10",
-            name: "Sarah Ali",
-            role: "Science Teacher",
-            imageName: "t3",
-            rating: 4.7,
-            skills: ["Biology", "Chemistry"],
-            availability: "Mon-Fri",
-            location: "Manama",
-            phone: "37222222"
+            id: "10", name: "Sarah Ali", role: "Science Teacher", imageName: "t3", rating: 4.7,
+            skills: ["Biology", "Chemistry"], availability: "Mon-Fri", location: "Manama", phone: "37222222",
+            services: [], aboutMe: "Science & Biology Tutor", portfolio: [], certifications: [], reviews: [], experience: "3 Years", completedProjects: 40
         ),
         ServiceProviderModel(
-            id: "11",
-            name: "Layla Hassan",
-            role: "Arabic Teacher",
-            imageName: "t4",
-            rating: 4.9,
-            skills: ["Arabic", "Literature"],
-            availability: "Weekends",
-            location: "Online",
-            phone: "38333333"
+            id: "11", name: "Layla Hassan", role: "Arabic Teacher", imageName: "t4", rating: 4.9,
+            skills: ["Arabic", "Literature"], availability: "Weekends", location: "Online", phone: "38333333",
+            services: [], aboutMe: "Arabic Language Specialist", portfolio: [], certifications: [], reviews: [], experience: "8 Years", completedProjects: 120
         ),
         ServiceProviderModel(
-            id: "12",
-            name: "Noor Mohammed",
-            role: "History Teacher",
-            imageName: "t5",
-            rating: 4.6,
-            skills: ["History", "Geography"],
-            availability: "Sun-Thu",
-            location: "Muharraq",
-            phone: "39444444"
+            id: "12", name: "Noor Mohammed", role: "History Teacher", imageName: "t5", rating: 4.6,
+            skills: ["History", "Geography"], availability: "Sun-Thu", location: "Muharraq", phone: "39444444",
+            services: [], aboutMe: "History & Geography Teacher", portfolio: [], certifications: [], reviews: [], experience: "2 Years", completedProjects: 30
         ),
         
-        // Digital Services (5 providers)
+        // Digital Services
         ServiceProviderModel(
-            id: "5",
-            name: "Osama Hasan",
-            role: "UI/UX Designer",
-            imageName: "d1",
-            rating: 4.6,
-            skills: ["Figma", "Adobe XD"],
-            availability: "Flexible",
-            location: "Online",
-            phone: "37777777"
+            id: "5", name: "Osama Hasan", role: "UI/UX Designer", imageName: "d1", rating: 4.6,
+            skills: ["Figma", "Adobe XD"], availability: "Flexible", location: "Online", phone: "37777777",
+            services: [], aboutMe: "Creative UI/UX Designer", portfolio: [], certifications: [], reviews: [], experience: "3 Years", completedProjects: 25
         ),
         ServiceProviderModel(
-            id: "6",
-            name: "Vishal Santhosh",
-            role: "Content Creator",
-            imageName: "d3",
-            rating: 4.8,
-            skills: ["Video Editing", "Photography"],
-            availability: "Mon-Sat",
-            location: "Muharraq",
-            phone: "38888888"
+            id: "6", name: "Vishal Santhosh", role: "Content Creator", imageName: "d3", rating: 4.8,
+            skills: ["Video Editing", "Photography"], availability: "Mon-Sat", location: "Muharraq", phone: "38888888",
+            services: [], aboutMe: "Professional Content Creator", portfolio: [], certifications: [], reviews: [], experience: "4 Years", completedProjects: 60
         ),
         ServiceProviderModel(
-            id: "13",
-            name: "Zainab Ali",
-            role: "Graphic Designer",
-            imageName: "d2",
-            rating: 4.7,
-            skills: ["Photoshop", "Illustrator"],
-            availability: "Mon-Fri",
-            location: "Online",
-            phone: "35666666"
+            id: "13", name: "Zainab Ali", role: "Graphic Designer", imageName: "d2", rating: 4.7,
+            skills: ["Photoshop", "Illustrator"], availability: "Mon-Fri", location: "Online", phone: "35666666",
+            services: [], aboutMe: "Creative Graphic Designer", portfolio: [], certifications: [], reviews: [], experience: "2 Years", completedProjects: 45
         ),
         ServiceProviderModel(
-            id: "14",
-            name: "Khalid Ahmed",
-            role: "Social Media Manager",
-            imageName: "d4",
-            rating: 4.5,
-            skills: ["Instagram", "Facebook", "TikTok"],
-            availability: "Daily",
-            location: "Manama",
-            phone: "36777777"
+            id: "14", name: "Khalid Ahmed", role: "Social Media Manager", imageName: "d4", rating: 4.5,
+            skills: ["Instagram", "Facebook", "TikTok"], availability: "Daily", location: "Manama", phone: "36777777",
+            services: [], aboutMe: "Social Media Expert", portfolio: [], certifications: [], reviews: [], experience: "3 Years", completedProjects: 30
         ),
         ServiceProviderModel(
-            id: "15",
-            name: "Mariam Hassan",
-            role: "Video Editor",
-            imageName: "d5",
-            rating: 4.9,
-            skills: ["Premiere Pro", "After Effects"],
-            availability: "Flexible",
-            location: "Online",
-            phone: "37888888"
+            id: "15", name: "Mariam Hassan", role: "Video Editor", imageName: "d5", rating: 4.9,
+            skills: ["Premiere Pro", "After Effects"], availability: "Flexible", location: "Online", phone: "37888888",
+            services: [], aboutMe: "Professional Video Editor", portfolio: [], certifications: [], reviews: [], experience: "5 Years", completedProjects: 70
         )
     ]
     

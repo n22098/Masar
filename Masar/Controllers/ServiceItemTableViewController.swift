@@ -5,10 +5,29 @@ class ServiceItemTableViewController: UITableViewController {
     // MARK: - Variables
     var providerData: ServiceProviderModel?
     
-    let services = [
-        ("Website Starter", "BHD 85.000", "Includes responsive design, basic contact form, and fast delivery."),
-        ("Business Website", "BHD 150.000", "Includes custom layout, database support, admin panel, and SEO.")
-    ]
+    // التعديل هنا: إذا كانت القائمة فارغة، نستخدم البيانات التجريبية فوراً
+    var services: [ServiceModel] {
+        if let realServices = providerData?.services, !realServices.isEmpty {
+            return realServices
+        }
+        // Fallback Sample Data (البيانات التي تريد استرجاعها)
+        return [
+            ServiceModel(
+                name: "Website Starter",
+                price: "BHD 85.000",
+                description: "Includes responsive design, basic contact form, and fast delivery.",
+                deliveryTime: "3-5 days",
+                features: ["Responsive Design", "Contact Form", "SEO Ready"]
+            ),
+            ServiceModel(
+                name: "Business Website",
+                price: "BHD 150.000",
+                description: "Includes custom layout, database support, admin panel, and SEO.",
+                deliveryTime: "7-10 days",
+                features: ["Custom Design", "Database", "Admin Panel", "SEO"]
+            )
+        ]
+    }
     
     // MARK: - Outlets
     @IBOutlet weak var headerImageView: UIImageView!
@@ -29,7 +48,7 @@ class ServiceItemTableViewController: UITableViewController {
     @IBOutlet weak var seeProfileButton: UIButton!
     @IBOutlet weak var packagesButton: UIButton!
     
-    // Info container views (if you have them in storyboard)
+    // Info container views
     @IBOutlet weak var availabilityContainer: UIView!
     @IBOutlet weak var locationContainer: UIView!
     @IBOutlet weak var phoneContainer: UIView!
@@ -40,22 +59,19 @@ class ServiceItemTableViewController: UITableViewController {
         setupUI()
         populateHeaderData()
         
-        // Register custom cell if needed
+        // Register custom cell
         tableView.register(ModernBookingCell.self, forCellReuseIdentifier: "ModernBookingCell")
     }
     
     func setupUI() {
-        title = "IT Solutions"
+        title = providerData?.role ?? "Services"
         
-        // Navigation bar styling
         setupNavigationBar()
         
-        // Table view styling
         tableView.backgroundColor = UIColor(red: 248/255, green: 248/255, blue: 252/255, alpha: 1.0)
         tableView.separatorStyle = .none
         tableView.contentInset = UIEdgeInsets(top: 0, left: 0, bottom: 20, right: 0)
         
-        // Avatar styling
         if let imgView = headerImageView {
             imgView.layer.cornerRadius = 40
             imgView.clipsToBounds = true
@@ -63,23 +79,19 @@ class ServiceItemTableViewController: UITableViewController {
             imgView.contentMode = .scaleAspectFill
         }
         
-        // Button styling
         styleButton(seeProfileButton)
         styleButton(packagesButton)
         
-        // Info containers styling
         styleInfoContainer(availabilityContainer)
         styleInfoContainer(locationContainer)
         styleInfoContainer(phoneContainer)
         
-        // Icon styling
         styleIcon(availabilityIcon, systemName: "clock.fill")
         styleIcon(locationIcon, systemName: "mappin.circle.fill")
         styleIcon(phoneIcon, systemName: "phone.fill")
     }
     
     func setupNavigationBar() {
-        // Purple navigation bar
         let appearance = UINavigationBarAppearance()
         appearance.configureWithOpaqueBackground()
         appearance.backgroundColor = UIColor(red: 98/255, green: 84/255, blue: 243/255, alpha: 1)
@@ -93,7 +105,6 @@ class ServiceItemTableViewController: UITableViewController {
         navigationController?.navigationBar.compactAppearance = appearance
         navigationController?.navigationBar.tintColor = .white
         
-        // Menu button
         let menuButton = UIBarButtonItem(
             image: UIImage(systemName: "ellipsis"),
             style: .plain,
@@ -130,7 +141,6 @@ class ServiceItemTableViewController: UITableViewController {
     func populateHeaderData() {
         guard let provider = providerData else { return }
         
-        // Basic info
         headerNameLabel?.text = provider.name
         headerNameLabel?.font = UIFont.systemFont(ofSize: 22, weight: .bold)
         headerNameLabel?.textColor = .black
@@ -139,39 +149,32 @@ class ServiceItemTableViewController: UITableViewController {
         headerRoleLabel?.font = UIFont.systemFont(ofSize: 16, weight: .medium)
         headerRoleLabel?.textColor = .darkGray
         
-        headerRatingLabel?.text = "⭐️ \(provider.rating)"
+        headerRatingLabel?.text = "⭐️ \(String(format: "%.1f", provider.rating))"
         headerRatingLabel?.font = UIFont.systemFont(ofSize: 14, weight: .medium)
         headerRatingLabel?.textColor = UIColor(red: 255/255, green: 149/255, blue: 0/255, alpha: 1)
         
-        // Skills
-        headerSkillsLabel?.text = provider.skills.joined(separator: ", ")
+        headerSkillsLabel?.text = provider.skills.joined(separator: " • ")
         headerSkillsLabel?.font = UIFont.systemFont(ofSize: 14, weight: .regular)
         headerSkillsLabel?.textColor = UIColor(red: 98/255, green: 84/255, blue: 243/255, alpha: 1)
         headerSkillsLabel?.numberOfLines = 0
         
-        // Description
-        headerDescriptionLabel?.text = "Frontend & backend solutions"
+        headerDescriptionLabel?.text = "\(provider.experience) experience • \(provider.completedProjects) projects completed"
         headerDescriptionLabel?.font = UIFont.systemFont(ofSize: 13, weight: .regular)
         headerDescriptionLabel?.textColor = .gray
         headerDescriptionLabel?.numberOfLines = 0
         
-        // Availability info
         availabilityLabel?.text = provider.availability
         availabilityLabel?.font = UIFont.systemFont(ofSize: 12, weight: .medium)
         availabilityLabel?.textColor = UIColor(red: 98/255, green: 84/255, blue: 243/255, alpha: 1)
-        availabilityLabel?.textAlignment = .center
         
         locationLabel?.text = provider.location
         locationLabel?.font = UIFont.systemFont(ofSize: 12, weight: .medium)
         locationLabel?.textColor = UIColor(red: 98/255, green: 84/255, blue: 243/255, alpha: 1)
-        locationLabel?.textAlignment = .center
         
         phoneLabel?.text = provider.phone
         phoneLabel?.font = UIFont.systemFont(ofSize: 12, weight: .medium)
         phoneLabel?.textColor = UIColor(red: 98/255, green: 84/255, blue: 243/255, alpha: 1)
-        phoneLabel?.textAlignment = .center
         
-        // Avatar
         if let image = UIImage(named: provider.imageName) {
             headerImageView?.image = image
         } else {
@@ -183,124 +186,77 @@ class ServiceItemTableViewController: UITableViewController {
     // MARK: - Actions
     @objc func menuTapped() {
         let alert = UIAlertController(title: nil, message: nil, preferredStyle: .actionSheet)
-        
-        alert.addAction(UIAlertAction(title: "Share Provider", style: .default, handler: { _ in
-            // Share functionality
-            self.shareProvider()
-        }))
-        alert.addAction(UIAlertAction(title: "Report Issue", style: .default, handler: { _ in
-            // Report functionality
-            self.reportIssue()
-        }))
+        alert.addAction(UIAlertAction(title: "Share Provider", style: .default, handler: { _ in self.shareProvider() }))
+        alert.addAction(UIAlertAction(title: "Report Issue", style: .default, handler: { _ in self.reportIssue() }))
         alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
-        
-        if let popover = alert.popoverPresentationController {
-            popover.barButtonItem = navigationItem.rightBarButtonItem
-        }
-        
+        if let popover = alert.popoverPresentationController { popover.barButtonItem = navigationItem.rightBarButtonItem }
         present(alert, animated: true)
     }
     
     @IBAction func seeProfileTapped(_ sender: UIButton) {
-        // Navigate to full profile
-        print("See Profile tapped for \(providerData?.name ?? "")")
-        // Implement navigation if you have a profile view controller
+        performSegue(withIdentifier: "showPortfolio", sender: providerData)
     }
     
     @IBAction func packagesTapped(_ sender: UIButton) {
-        // Show all packages
-        print("Packages tapped")
-        // Implement navigation if you have a packages view controller
+        let alert = UIAlertController(title: "All Services", message: "View all \(services.count) services offered by \(providerData?.name ?? "this provider")", preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: "OK", style: .default))
+        present(alert, animated: true)
     }
     
     func shareProvider() {
         guard let provider = providerData else { return }
         let text = "Check out \(provider.name) - \(provider.role) on our app!"
         let activityVC = UIActivityViewController(activityItems: [text], applicationActivities: nil)
-        
-        if let popover = activityVC.popoverPresentationController {
-            popover.barButtonItem = navigationItem.rightBarButtonItem
-        }
-        
+        if let popover = activityVC.popoverPresentationController { popover.barButtonItem = navigationItem.rightBarButtonItem }
         present(activityVC, animated: true)
     }
     
     func reportIssue() {
-        let alert = UIAlertController(
-            title: "Report Issue",
-            message: "Please describe the issue you're experiencing.",
-            preferredStyle: .alert
-        )
-        
-        alert.addTextField { textField in
-            textField.placeholder = "Describe the issue..."
-        }
-        
+        let alert = UIAlertController(title: "Report Issue", message: "Describe the issue.", preferredStyle: .alert)
+        alert.addTextField { $0.placeholder = "Issue..." }
         alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
-        alert.addAction(UIAlertAction(title: "Submit", style: .default) { _ in
-            if let text = alert.textFields?.first?.text, !text.isEmpty {
-                print("Issue reported: \(text)")
-                // Implement actual reporting logic
-            }
-        })
-        
+        alert.addAction(UIAlertAction(title: "Submit", style: .default))
         present(alert, animated: true)
     }
 
     // MARK: - Table View Data Source
-    override func numberOfSections(in tableView: UITableView) -> Int {
-        return 1
-    }
+    override func numberOfSections(in tableView: UITableView) -> Int { return 1 }
 
-    override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return services.count
-    }
+    override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int { return services.count }
 
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        // Try to use custom cell first, fall back to storyboard cell
+        let service = services[indexPath.row]
+        
+        // استخدام الخلية البرمجية الحديثة أولاً
         if let cell = tableView.dequeueReusableCell(withIdentifier: "ModernBookingCell") as? ModernBookingCell {
-            let service = services[indexPath.row]
-            let icon = indexPath.row == 0 ? "doc.text.fill" : "building.2.fill"
-            cell.configure(title: service.0, price: service.1, description: service.2, icon: icon)
-            
-            cell.onBookingTapped = { [weak self] in
-                self?.handleBooking(for: service)
-            }
-            
-            return cell
-        } else if let cell = tableView.dequeueReusableCell(withIdentifier: "BookingCell", for: indexPath) as? BookingCell {
-            let service = services[indexPath.row]
-            cell.configure(name: service.0, price: service.1)
-            
-            cell.onBookingTapped = { [weak self] in
-                self?.performSegue(withIdentifier: "showDetails", sender: service)
-            }
-            
+            cell.configure(title: service.name, price: service.price, description: service.description, icon: service.icon)
+            cell.onBookingTapped = { [weak self] in self?.handleBooking(for: service) }
             return cell
         }
-        
+        // fallback to Storyboard cell
+        else if let cell = tableView.dequeueReusableCell(withIdentifier: "BookingCell", for: indexPath) as? BookingCell {
+            cell.configure(name: service.name, price: service.price)
+            cell.onBookingTapped = { [weak self] in self?.handleBooking(for: service) }
+            return cell
+        }
         return UITableViewCell()
     }
     
-    override func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
-        return 120
-    }
+    override func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat { return 120 }
     
-    func handleBooking(for service: (String, String, String)) {
+    func handleBooking(for service: ServiceModel) {
         performSegue(withIdentifier: "showDetails", sender: service)
     }
     
     // MARK: - Navigation
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-        if segue.identifier == "showDetails" {
-            if let destVC = segue.destination as? ServiceInformationTableViewController,
-               let serviceData = sender as? (String, String, String) {
-                
-                destVC.receivedServiceName = serviceData.0
-                destVC.receivedServicePrice = serviceData.1
-                destVC.receivedServiceDetails = serviceData.2
-                destVC.providerData = self.providerData
-            }
+        if segue.identifier == "showDetails", let destVC = segue.destination as? ServiceInformationTableViewController, let service = sender as? ServiceModel {
+            destVC.receivedServiceName = service.name
+            destVC.receivedServicePrice = service.price
+            destVC.receivedServiceDetails = service.description
+            destVC.providerData = self.providerData
+        } else if segue.identifier == "showPortfolio", let destVC = segue.destination as? ProviderPortfolioTableViewController, let provider = sender as? ServiceProviderModel {
+            destVC.providerData = provider
         }
     }
 }
