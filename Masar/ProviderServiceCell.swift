@@ -11,13 +11,16 @@ class ProviderServiceCell: UITableViewCell {
     let descriptionLabel = UILabel()
     let editButton = UIButton(type: .system)
     
+    // هذا يعمل عند الإنشاء بالكود
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
         setupUI()
     }
     
+    // هذا هو التعديل المهم: يعمل عند الإنشاء من الستوري بورد
     required init?(coder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
+        super.init(coder: coder)
+        setupUI()
     }
     
     func setupUI() {

@@ -3,6 +3,7 @@ import UIKit
 class ProviderServicesTableViewController: UITableViewController {
     
     // MARK: - Properties
+    // بيانات تجريبية
     var myServices: [ServiceModel] = [
         ServiceModel(
             name: "Website Starter",
@@ -35,7 +36,7 @@ class ProviderServicesTableViewController: UITableViewController {
         tableView.reloadData()
     }
     
-    // MARK: - Setup Navigation Bar
+    // MARK: - Setup UI
     func setupNavigationBar() {
         let appearance = UINavigationBarAppearance()
         appearance.configureWithOpaqueBackground()
@@ -52,6 +53,7 @@ class ProviderServicesTableViewController: UITableViewController {
         
         title = "My Services"
         
+        // زر الإضافة (+)
         let addButton = UIBarButtonItem(
             image: UIImage(systemName: "plus"),
             style: .plain,
@@ -62,32 +64,31 @@ class ProviderServicesTableViewController: UITableViewController {
         navigationItem.rightBarButtonItem = addButton
     }
     
-    // MARK: - Setup Table View
     func setupTableView() {
         tableView.backgroundColor = UIColor(red: 248/255, green: 248/255, blue: 252/255, alpha: 1.0)
         tableView.separatorStyle = .none
         tableView.contentInset = UIEdgeInsets(top: 20, left: 0, bottom: 20, right: 0)
         tableView.showsVerticalScrollIndicator = false
         
+        // تسجيل الخلية
         tableView.register(ProviderServiceCell.self, forCellReuseIdentifier: "ProviderServiceCell")
     }
     
-    // MARK: - Navigation (Segues)
-    // هذه الدالة مسؤولة عن نقل البيانات للصفحة الثانية
+    // MARK: - Navigation & Segues
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
         if segue.identifier == "editService" {
             if let destVC = segue.destination as? EditServiceTableViewController {
                 
-                // إذا كان المرسل خدمة (تعديل)، نرسل البيانات
+                // تمرير البيانات للتعديل
                 if let service = sender as? ServiceModel {
                     destVC.serviceToEdit = service
                     
-                    // هذا الكود يتنفذ لما تضغط Save في الصفحة الثانية وترجع
+                    // استقبال البيانات بعد الحفظ
                     destVC.onSaveComplete = { [weak self] updatedService in
                         guard let self = self else { return }
                         
-                        // تحديث الخدمة الموجودة في القائمة
                         if let index = self.selectedServiceIndex {
+                            // تحديث الخدمة الموجودة
                             self.myServices[index] = updatedService
                             self.tableView.reloadRows(at: [IndexPath(row: index, section: 0)], with: .automatic)
                             self.showSuccessMessage("Service updated successfully!")
@@ -99,46 +100,69 @@ class ProviderServicesTableViewController: UITableViewController {
     }
     
     // MARK: - Actions
+    
+    // --- دالة الإضافة (التي كانت تسبب المشكلة) ---
     @objc func addServiceTapped() {
-        // إذا كنت تريد زر الإضافة يفتح نفس الصفحة الكبيرة أيضاً، يمكنك تعديل هذا الجزء ليعمل Segue
-        // حالياً سأتركه كما هو (Alert) حسب كودك القديم، إلا لو أردت تغييره أيضاً.
-        let alert = UIAlertController(
-            title: "Add New Service",
-            message: "Enter service details",
-            preferredStyle: .alert
-        )
-        
-        alert.addTextField { textField in
-            textField.placeholder = "Service Name"
-        }
-        alert.addTextField { textField in
-            textField.placeholder = "Price (e.g., BHD 100.000)"
-            textField.keyboardType = .decimalPad
-        }
-        alert.addTextField { textField in
-            textField.placeholder = "Description"
-        }
-        
-        alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
-        alert.addAction(UIAlertAction(title: "Add", style: .default) { [weak self] _ in
-            guard let name = alert.textFields?[0].text, !name.isEmpty,
-                  let price = alert.textFields?[1].text, !price.isEmpty,
-                  let description = alert.textFields?[2].text, !description.isEmpty else {
-                return
-            }
-            
-            let newService = ServiceModel(
-                name: name,
-                price: price,
-                description: description
+            print("🚀 الدالة بدأت تعمل") // للتأكد أن الزر مربوط صح
+
+            let alert = UIAlertController(
+                title: "Add New Service",
+                message: "Enter service details",
+                preferredStyle: .alert
             )
             
-            self?.myServices.append(newService)
-            self?.tableView.reloadData()
-            self?.showSuccessMessage("Service added successfully!")
-        })
-        
-        present(alert, animated: true)
+            // إضافة الحقول الثلاثة
+            alert.addTextField { $0.placeholder = "Service Name" }
+            alert.addTextField { $0.placeholder = "Price (e.g., 25)" }
+            alert.addTextField { $0.placeholder = "Description" }
+            
+            alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
+            
+            // زر الإضافة مع حماية ضد الكراش
+            alert.addAction(UIAlertAction(title: "Add", style: .default) { [weak self] _ in
+                guard let self = self else { return }
+                
+                // --- منطقة الحماية ---
+                // نتحقق كم حقلاً يرى النظام فعلياً
+                let fieldsCount = alert.textFields?.count ?? 0
+                print("🔍 النظام يرى حالياً: \(fieldsCount) حقول")
+                
+                // إذا كان العدد أقل من 3، نوقف العملية بدلاً من انهيار التطبيق
+                guard let fields = alert.textFields, fields.count >= 3 else {
+                    print("❌ خطأ: لم يتم تحميل جميع الحقول! العملية توقفت بسلام.")
+                    return
+                }
+                
+                // قراءة البيانات بأمان الآن
+                let name = fields[0].text ?? ""
+                let price = fields[1].text ?? ""
+                let description = fields[2].text ?? ""
+                
+                if name.isEmpty || price.isEmpty || description.isEmpty {
+                    print("⚠️ تنبيه: أحد الحقول فارغ")
+                    return
+                }
+                
+                // إضافة الخدمة
+                let newService = ServiceModel(
+                    name: name,
+                    price: price,
+                    description: description
+                )
+                
+                self.myServices.append(newService)
+                self.tableView.reloadData()
+                self.showSuccessMessage("Service added successfully!")
+            })
+            
+            present(alert, animated: true)
+        }
+    
+    // دالة التعديل (تنتقل للصفحة الثانية)
+    func editService(at indexPath: IndexPath) {
+        selectedServiceIndex = indexPath.row
+        let service = myServices[indexPath.row]
+        performSegue(withIdentifier: "editService", sender: service)
     }
     
     func showSuccessMessage(_ message: String) {
@@ -169,6 +193,7 @@ class ProviderServicesTableViewController: UITableViewController {
         let service = myServices[indexPath.row]
         cell.configure(with: service)
         
+        // ربط زر التعديل
         cell.onEditTapped = { [weak self] in
             self?.editService(at: indexPath)
         }
@@ -180,6 +205,7 @@ class ProviderServicesTableViewController: UITableViewController {
         return 110
     }
     
+    // الحذف
     override func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
         if editingStyle == .delete {
             let serviceName = myServices[indexPath.row].name
@@ -200,23 +226,9 @@ class ProviderServicesTableViewController: UITableViewController {
         }
     }
     
-    // MARK: - Edit Service Logic (UPDATED)
-    func editService(at indexPath: IndexPath) {
-        // 1. نحفظ مكان السطر الذي نريد تعديله
-        selectedServiceIndex = indexPath.row
-        
-        // 2. نجلب بيانات الخدمة
-        let service = myServices[indexPath.row]
-        
-        // 3. ننتقل للصفحة الكبيرة باستخدام الـ Segue
-        // تأكد أن اسم الـ Segue في الستوري بورد هو "editService"
-        performSegue(withIdentifier: "editService", sender: service)
-    }
-    
     // MARK: - Empty State
     func showEmptyState() {
         let emptyView = UIView(frame: CGRect(x: 0, y: 0, width: tableView.bounds.width, height: 300))
-        
         let iconView = UIImageView(image: UIImage(systemName: "briefcase"))
         iconView.tintColor = .lightGray
         iconView.contentMode = .scaleAspectFit
@@ -238,12 +250,10 @@ class ProviderServicesTableViewController: UITableViewController {
             iconView.centerYAnchor.constraint(equalTo: emptyView.centerYAnchor, constant: -40),
             iconView.widthAnchor.constraint(equalToConstant: 80),
             iconView.heightAnchor.constraint(equalToConstant: 80),
-            
             label.topAnchor.constraint(equalTo: iconView.bottomAnchor, constant: 20),
             label.leadingAnchor.constraint(equalTo: emptyView.leadingAnchor, constant: 40),
             label.trailingAnchor.constraint(equalTo: emptyView.trailingAnchor, constant: -40)
         ])
-        
         tableView.backgroundView = emptyView
     }
     
