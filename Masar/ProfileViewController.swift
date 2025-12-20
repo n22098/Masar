@@ -21,60 +21,63 @@ class ProfileViewController: UIViewController {
     @IBAction func personalInfoBtn(_ sender: UIButton){
         let storyboard = UIStoryboard(name: "Main", bundle: nil)
         let personalInfoVC = storyboard.instantiateViewController(
-            withIdentifier: "PersonalInfoViewController"
+            withIdentifier: "PersonalInformationViewController"
         )
         self.navigationController?.pushViewController(personalInfoVC, animated: true)
     }
-    
+
     override func viewDidLoad() {
         super.viewDidLoad()
 
         // Do any additional setup after loading the view.
     }
     
-    @IBAction func logoutBtn(_ sender: UIButton) {
+    @IBAction func logoutBtn(_ sender: UIButton){
+        
+        let alert = UIAlertController(
+            title: "Log Out",
+            message: "Do you want to log out?",
+            preferredStyle: .alert
+        )
 
-            // Confirmation alert
-            let alert = UIAlertController(
-                title: "Log Out",
-                message: "Do you want to log out?",
-                preferredStyle: .alert
-            )
+        alert.addAction(UIAlertAction(title: "No", style: .cancel))
 
-            // Stay on profile page
-            alert.addAction(UIAlertAction(title: "No", style: .cancel))
+        alert.addAction(UIAlertAction(title: "Yes", style: .destructive) { _ in
+            do {
+                try Auth.auth().signOut()
+                self.goToSignIn()
+            } catch {
+                self.showAlert("Failed to log out. Please try again.")
+            }
+        })
 
-            // Log out and go to Sign In page
-            alert.addAction(UIAlertAction(title: "Yes", style: .destructive) { _ in
-                do {
-                    try Auth.auth().signOut()
-                    self.navigateToSignIn()
-                } catch {
-                    self.showAlert("Failed to log out. Please try again.")
-                }
-            })
+        present(alert, animated: true)
+    }
 
-            present(alert, animated: true)
-        }
+    // MARK: - Navigation to Sign In (Root change)
+    func goToSignIn() {
+        let storyboard = UIStoryboard(name: "Main", bundle: nil)
+        let signInVC = storyboard.instantiateViewController(
+            withIdentifier: "SignInViewController"
+        )
 
-        // MARK: - Navigation
-        func navigateToSignIn() {
-            let storyboard = UIStoryboard(name: "Main", bundle: nil)
-            let signInVC = storyboard.instantiateViewController(
-                withIdentifier: "SignInViewController"
-            )
-            signInVC.modalPresentationStyle = .fullScreen
-            self.present(signInVC, animated: true)
-        }
+        if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+           let sceneDelegate = windowScene.delegate as? SceneDelegate,
+           let window = sceneDelegate.window {
 
-        // MARK: - Alert Helper
-        func showAlert(_ message: String) {
-            let alert = UIAlertController(
-                title: "Profile",
-                message: message,
-                preferredStyle: .alert
-            )
-            alert.addAction(UIAlertAction(title: "OK", style: .default))
-            present(alert, animated: true)
+            window.rootViewController = signInVC
+            window.makeKeyAndVisible()
         }
     }
+
+    // MARK: - Alert Helper
+    func showAlert(_ message: String) {
+        let alert = UIAlertController(
+            title: "Profile",
+            message: message,
+            preferredStyle: .alert
+        )
+        alert.addAction(UIAlertAction(title: "OK", style: .default))
+        present(alert, animated: true)
+    }
+}

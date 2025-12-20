@@ -1,89 +1,207 @@
-//
-//  ProviderInfoTableViewController.swift
-//  Masar
-//
-//  Created by BP-36-201-09 on 20/12/2025.
-//
-
 import UIKit
 
 class ProviderInfoTableViewController: UITableViewController {
 
+    // MARK: - Outlets (من Storyboard)
+    @IBOutlet weak var tellUsTextView: UITextView!
+    @IBOutlet weak var skillLevelTextField: UITextField!
+    @IBOutlet weak var categoryTextField: UITextField!
+
+    // MARK: - Picker
+    private let pickerView = UIPickerView()
+
+    private let skillLevels = ["Beginner", "Intermediate", "Advanced"]
+    private let categories = ["Plumbing", "Electricity", "Carpentry", "Painting"]
+
+    private enum PickerType {
+        case skill
+        case category
+    }
+
+    private var selectedPickerType: PickerType?
+
+    // MARK: - Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        // Uncomment the following line to preserve selection between presentations
-        // self.clearsSelectionOnViewWillAppear = false
-
-        // Uncomment the following line to display an Edit button in the navigation bar for this view controller.
-        // self.navigationItem.rightBarButtonItem = self.editButtonItem
+        setupTextView()
+        setupPickers()
+        setupUploadButtonsFooter()
     }
 
-    // MARK: - Table view data source
-
-    override func numberOfSections(in tableView: UITableView) -> Int {
-        // #warning Incomplete implementation, return the number of sections
-        return 0
+    // MARK: - TextView UI
+    private func setupTextView() {
+        tellUsTextView.layer.borderWidth = 1
+        tellUsTextView.layer.borderColor = UIColor.systemGray4.cgColor
+        tellUsTextView.layer.cornerRadius = 8
     }
 
-    override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        // #warning Incomplete implementation, return the number of rows
-        return 0
+    // MARK: - Picker Setup
+    private func setupPickers() {
+        pickerView.delegate = self
+        pickerView.dataSource = self
+
+        skillLevelTextField.inputView = pickerView
+        categoryTextField.inputView = pickerView
+
+        skillLevelTextField.delegate = self
+        categoryTextField.delegate = self
+
+        addToolbar(to: skillLevelTextField)
+        addToolbar(to: categoryTextField)
     }
 
-    /*
-    override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(withIdentifier: "reuseIdentifier", for: indexPath)
+    private func addToolbar(to textField: UITextField) {
+        let toolbar = UIToolbar()
+        toolbar.sizeToFit()
 
-        // Configure the cell...
+        let done = UIBarButtonItem(
+            barButtonSystemItem: .done,
+            target: self,
+            action: #selector(doneTapped)
+        )
 
-        return cell
+        toolbar.items = [done]
+        textField.inputAccessoryView = toolbar
     }
-    */
 
-    /*
-    // Override to support conditional editing of the table view.
-    override func tableView(_ tableView: UITableView, canEditRowAt indexPath: IndexPath) -> Bool {
-        // Return false if you do not want the specified item to be editable.
-        return true
+    @objc private func doneTapped() {
+        view.endEditing(true)
     }
-    */
 
-    /*
-    // Override to support editing the table view.
-    override func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
-        if editingStyle == .delete {
-            // Delete the row from the data source
-            tableView.deleteRows(at: [indexPath], with: .fade)
-        } else if editingStyle == .insert {
-            // Create a new instance of the appropriate class, insert it into the array, and add a new row to the table view
-        }    
+    // MARK: - Upload Buttons (Created in Runtime)
+    private func setupUploadButtonsFooter() {
+
+        let footerView = UIView()
+        footerView.backgroundColor = .clear
+
+        let stackView = UIStackView()
+        stackView.axis = .vertical
+        stackView.spacing = 12
+        stackView.translatesAutoresizingMaskIntoConstraints = false
+
+        let idCardButton = createButton(
+            title: "Upload ID Card",
+            action: #selector(uploadIDCard)
+        )
+
+        let certificateButton = createButton(
+            title: "Upload Certificate",
+            action: #selector(uploadCertificate)
+        )
+
+        let portfolioButton = createButton(
+            title: "Upload Work Portfolio",
+            action: #selector(uploadPortfolio)
+        )
+
+        stackView.addArrangedSubview(idCardButton)
+        stackView.addArrangedSubview(certificateButton)
+        stackView.addArrangedSubview(portfolioButton)
+
+        footerView.addSubview(stackView)
+
+        NSLayoutConstraint.activate([
+            stackView.topAnchor.constraint(equalTo: footerView.topAnchor, constant: 16),
+            stackView.leadingAnchor.constraint(equalTo: footerView.leadingAnchor, constant: 16),
+            stackView.trailingAnchor.constraint(equalTo: footerView.trailingAnchor, constant: -16),
+            stackView.bottomAnchor.constraint(equalTo: footerView.bottomAnchor, constant: -16)
+        ])
+
+        footerView.frame.size.height = 200
+        tableView.tableFooterView = footerView
     }
-    */
 
-    /*
-    // Override to support rearranging the table view.
-    override func tableView(_ tableView: UITableView, moveRowAt fromIndexPath: IndexPath, to: IndexPath) {
-
+    private func createButton(title: String, action: Selector) -> UIButton {
+        let button = UIButton(type: .system)
+        button.setTitle(title, for: .normal)
+        button.layer.borderWidth = 1
+        button.layer.borderColor = UIColor.systemBlue.cgColor
+        button.layer.cornerRadius = 8
+        button.heightAnchor.constraint(equalToConstant: 44).isActive = true
+        button.addTarget(self, action: action, for: .touchUpInside)
+        return button
     }
-    */
 
-    /*
-    // Override to support conditional rearranging of the table view.
-    override func tableView(_ tableView: UITableView, canMoveRowAt indexPath: IndexPath) -> Bool {
-        // Return false if you do not want the item to be re-orderable.
-        return true
+    // MARK: - Upload Actions
+    @objc private func uploadIDCard() {
+        showAlert("Upload ID Card tapped")
     }
-    */
 
-    /*
-    // MARK: - Navigation
-
-    // In a storyboard-based application, you will often want to do a little preparation before navigation
-    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-        // Get the new view controller using segue.destination.
-        // Pass the selected object to the new view controller.
+    @objc private func uploadCertificate() {
+        showAlert("Upload Certificate tapped")
     }
-    */
 
+    @objc private func uploadPortfolio() {
+        showAlert("Upload Work Portfolio tapped")
+    }
+
+    // MARK: - Alert
+    private func showAlert(_ message: String) {
+        let alert = UIAlertController(
+            title: "Provider",
+            message: message,
+            preferredStyle: .alert
+        )
+        alert.addAction(UIAlertAction(title: "OK", style: .default))
+        present(alert, animated: true)
+    }
+}
+
+// MARK: - UITextFieldDelegate
+extension ProviderInfoTableViewController: UITextFieldDelegate {
+
+    func textFieldDidBeginEditing(_ textField: UITextField) {
+        if textField == skillLevelTextField {
+            selectedPickerType = .skill
+        } else if textField == categoryTextField {
+            selectedPickerType = .category
+        }
+        pickerView.reloadAllComponents()
+    }
+}
+
+// MARK: - UIPickerView Delegate & DataSource
+extension ProviderInfoTableViewController: UIPickerViewDelegate, UIPickerViewDataSource {
+
+    func numberOfComponents(in pickerView: UIPickerView) -> Int {
+        1
+    }
+
+    func pickerView(_ pickerView: UIPickerView, numberOfRowsInComponent component: Int) -> Int {
+        switch selectedPickerType {
+        case .skill:
+            return skillLevels.count
+        case .category:
+            return categories.count
+        case .none:
+            return 0
+        }
+    }
+
+    func pickerView(_ pickerView: UIPickerView,
+                    titleForRow row: Int,
+                    forComponent component: Int) -> String? {
+        switch selectedPickerType {
+        case .skill:
+            return skillLevels[row]
+        case .category:
+            return categories[row]
+        case .none:
+            return nil
+        }
+    }
+
+    func pickerView(_ pickerView: UIPickerView,
+                    didSelectRow row: Int,
+                    inComponent component: Int) {
+        switch selectedPickerType {
+        case .skill:
+            skillLevelTextField.text = skillLevels[row]
+        case .category:
+            categoryTextField.text = categories[row]
+        case .none:
+            break
+        }
+    }
 }

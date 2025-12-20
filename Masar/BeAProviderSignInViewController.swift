@@ -9,6 +9,25 @@ import UIKit
 
 class BeAProviderSignInViewController: UIViewController {
 
+    @IBOutlet weak var nameTextField: UITextField!
+    
+    @IBOutlet weak var emailTextField: UITextField!
+    
+    
+    @IBOutlet weak var phoneNumberTextField: UITextField!
+    
+    @IBOutlet weak var usernameTextField: UITextField!
+    
+    
+    @IBOutlet weak var passwordTextField: UITextField!
+    
+    
+    @IBOutlet weak var confirmPasswordTextField: UITextField!
+    
+    
+    @IBAction func nextBtn(_ sender: UIButton) {
+    }
+    
     override func viewDidLoad() {
         super.viewDidLoad()
 

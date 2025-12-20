@@ -18,16 +18,16 @@ class SignUpSeekerViewController: UIViewController {
     @IBOutlet weak var emailTextField: UITextField!
     @IBOutlet weak var nameTextField: UITextField!
     
-    
+    // MARK: - Firestore
     let db = Firestore.firestore()
+
+    // MARK: - View Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
-
-        // Do any additional setup after loading the view.
     }
     @IBAction func signUpBtn(_ sender: UIButton) {
         
-        // Step 1: Validate inputs
+        // 1️⃣ Validate inputs
         guard validateInputs() else { return }
 
         let name = nameTextField.text!
@@ -36,14 +36,14 @@ class SignUpSeekerViewController: UIViewController {
         let phone = phoneNumberTextField.text!
         let password = passwordTextField.text!
 
-        // Step 2: Check if username or phone already exists
+        // 2️⃣ Check if email / username / phone already exists
         checkIfUserDataExists(email: email, username: username, phone: phone) { exists in
             if exists {
                 self.showAlert("Email, Username, or Phone Number is already in use.")
                 return
             }
 
-            // Step 3: Create user with Firebase Authentication
+            // 3️⃣ Create user with Firebase Auth
             Auth.auth().createUser(withEmail: email, password: password) { result, error in
                 if let error = error {
                     self.showAlert(error.localizedDescription)
@@ -52,7 +52,7 @@ class SignUpSeekerViewController: UIViewController {
 
                 guard let uid = result?.user.uid else { return }
 
-                // Step 4: Save user data in Firestore
+                // 4️⃣ Save user data in Firestore
                 self.db.collection("users").document(uid).setData([
                     "name": name,
                     "email": email,
@@ -63,7 +63,8 @@ class SignUpSeekerViewController: UIViewController {
                     if let error = error {
                         self.showAlert(error.localizedDescription)
                     } else {
-                        self.showAlert("Account created successfully.")
+                        // ✅ Success → go back to Sign In after OK
+                        self.showSuccessAndGoToSignIn()
                     }
                 }
             }
@@ -71,10 +72,8 @@ class SignUpSeekerViewController: UIViewController {
     }
 
     // MARK: - Validation
-    // This function validates all text fields and password policy
     func validateInputs() -> Bool {
 
-        // Check empty fields
         if nameTextField.text?.isEmpty == true ||
             emailTextField.text?.isEmpty == true ||
             usernameTextField.text?.isEmpty == true ||
@@ -86,19 +85,16 @@ class SignUpSeekerViewController: UIViewController {
             return false
         }
 
-        // Validate email format
         if !isValidEmail(emailTextField.text!) {
             showAlert("Please enter a valid email address.")
             return false
         }
 
-        // Validate password strength
         if !isStrongPassword(passwordTextField.text!) {
-            showAlert("Password must be at least 8 characters, include uppercase, lowercase, number, and special character.")
+            showAlert("Password must be at least 8 characters and include uppercase, lowercase, number, and special character.")
             return false
         }
 
-        // Check password match
         if passwordTextField.text! != confirmPasswordTextField.text! {
             showAlert("Passwords do not match.")
             return false
@@ -107,9 +103,13 @@ class SignUpSeekerViewController: UIViewController {
         return true
     }
 
-    // MARK: - Firebase Checks
-    // Check if email, username, or phone already exists in Firestore
-    func checkIfUserDataExists(email: String, username: String, phone: String, completion: @escaping (Bool) -> Void) {
+    // MARK: - Check Existing User Data
+    func checkIfUserDataExists(
+        email: String,
+        username: String,
+        phone: String,
+        completion: @escaping (Bool) -> Void
+    ) {
 
         db.collection("users")
             .whereFilter(Filter.orFilter([
@@ -118,6 +118,7 @@ class SignUpSeekerViewController: UIViewController {
                 Filter.whereField("phone", isEqualTo: phone)
             ]))
             .getDocuments { snapshot, error in
+
                 if let error = error {
                     print(error.localizedDescription)
                     completion(true)
@@ -128,37 +129,42 @@ class SignUpSeekerViewController: UIViewController {
             }
     }
 
+    // MARK: - Success Alert + Navigation
+    func showSuccessAndGoToSignIn() {
+
+        let alert = UIAlertController(
+            title: "Success",
+            message: "Account created successfully.",
+            preferredStyle: .alert
+        )
+
+        alert.addAction(UIAlertAction(title: "OK", style: .default) { _ in
+            // Return to Sign In page
+            self.navigationController?.popViewController(animated: true)
+        })
+
+        present(alert, animated: true)
+    }
+
     // MARK: - Helpers
 
-    // Email validation using regex
     func isValidEmail(_ email: String) -> Bool {
         let regex = "[A-Z0-9a-z._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}"
         return NSPredicate(format: "SELF MATCHES %@", regex).evaluate(with: email)
     }
 
-    // Strong password validation
     func isStrongPassword(_ password: String) -> Bool {
         let regex = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&]).{8,}$"
         return NSPredicate(format: "SELF MATCHES %@", regex).evaluate(with: password)
     }
 
-    // Show alert message
     func showAlert(_ message: String) {
-        let alert = UIAlertController(title: "Alert", message: message, preferredStyle: .alert)
+        let alert = UIAlertController(
+            title: "Alert",
+            message: message,
+            preferredStyle: .alert
+        )
         alert.addAction(UIAlertAction(title: "OK", style: .default))
         present(alert, animated: true)
     }
 }
-    
-
-    /*
-    // MARK: - Navigation
-
-    // In a storyboard-based application, you will often want to do a little preparation before navigation
-    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-        // Get the new view controller using segue.destination.
-        // Pass the selected object to the new view controller.
-    }
-    */
-
-
