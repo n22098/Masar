@@ -2,29 +2,39 @@ import UIKit
 
 class AddCategoryViewController: UITableViewController {
 
-    // 1. Connect this to the text field in your Storyboard
+    // 1. Ensure this is connected to your TextField in the Storyboard
     @IBOutlet weak var categoryNameTextField: UITextField!
     
-    // 2. This closure will 'callback' to your main list with the new name
+    // 2. The closure that sends the string back
     var onSave: ((String) -> Void)?
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        // Focus the text field immediately when the screen opens
+        
+        // Focus the text field immediately
         categoryNameTextField.becomeFirstResponder()
     }
 
-    // 3. Connect this to your '+' or 'Save' button in the Storyboard
+    // 3. Connect this to your 'Save' Bar Button Item
     @IBAction func saveButtonTapped(_ sender: UIBarButtonItem) {
         if let name = categoryNameTextField.text, !name.isEmpty {
-            // Pass the text back to the Category Management screen
+            // Send the name back to the previous controller
             onSave?(name)
             
-            // Go back to the previous screen
+            // Return to the list screen
             navigationController?.popViewController(animated: true)
         } else {
-            // Optional: Show an alert if the text field is empty
-            print("Please enter a category name")
+            // Shake the text field or show an alert if empty
+            let alert = UIAlertController(title: "Empty Name", message: "Please enter a name for the category.", preferredStyle: .alert)
+            alert.addAction(UIAlertAction(title: "OK", style: .default))
+            present(alert, animated: true)
         }
+    }
+    
+    // Optional: Connect this to a 'Cancel' Bar Button Item
+    @IBAction func cancelButtonTapped(_ sender: UIBarButtonItem) {
+        navigationController?.popViewController(animated: true)
+        
+        
     }
 }

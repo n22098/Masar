@@ -237,6 +237,11 @@
                         </connections>
                     </tableView>
                     <navigationItem key="navigationItem" title="Add New Category" id="fva-jQ-Hnc">
+                        <barButtonItem key="leftBarButtonItem" title="cancel" id="d9d-yx-GXB">
+                            <connections>
+                                <action selector="cancelButtonTapped:" destination="hNb-zd-5Od" id="xtT-LJ-3hT"/>
+                            </connections>
+                        </barButtonItem>
                         <barButtonItem key="rightBarButtonItem" title="save" id="fZr-3W-I8X">
                             <connections>
                                 <action selector="saveButtonTapped:" destination="hNb-zd-5Od" id="oyo-W9-wMW"/>

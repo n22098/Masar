@@ -1,6 +1,6 @@
 import UIKit
 
-class moderationTooltableviewcontroller: UITableViewController {
+class moderationToolTVC: UITableViewController {
     
     
     
