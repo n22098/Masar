@@ -9,6 +9,17 @@ import UIKit
 
 class RequestHistory: UIViewController {
 
+    @IBOutlet weak var nameTextField: UILabel!
+    @IBOutlet weak var serviceTextField: UILabel!
+    @IBOutlet weak var dateTextField: UILabel!
+    @IBOutlet weak var imgView: UIImageView!
+    
+    @IBAction func ratingBtn(_ sender: UIButton) {
+    }
+    
+    
+    
+    
     override func viewDidLoad() {
         super.viewDidLoad()
 
