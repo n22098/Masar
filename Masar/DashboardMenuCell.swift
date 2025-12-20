@@ -1,10 +1,3 @@
-//
-//  DashboardMenuCell.swift
-//  Masar
-//
-//  Created by Moe Radhi  on 20/12/2025.
-//
-
 import UIKit
 
 class DashboardMenuCell: UITableViewCell {
@@ -30,7 +23,6 @@ class DashboardMenuCell: UITableViewCell {
         backgroundColor = .clear
         selectionStyle = .none
         
-        // Container
         containerView.backgroundColor = .white
         containerView.layer.cornerRadius = 12
         containerView.layer.shadowColor = UIColor.black.cgColor
@@ -39,7 +31,6 @@ class DashboardMenuCell: UITableViewCell {
         containerView.layer.shadowRadius = 4
         containerView.translatesAutoresizingMaskIntoConstraints = false
         
-        // Icon Container
         iconContainerView.layer.cornerRadius = 10
         iconContainerView.translatesAutoresizingMaskIntoConstraints = false
         
@@ -47,22 +38,17 @@ class DashboardMenuCell: UITableViewCell {
         iconImageView.tintColor = .white
         iconImageView.translatesAutoresizingMaskIntoConstraints = false
         
-        // Labels
         titleLabel.font = .systemFont(ofSize: 16, weight: .semibold)
-        titleLabel.textColor = .black
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
         
         subtitleLabel.font = .systemFont(ofSize: 13, weight: .regular)
         subtitleLabel.textColor = .gray
         subtitleLabel.translatesAutoresizingMaskIntoConstraints = false
         
-        // Arrow
         arrowImageView.image = UIImage(systemName: "chevron.right")
         arrowImageView.tintColor = .lightGray
-        arrowImageView.contentMode = .scaleAspectFit
         arrowImageView.translatesAutoresizingMaskIntoConstraints = false
         
-        // Add subviews
         contentView.addSubview(containerView)
         containerView.addSubview(iconContainerView)
         iconContainerView.addSubview(iconImageView)
@@ -70,7 +56,6 @@ class DashboardMenuCell: UITableViewCell {
         containerView.addSubview(subtitleLabel)
         containerView.addSubview(arrowImageView)
         
-        // Constraints
         NSLayoutConstraint.activate([
             containerView.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 6),
             containerView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
@@ -89,16 +74,12 @@ class DashboardMenuCell: UITableViewCell {
             
             titleLabel.topAnchor.constraint(equalTo: containerView.topAnchor, constant: 20),
             titleLabel.leadingAnchor.constraint(equalTo: iconContainerView.trailingAnchor, constant: 16),
-            titleLabel.trailingAnchor.constraint(equalTo: arrowImageView.leadingAnchor, constant: -8),
             
             subtitleLabel.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 2),
             subtitleLabel.leadingAnchor.constraint(equalTo: titleLabel.leadingAnchor),
-            subtitleLabel.trailingAnchor.constraint(equalTo: titleLabel.trailingAnchor),
             
             arrowImageView.centerYAnchor.constraint(equalTo: containerView.centerYAnchor),
-            arrowImageView.trailingAnchor.constraint(equalTo: containerView.trailingAnchor, constant: -16),
-            arrowImageView.widthAnchor.constraint(equalToConstant: 12),
-            arrowImageView.heightAnchor.constraint(equalToConstant: 18)
+            arrowImageView.trailingAnchor.constraint(equalTo: containerView.trailingAnchor, constant: -16)
         ])
     }
     

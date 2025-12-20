@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="23727" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES">
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="23727" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES" initialViewController="9UV-s1-WUi">
     <device id="retina6_12" orientation="portrait" appearance="light"/>
     <dependencies>
         <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="23721"/>
@@ -10,7 +10,7 @@
         <!--Search-->
         <scene sceneID="c2b-HJ-ulh">
             <objects>
-                <tableViewController id="ZYq-hW-SG0" customClass="SearchTableViewController" customModule="Masar" customModuleProvider="target" sceneMemberID="viewController">
+                <tableViewController storyboardIdentifier="SearchTableViewController" useStoryboardIdentifierAsRestorationIdentifier="YES" id="ZYq-hW-SG0" customClass="SearchTableViewController" customModule="Masar" customModuleProvider="target" sceneMemberID="viewController">
                     <tableView key="view" clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="default" rowHeight="-1" estimatedRowHeight="-1" sectionHeaderHeight="-1" estimatedSectionHeaderHeight="-1" sectionFooterHeight="-1" estimatedSectionFooterHeight="-1" id="ttu-vz-Ozi">
                         <rect key="frame" x="0.0" y="0.0" width="393" height="852"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
@@ -98,7 +98,6 @@
                         </connections>
                     </tableView>
                     <navigationItem key="navigationItem" title="Search" id="GVl-Pz-ai6">
-                        <barButtonItem key="leftBarButtonItem" image="rectangle.portrait.and.arrow.forward" catalog="system" id="oYU-UH-UYU"/>
                         <barButtonItem key="rightBarButtonItem" image="arrow.up.arrow.down" catalog="system" style="plain" id="jzk-Be-bkk"/>
                     </navigationItem>
                     <connections>
@@ -1101,7 +1100,7 @@
         <!--Booking History Table View Controller-->
         <scene sceneID="ifW-49-P4g">
             <objects>
-                <tableViewController storyboardIdentifier="BookingHistoryVC" id="xr3-wB-aL3" customClass="BookingHistoryTableViewController" customModule="Masar" customModuleProvider="target" sceneMemberID="viewController">
+                <tableViewController storyboardIdentifier="BookingHistoryTableViewController" useStoryboardIdentifierAsRestorationIdentifier="YES" id="xr3-wB-aL3" customClass="BookingHistoryTableViewController" customModule="Masar" customModuleProvider="target" sceneMemberID="viewController">
                     <tableView key="view" clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="insetGrouped" separatorStyle="default" rowHeight="-1" estimatedRowHeight="-1" sectionHeaderHeight="18" estimatedSectionHeaderHeight="-1" sectionFooterHeight="18" estimatedSectionFooterHeight="-1" id="j5s-W0-rw3">
                         <rect key="frame" x="0.0" y="0.0" width="393" height="852"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
@@ -1162,7 +1161,6 @@
                     </tableView>
                     <navigationItem key="navigationItem" id="apr-fD-pJw">
                         <nil key="title"/>
-                        <barButtonItem key="leftBarButtonItem" image="rectangle.portrait.and.arrow.forward" catalog="system" id="bQs-Ua-Dd9"/>
                     </navigationItem>
                 </tableViewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="HdX-1l-eGf" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
@@ -1366,7 +1364,7 @@
         <!--Provider Tool-->
         <scene sceneID="pQU-RH-Spc">
             <objects>
-                <tableViewController storyboardIdentifier="ProviderDashboardTableViewController" id="jFD-PO-lvJ" customClass="ProviderDashboardTableViewController" customModule="Masar" customModuleProvider="target" sceneMemberID="viewController">
+                <tableViewController id="jFD-PO-lvJ" customClass="ProviderDashboardTableViewController" customModule="Masar" customModuleProvider="target" sceneMemberID="viewController">
                     <tableView key="view" clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="static" style="plain" separatorStyle="default" rowHeight="-1" estimatedRowHeight="-1" sectionHeaderHeight="-1" estimatedSectionHeaderHeight="-1" sectionFooterHeight="-1" estimatedSectionFooterHeight="-1" id="1Pk-ma-wk9">
                         <rect key="frame" x="0.0" y="0.0" width="393" height="852"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
@@ -1421,7 +1419,7 @@
                                             <rect key="frame" x="0.0" y="0.0" width="362.66666666666669" height="47.666667938232422"/>
                                             <autoresizingMask key="autoresizingMask"/>
                                             <subviews>
-                                                <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" text="Provider Profile" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="wr8-gO-bia">
+                                                <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" text="My Profile" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="wr8-gO-bia">
                                                     <rect key="frame" x="20" y="6" width="125" height="36"/>
                                                     <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                                     <fontDescription key="fontDescription" type="system" pointSize="17"/>
@@ -1445,10 +1443,10 @@
             </objects>
             <point key="canvasLocation" x="439" y="1436"/>
         </scene>
-        <!--Select Tests Table View Controller-->
+        <!--Table View Controller-->
         <scene sceneID="MOD-Fn-vc9">
             <objects>
-                <tableViewController id="Wfe-By-gyK" customClass="SelectTestsTableViewController" customModule="Masar" customModuleProvider="target" sceneMemberID="viewController">
+                <tableViewController id="Wfe-By-gyK" sceneMemberID="viewController">
                     <tableView key="view" clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="default" rowHeight="-1" estimatedRowHeight="-1" sectionHeaderHeight="-1" estimatedSectionHeaderHeight="-1" sectionFooterHeight="-1" estimatedSectionFooterHeight="-1" id="4LE-jC-uB5">
                         <rect key="frame" x="0.0" y="0.0" width="393" height="852"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
@@ -1751,7 +1749,7 @@
                                                     <nil key="highlightedColor"/>
                                                 </label>
                                                 <datePicker contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" datePickerMode="date" translatesAutoresizingMaskIntoConstraints="NO" id="1f8-kD-F9d">
-                                                    <rect key="frame" x="214" y="7" width="114" height="28"/>
+                                                    <rect key="frame" x="213" y="7" width="114" height="28"/>
                                                     <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMaxY="YES"/>
                                                     <date key="minimumDate" timeIntervalSinceReferenceDate="694267200">
                                                         <!--2023-01-01 12:00:00 +0000-->
@@ -1787,10 +1785,10 @@
             </objects>
             <point key="canvasLocation" x="2665" y="1396"/>
         </scene>
-        <!--Service Form Table View Controller-->
+        <!--Table View Controller-->
         <scene sceneID="zhh-g4-CDN">
             <objects>
-                <tableViewController id="TbG-Wg-Yhd" customClass="ServiceFormTableViewController" customModule="Masar" customModuleProvider="target" sceneMemberID="viewController">
+                <tableViewController id="TbG-Wg-Yhd" sceneMemberID="viewController">
                     <tableView key="view" clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="static" style="insetGrouped" separatorStyle="default" rowHeight="-1" estimatedRowHeight="-1" sectionHeaderHeight="18" estimatedSectionHeaderHeight="-1" sectionFooterHeight="18" estimatedSectionFooterHeight="-1" id="N2R-OJ-gmA">
                         <rect key="frame" x="0.0" y="0.0" width="393" height="852"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
@@ -1965,7 +1963,7 @@
                                                     <nil key="highlightedColor"/>
                                                 </label>
                                                 <datePicker contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" datePickerMode="date" translatesAutoresizingMaskIntoConstraints="NO" id="v4i-p1-2za">
-                                                    <rect key="frame" x="215" y="7" width="114" height="28"/>
+                                                    <rect key="frame" x="214" y="7" width="115" height="28"/>
                                                     <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMaxY="YES"/>
                                                     <date key="minimumDate" timeIntervalSinceReferenceDate="694267200">
                                                         <!--2023-01-01 12:00:00 +0000-->
@@ -1993,10 +1991,10 @@
             </objects>
             <point key="canvasLocation" x="1549" y="679"/>
         </scene>
-        <!--Lab Bookings Table View Controller-->
+        <!--Table View Controller-->
         <scene sceneID="G6Q-kn-Omj">
             <objects>
-                <tableViewController id="OH0-T0-sVm" customClass="LabBookingsTableViewController" customModule="Masar" customModuleProvider="target" sceneMemberID="viewController">
+                <tableViewController id="OH0-T0-sVm" sceneMemberID="viewController">
                     <tableView key="view" clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="default" rowHeight="-1" estimatedRowHeight="-1" sectionHeaderHeight="-1" estimatedSectionHeaderHeight="-1" sectionFooterHeight="-1" estimatedSectionFooterHeight="-1" id="ZRe-C2-cC8">
                         <rect key="frame" x="0.0" y="0.0" width="393" height="852"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
@@ -2064,7 +2062,7 @@
         <!--Booking Details-->
         <scene sceneID="VTh-Q3-eOb">
             <objects>
-                <tableViewController id="KvE-Rn-VK8" customClass="BookingDetailsTableViewController" customModule="Masar" customModuleProvider="target" sceneMemberID="viewController">
+                <tableViewController id="KvE-Rn-VK8" sceneMemberID="viewController">
                     <tableView key="view" clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="static" style="plain" separatorStyle="default" rowHeight="-1" estimatedRowHeight="-1" sectionHeaderHeight="28" estimatedSectionHeaderHeight="-1" sectionFooterHeight="28" estimatedSectionFooterHeight="-1" id="iPb-xj-SoM">
                         <rect key="frame" x="0.0" y="0.0" width="393" height="852"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>

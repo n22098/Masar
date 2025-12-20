@@ -1,11 +1,4 @@
-//
-//  DashboardMenuItem.swift
-//  Masar
-//
-//  Created by Moe Radhi  on 20/12/2025.
-//
-
-import Foundation
+import UIKit
 
 struct DashboardMenuItem {
     let icon: String

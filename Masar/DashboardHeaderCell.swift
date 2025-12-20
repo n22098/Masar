@@ -1,10 +1,3 @@
-//
-//  DashboardHeaderCell.swift
-//  Masar
-//
-//  Created by Moe Radhi  on 20/12/2025.
-//
-
 import UIKit
 
 class DashboardHeaderCell: UITableViewCell {
@@ -14,7 +7,8 @@ class DashboardHeaderCell: UITableViewCell {
     private let nameLabel = UILabel()
     private let roleLabel = UILabel()
     private let companyLabel = UILabel()
-    private let statsStackView = UIStackView()
+    private let ratingLabel = UILabel()
+    private let bookingsLabel = UILabel()
     
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
@@ -30,7 +24,6 @@ class DashboardHeaderCell: UITableViewCell {
         backgroundColor = .clear
         selectionStyle = .none
         
-        // Container
         containerView.backgroundColor = .white
         containerView.layer.cornerRadius = 16
         containerView.layer.shadowColor = UIColor.black.cgColor
@@ -39,7 +32,6 @@ class DashboardHeaderCell: UITableViewCell {
         containerView.layer.shadowRadius = 8
         containerView.translatesAutoresizingMaskIntoConstraints = false
         
-        // Avatar
         avatarView.backgroundColor = UIColor(red: 0.35, green: 0.34, blue: 0.91, alpha: 0.2)
         avatarView.layer.cornerRadius = 35
         avatarView.translatesAutoresizingMaskIntoConstraints = false
@@ -48,11 +40,8 @@ class DashboardHeaderCell: UITableViewCell {
         avatarIcon.tintColor = UIColor(red: 0.35, green: 0.34, blue: 0.91, alpha: 1.0)
         avatarIcon.contentMode = .scaleAspectFit
         avatarIcon.translatesAutoresizingMaskIntoConstraints = false
-        avatarView.addSubview(avatarIcon)
         
-        // Labels
         nameLabel.font = .systemFont(ofSize: 22, weight: .bold)
-        nameLabel.textColor = .black
         nameLabel.translatesAutoresizingMaskIntoConstraints = false
         
         roleLabel.font = .systemFont(ofSize: 15, weight: .medium)
@@ -63,21 +52,21 @@ class DashboardHeaderCell: UITableViewCell {
         companyLabel.textColor = .gray
         companyLabel.translatesAutoresizingMaskIntoConstraints = false
         
-        // Stats Stack
-        statsStackView.axis = .horizontal
-        statsStackView.distribution = .fillEqually
-        statsStackView.spacing = 8
-        statsStackView.translatesAutoresizingMaskIntoConstraints = false
+        ratingLabel.font = .systemFont(ofSize: 14, weight: .semibold)
+        ratingLabel.translatesAutoresizingMaskIntoConstraints = false
         
-        // Add subviews
+        bookingsLabel.font = .systemFont(ofSize: 14, weight: .semibold)
+        bookingsLabel.translatesAutoresizingMaskIntoConstraints = false
+        
         contentView.addSubview(containerView)
         containerView.addSubview(avatarView)
+        avatarView.addSubview(avatarIcon)
         containerView.addSubview(nameLabel)
         containerView.addSubview(roleLabel)
         containerView.addSubview(companyLabel)
-        containerView.addSubview(statsStackView)
+        containerView.addSubview(ratingLabel)
+        containerView.addSubview(bookingsLabel)
         
-        // Constraints
         NSLayoutConstraint.activate([
             containerView.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 12),
             containerView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
@@ -96,7 +85,6 @@ class DashboardHeaderCell: UITableViewCell {
             
             nameLabel.topAnchor.constraint(equalTo: containerView.topAnchor, constant: 20),
             nameLabel.leadingAnchor.constraint(equalTo: avatarView.trailingAnchor, constant: 16),
-            nameLabel.trailingAnchor.constraint(equalTo: containerView.trailingAnchor, constant: -16),
             
             roleLabel.topAnchor.constraint(equalTo: nameLabel.bottomAnchor, constant: 4),
             roleLabel.leadingAnchor.constraint(equalTo: nameLabel.leadingAnchor),
@@ -104,10 +92,11 @@ class DashboardHeaderCell: UITableViewCell {
             companyLabel.topAnchor.constraint(equalTo: roleLabel.bottomAnchor, constant: 2),
             companyLabel.leadingAnchor.constraint(equalTo: nameLabel.leadingAnchor),
             
-            statsStackView.topAnchor.constraint(equalTo: avatarView.bottomAnchor, constant: 16),
-            statsStackView.leadingAnchor.constraint(equalTo: containerView.leadingAnchor, constant: 16),
-            statsStackView.trailingAnchor.constraint(equalTo: containerView.trailingAnchor, constant: -16),
-            statsStackView.heightAnchor.constraint(equalToConstant: 50)
+            ratingLabel.topAnchor.constraint(equalTo: avatarView.bottomAnchor, constant: 16),
+            ratingLabel.leadingAnchor.constraint(equalTo: containerView.leadingAnchor, constant: 16),
+            
+            bookingsLabel.topAnchor.constraint(equalTo: ratingLabel.topAnchor),
+            bookingsLabel.leadingAnchor.constraint(equalTo: ratingLabel.trailingAnchor, constant: 24)
         ])
     }
     
@@ -115,53 +104,7 @@ class DashboardHeaderCell: UITableViewCell {
         nameLabel.text = name
         roleLabel.text = role
         companyLabel.text = company
-        
-        // Clear existing stats
-        statsStackView.arrangedSubviews.forEach { $0.removeFromSuperview() }
-        
-        // Add stats
-        statsStackView.addArrangedSubview(createStatView(value: String(format: "%.1f", rating), label: "Rating", icon: "star.fill"))
-        statsStackView.addArrangedSubview(createStatView(value: "\(totalBookings)", label: "Bookings", icon: "calendar"))
-    }
-    
-    private func createStatView(value: String, label: String, icon: String) -> UIView {
-        let container = UIView()
-        container.backgroundColor = UIColor(red: 0.95, green: 0.95, blue: 0.97, alpha: 1.0)
-        container.layer.cornerRadius = 8
-        
-        let stackView = UIStackView()
-        stackView.axis = .vertical
-        stackView.alignment = .center
-        stackView.spacing = 4
-        stackView.translatesAutoresizingMaskIntoConstraints = false
-        
-        let iconView = UIImageView(image: UIImage(systemName: icon))
-        iconView.tintColor = UIColor(red: 0.35, green: 0.34, blue: 0.91, alpha: 1.0)
-        iconView.contentMode = .scaleAspectFit
-        
-        let valueLabel = UILabel()
-        valueLabel.text = value
-        valueLabel.font = .systemFont(ofSize: 16, weight: .bold)
-        valueLabel.textColor = .black
-        
-        let labelText = UILabel()
-        labelText.text = label
-        labelText.font = .systemFont(ofSize: 11, weight: .regular)
-        labelText.textColor = .gray
-        
-        stackView.addArrangedSubview(iconView)
-        stackView.addArrangedSubview(valueLabel)
-        stackView.addArrangedSubview(labelText)
-        
-        container.addSubview(stackView)
-        
-        NSLayoutConstraint.activate([
-            stackView.centerXAnchor.constraint(equalTo: container.centerXAnchor),
-            stackView.centerYAnchor.constraint(equalTo: container.centerYAnchor),
-            iconView.widthAnchor.constraint(equalToConstant: 20),
-            iconView.heightAnchor.constraint(equalToConstant: 20)
-        ])
-        
-        return container
+        ratingLabel.text = "⭐ \(String(format: "%.1f", rating))"
+        bookingsLabel.text = "📅 \(totalBookings) bookings"
     }
 }

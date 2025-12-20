@@ -27,88 +27,19 @@ class SearchTableViewController: UITableViewController {
         return sc
     }()
     
-    // تم تحديث البيانات لتشمل الحقول الجديدة (aboutMe, portfolio, etc.)
     var allProviders: [ServiceProviderModel] = [
         // IT Solutions
-        ServiceProviderModel(
-            id: "1", name: "Sayed Husain", role: "Software Engineer", imageName: "it1", rating: 4.9,
-            skills: ["HTML", "CSS", "JS", "PHP", "MySQL"], availability: "Sat-Thu", location: "Online", phone: "36666222",
-            services: [], aboutMe: "Professional Software Engineer", portfolio: [], certifications: [], reviews: [], experience: "5 Years", completedProjects: 20
-        ),
-        ServiceProviderModel(
-            id: "2", name: "Joe Dean", role: "Network Technician", imageName: "it2", rating: 4.5,
-            skills: ["Networking", "Security"], availability: "Sun-Thu", location: "Manama", phone: "33333333",
-            services: [], aboutMe: "Network Security Expert", portfolio: [], certifications: [], reviews: [], experience: "3 Years", completedProjects: 15
-        ),
-        ServiceProviderModel(
-            id: "3", name: "Amin Altajer", role: "Computer Repair", imageName: "it3", rating: 4.8,
-            skills: ["Hardware", "Software"], availability: "Daily", location: "Riffa", phone: "39999999",
-            services: [], aboutMe: "Expert in Hardware Repair", portfolio: [], certifications: [], reviews: [], experience: "7 Years", completedProjects: 50
-        ),
-        ServiceProviderModel(
-            id: "7", name: "Ahmed Ali", role: "IT Support Engineer", imageName: "it4", rating: 4.7,
-            skills: ["Windows", "Linux", "Cloud"], availability: "Mon-Fri", location: "Manama", phone: "35555555",
-            services: [], aboutMe: "Cloud & System Admin", portfolio: [], certifications: [], reviews: [], experience: "4 Years", completedProjects: 12
-        ),
-        ServiceProviderModel(
-            id: "8", name: "Mohammed Hassan", role: "Database Administrator", imageName: "it5", rating: 4.6,
-            skills: ["SQL", "Oracle", "MongoDB"], availability: "Sun-Thu", location: "Online", phone: "34444444",
-            services: [], aboutMe: "Database Optimization Pro", portfolio: [], certifications: [], reviews: [], experience: "6 Years", completedProjects: 30
-        ),
+        ServiceProviderModel(id: "1", name: "Sayed Husain", role: "Software Engineer", imageName: "it1", rating: 4.9, skills: ["HTML", "CSS"], availability: "Sat-Thu", location: "Online", phone: "36666222", services: [], aboutMe: "Dev", portfolio: [], certifications: [], reviews: [], experience: "5 Yrs", completedProjects: 20),
+        ServiceProviderModel(id: "2", name: "Joe Dean", role: "Network Technician", imageName: "it2", rating: 4.5, skills: ["Net"], availability: "Sun-Thu", location: "Manama", phone: "33333333", services: [], aboutMe: "Net", portfolio: [], certifications: [], reviews: [], experience: "3 Yrs", completedProjects: 15),
+        ServiceProviderModel(id: "3", name: "Amin Altajer", role: "Computer Repair", imageName: "it3", rating: 4.8, skills: ["Hardware"], availability: "Daily", location: "Riffa", phone: "39999999", services: [], aboutMe: "Repair", portfolio: [], certifications: [], reviews: [], experience: "7 Yrs", completedProjects: 50),
         
         // Teaching
-        ServiceProviderModel(
-            id: "4", name: "Kashmala Saleem", role: "Math Teacher", imageName: "t1", rating: 5.0,
-            skills: ["Math", "Physics"], availability: "Weekends", location: "Online", phone: "34444444",
-            services: [], aboutMe: "Certified Math Teacher", portfolio: [], certifications: [], reviews: [], experience: "4 Years", completedProjects: 100
-        ),
-        ServiceProviderModel(
-            id: "9", name: "Fatima Ahmed", role: "English Teacher", imageName: "t2", rating: 4.8,
-            skills: ["English", "Grammar"], availability: "Daily", location: "Riffa", phone: "36111111",
-            services: [], aboutMe: "English Literature Expert", portfolio: [], certifications: [], reviews: [], experience: "5 Years", completedProjects: 80
-        ),
-        ServiceProviderModel(
-            id: "10", name: "Sarah Ali", role: "Science Teacher", imageName: "t3", rating: 4.7,
-            skills: ["Biology", "Chemistry"], availability: "Mon-Fri", location: "Manama", phone: "37222222",
-            services: [], aboutMe: "Science & Biology Tutor", portfolio: [], certifications: [], reviews: [], experience: "3 Years", completedProjects: 40
-        ),
-        ServiceProviderModel(
-            id: "11", name: "Layla Hassan", role: "Arabic Teacher", imageName: "t4", rating: 4.9,
-            skills: ["Arabic", "Literature"], availability: "Weekends", location: "Online", phone: "38333333",
-            services: [], aboutMe: "Arabic Language Specialist", portfolio: [], certifications: [], reviews: [], experience: "8 Years", completedProjects: 120
-        ),
-        ServiceProviderModel(
-            id: "12", name: "Noor Mohammed", role: "History Teacher", imageName: "t5", rating: 4.6,
-            skills: ["History", "Geography"], availability: "Sun-Thu", location: "Muharraq", phone: "39444444",
-            services: [], aboutMe: "History & Geography Teacher", portfolio: [], certifications: [], reviews: [], experience: "2 Years", completedProjects: 30
-        ),
+        ServiceProviderModel(id: "4", name: "Kashmala Saleem", role: "Math Teacher", imageName: "t1", rating: 5.0, skills: ["Math"], availability: "Weekends", location: "Online", phone: "34444444", services: [], aboutMe: "Teacher", portfolio: [], certifications: [], reviews: [], experience: "4 Yrs", completedProjects: 100),
+        ServiceProviderModel(id: "9", name: "Fatima Ahmed", role: "English Teacher", imageName: "t2", rating: 4.8, skills: ["English"], availability: "Daily", location: "Riffa", phone: "36111111", services: [], aboutMe: "Eng", portfolio: [], certifications: [], reviews: [], experience: "5 Yrs", completedProjects: 80),
         
         // Digital Services
-        ServiceProviderModel(
-            id: "5", name: "Osama Hasan", role: "UI/UX Designer", imageName: "d1", rating: 4.6,
-            skills: ["Figma", "Adobe XD"], availability: "Flexible", location: "Online", phone: "37777777",
-            services: [], aboutMe: "Creative UI/UX Designer", portfolio: [], certifications: [], reviews: [], experience: "3 Years", completedProjects: 25
-        ),
-        ServiceProviderModel(
-            id: "6", name: "Vishal Santhosh", role: "Content Creator", imageName: "d3", rating: 4.8,
-            skills: ["Video Editing", "Photography"], availability: "Mon-Sat", location: "Muharraq", phone: "38888888",
-            services: [], aboutMe: "Professional Content Creator", portfolio: [], certifications: [], reviews: [], experience: "4 Years", completedProjects: 60
-        ),
-        ServiceProviderModel(
-            id: "13", name: "Zainab Ali", role: "Graphic Designer", imageName: "d2", rating: 4.7,
-            skills: ["Photoshop", "Illustrator"], availability: "Mon-Fri", location: "Online", phone: "35666666",
-            services: [], aboutMe: "Creative Graphic Designer", portfolio: [], certifications: [], reviews: [], experience: "2 Years", completedProjects: 45
-        ),
-        ServiceProviderModel(
-            id: "14", name: "Khalid Ahmed", role: "Social Media Manager", imageName: "d4", rating: 4.5,
-            skills: ["Instagram", "Facebook", "TikTok"], availability: "Daily", location: "Manama", phone: "36777777",
-            services: [], aboutMe: "Social Media Expert", portfolio: [], certifications: [], reviews: [], experience: "3 Years", completedProjects: 30
-        ),
-        ServiceProviderModel(
-            id: "15", name: "Mariam Hassan", role: "Video Editor", imageName: "d5", rating: 4.9,
-            skills: ["Premiere Pro", "After Effects"], availability: "Flexible", location: "Online", phone: "37888888",
-            services: [], aboutMe: "Professional Video Editor", portfolio: [], certifications: [], reviews: [], experience: "5 Years", completedProjects: 70
-        )
+        ServiceProviderModel(id: "5", name: "Osama Hasan", role: "UI/UX Designer", imageName: "d1", rating: 4.6, skills: ["Figma"], availability: "Flexible", location: "Online", phone: "37777777", services: [], aboutMe: "Design", portfolio: [], certifications: [], reviews: [], experience: "3 Yrs", completedProjects: 25),
+        ServiceProviderModel(id: "6", name: "Vishal Santhosh", role: "Content Creator", imageName: "d3", rating: 4.8, skills: ["Video"], availability: "Mon-Sat", location: "Muharraq", phone: "38888888", services: [], aboutMe: "Creator", portfolio: [], certifications: [], reviews: [], experience: "4 Yrs", completedProjects: 60)
     ]
     
     private var filteredProviders: [ServiceProviderModel] = []
@@ -127,18 +58,20 @@ class SearchTableViewController: UITableViewController {
     
     // MARK: - Setup
     private func setupNavigationBar() {
-        // Large title
+        // ✅ تفعيل العنوان الكبير
         navigationController?.navigationBar.prefersLargeTitles = true
+        navigationItem.largeTitleDisplayMode = .always
         title = "Search"
         
         // Purple navigation bar
         let appearance = UINavigationBarAppearance()
         appearance.configureWithOpaqueBackground()
         appearance.backgroundColor = UIColor(red: 98/255, green: 84/255, blue: 243/255, alpha: 1)
+        
         appearance.titleTextAttributes = [.foregroundColor: UIColor.white]
         appearance.largeTitleTextAttributes = [
             .foregroundColor: UIColor.white,
-            .font: UIFont.systemFont(ofSize: 36, weight: .bold)
+            .font: UIFont.systemFont(ofSize: 34, weight: .bold)
         ]
         
         navigationController?.navigationBar.standardAppearance = appearance
@@ -146,15 +79,7 @@ class SearchTableViewController: UITableViewController {
         navigationController?.navigationBar.compactAppearance = appearance
         navigationController?.navigationBar.tintColor = .white
         
-        // Logout button (LEFT)
-        let logoutButton = UIBarButtonItem(
-            image: UIImage(systemName: "rectangle.portrait.and.arrow.right"),
-            style: .plain,
-            target: self,
-            action: #selector(logoutTapped)
-        )
-        logoutButton.tintColor = .white
-        navigationItem.leftBarButtonItem = logoutButton
+        // ❌ تم حذف زر Logout من هنا
         
         // Sort button (RIGHT)
         let sortButton = UIBarButtonItem(
@@ -170,7 +95,7 @@ class SearchTableViewController: UITableViewController {
     private func setupSearchController() {
         searchController.searchResultsUpdater = self
         searchController.obscuresBackgroundDuringPresentation = false
-        searchController.searchBar.placeholder = "Search"
+        searchController.searchBar.placeholder = "Search provider..."
         searchController.searchBar.tintColor = UIColor(red: 98/255, green: 84/255, blue: 243/255, alpha: 1)
         searchController.searchBar.searchTextField.backgroundColor = .white
         
@@ -182,7 +107,7 @@ class SearchTableViewController: UITableViewController {
     private func setupTableView() {
         tableView.separatorStyle = .none
         tableView.backgroundColor = UIColor(red: 248/255, green: 248/255, blue: 252/255, alpha: 1)
-        tableView.contentInset = UIEdgeInsets(top: 20, left: 0, bottom: 20, right: 0)
+        tableView.contentInset = UIEdgeInsets(top: 10, left: 0, bottom: 20, right: 0)
         
         // Register custom cell
         tableView.register(ProviderTableCell.self, forCellReuseIdentifier: "ProviderCell")
@@ -192,54 +117,32 @@ class SearchTableViewController: UITableViewController {
     }
     
     private func createHeaderView() -> UIView {
-        let headerView = UIView(frame: CGRect(x: 0, y: 0, width: view.frame.width, height: 70))
+        let headerView = UIView(frame: CGRect(x: 0, y: 0, width: view.frame.width, height: 60))
         headerView.backgroundColor = UIColor(red: 248/255, green: 248/255, blue: 252/255, alpha: 1)
         
-        categorySegment.frame = CGRect(x: 20, y: 15, width: view.frame.width - 40, height: 44)
+        categorySegment.frame = CGRect(x: 16, y: 8, width: view.frame.width - 32, height: 40)
         headerView.addSubview(categorySegment)
         
         return headerView
     }
     
     // MARK: - Actions
-    @objc private func logoutTapped() {
-        let alert = UIAlertController(
-            title: "Logout",
-            message: "Are you sure you want to log out?",
-            preferredStyle: .alert
-        )
-        
-        alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
-        alert.addAction(UIAlertAction(title: "Logout", style: .destructive) { [weak self] _ in
-            self?.performLogout()
-        })
-        
-        present(alert, animated: true)
-    }
     
     @objc private func sortTapped() {
-        let alert = UIAlertController(
-            title: nil,
-            message: "Sort by:",
-            preferredStyle: .actionSheet
-        )
+        let alert = UIAlertController(title: nil, message: "Sort by Name:", preferredStyle: .actionSheet)
         
-        // A-Z Option
         alert.addAction(UIAlertAction(title: "A-Z", style: .default) { [weak self] _ in
             self?.isAscending = true
             self?.applySorting()
         })
         
-        // Z-A Option
         alert.addAction(UIAlertAction(title: "Z-A", style: .default) { [weak self] _ in
             self?.isAscending = false
             self?.applySorting()
         })
         
-        // Cancel button
         alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
         
-        // For iPad support
         if let popover = alert.popoverPresentationController {
             popover.barButtonItem = navigationItem.rightBarButtonItem
         }
@@ -255,23 +158,7 @@ class SearchTableViewController: UITableViewController {
                 return provider1.name > provider2.name
             }
         }
-        
         tableView.reloadData()
-    }
-    
-    private func performLogout() {
-        // Clear user session
-        UserDefaults.standard.removeObject(forKey: "isLoggedIn")
-        UserDefaults.standard.synchronize()
-        
-        // Navigate to login screen
-        if let loginVC = storyboard?.instantiateViewController(withIdentifier: "LoginViewController") {
-            loginVC.modalPresentationStyle = .fullScreen
-            present(loginVC, animated: true)
-        } else {
-            // Fallback: pop to root
-            navigationController?.popToRootViewController(animated: true)
-        }
     }
     
     @objc private func segmentChanged(_ sender: UISegmentedControl) {
@@ -285,19 +172,13 @@ class SearchTableViewController: UITableViewController {
         switch selectedCategory {
         case 0: // IT Solutions
             categoryProviders = allProviders.filter {
-                $0.role.contains("Engineer") ||
-                $0.role.contains("Technician") ||
-                $0.role.contains("Repair") ||
-                $0.role.contains("Administrator")
+                $0.role.contains("Engineer") || $0.role.contains("Technician") || $0.role.contains("Repair") || $0.role.contains("Administrator")
             }
         case 1: // Teaching
             categoryProviders = allProviders.filter { $0.role.contains("Teacher") }
         case 2: // Digital Services
             categoryProviders = allProviders.filter {
-                $0.role.contains("Designer") ||
-                $0.role.contains("Creator") ||
-                $0.role.contains("Editor") ||
-                $0.role.contains("Manager")
+                $0.role.contains("Designer") || $0.role.contains("Creator") || $0.role.contains("Editor") || $0.role.contains("Manager")
             }
         default:
             categoryProviders = allProviders
@@ -313,55 +194,16 @@ class SearchTableViewController: UITableViewController {
             filteredProviders = categoryProviders
         }
         
-        // Apply current sorting
         applySorting()
     }
     
     private func filterContent(for searchText: String) {
-        // Get current category providers first
-        let selectedCategory = categorySegment.selectedSegmentIndex
-        var categoryProviders: [ServiceProviderModel] = []
-        
-        switch selectedCategory {
-        case 0:
-            categoryProviders = allProviders.filter {
-                $0.role.contains("Engineer") ||
-                $0.role.contains("Technician") ||
-                $0.role.contains("Repair") ||
-                $0.role.contains("Administrator")
-            }
-        case 1:
-            categoryProviders = allProviders.filter { $0.role.contains("Teacher") }
-        case 2:
-            categoryProviders = allProviders.filter {
-                $0.role.contains("Designer") ||
-                $0.role.contains("Creator") ||
-                $0.role.contains("Editor") ||
-                $0.role.contains("Manager")
-            }
-        default:
-            categoryProviders = allProviders
-        }
-        
-        // Then filter by search text
-        if searchText.isEmpty {
-            filteredProviders = categoryProviders
-        } else {
-            filteredProviders = categoryProviders.filter { provider in
-                provider.name.lowercased().contains(searchText.lowercased()) ||
-                provider.role.lowercased().contains(searchText.lowercased()) ||
-                provider.skills.joined(separator: " ").lowercased().contains(searchText.lowercased())
-            }
-        }
-        
-        // Apply current sorting
-        applySorting()
+        // First re-apply category logic to get base list
+        filterProvidersByCategory()
     }
     
     // MARK: - Table view data source
-    override func numberOfSections(in tableView: UITableView) -> Int {
-        return 1
-    }
+    override func numberOfSections(in tableView: UITableView) -> Int { 1 }
     
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return filteredProviders.count
@@ -369,10 +211,8 @@ class SearchTableViewController: UITableViewController {
     
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "ProviderCell", for: indexPath) as! ProviderTableCell
-        
         let provider = filteredProviders[indexPath.row]
         cell.configure(with: provider)
-        
         return cell
     }
     
@@ -382,7 +222,6 @@ class SearchTableViewController: UITableViewController {
     
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
-        
         let selectedProvider = filteredProviders[indexPath.row]
         performSegue(withIdentifier: "showServiceItem", sender: selectedProvider)
     }
@@ -398,17 +237,15 @@ class SearchTableViewController: UITableViewController {
     }
 }
 
-// MARK: - UISearchResultsUpdating
 extension SearchTableViewController: UISearchResultsUpdating {
     func updateSearchResults(for searchController: UISearchController) {
-        guard let searchText = searchController.searchBar.text else { return }
-        filterContent(for: searchText)
+        guard let _ = searchController.searchBar.text else { return }
+        filterProvidersByCategory() // Call main filter logic
     }
 }
 
-// MARK: - Custom Provider Cell
+// MARK: - Provider Cell (Included to avoid missing class error)
 class ProviderTableCell: UITableViewCell {
-    
     private let containerView: UIView = {
         let view = UIView()
         view.backgroundColor = .white
@@ -469,35 +306,22 @@ class ProviderTableCell: UITableViewCell {
         return btn
     }()
     
-    private let chevronImageView: UIImageView = {
-        let iv = UIImageView()
-        iv.image = UIImage(systemName: "chevron.right")
-        iv.tintColor = UIColor.lightGray
-        iv.contentMode = .scaleAspectFit
-        iv.translatesAutoresizingMaskIntoConstraints = false
-        return iv
-    }()
-    
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
         setupUI()
     }
     
-    required init?(coder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
-    }
+    required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
     
     private func setupUI() {
         backgroundColor = .clear
         selectionStyle = .none
-        
         contentView.addSubview(containerView)
         containerView.addSubview(avatarImageView)
         containerView.addSubview(nameLabel)
         containerView.addSubview(roleLabel)
         containerView.addSubview(ratingLabel)
         containerView.addSubview(viewButton)
-        containerView.addSubview(chevronImageView)
         
         NSLayoutConstraint.activate([
             containerView.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 6),
@@ -521,14 +345,9 @@ class ProviderTableCell: UITableViewCell {
             ratingLabel.leadingAnchor.constraint(equalTo: nameLabel.leadingAnchor),
             
             viewButton.centerYAnchor.constraint(equalTo: containerView.centerYAnchor),
-            viewButton.trailingAnchor.constraint(equalTo: chevronImageView.leadingAnchor, constant: -8),
+            viewButton.trailingAnchor.constraint(equalTo: containerView.trailingAnchor, constant: -12),
             viewButton.widthAnchor.constraint(equalToConstant: 110),
-            viewButton.heightAnchor.constraint(equalToConstant: 36),
-            
-            chevronImageView.centerYAnchor.constraint(equalTo: containerView.centerYAnchor),
-            chevronImageView.trailingAnchor.constraint(equalTo: containerView.trailingAnchor, constant: -12),
-            chevronImageView.widthAnchor.constraint(equalToConstant: 12),
-            chevronImageView.heightAnchor.constraint(equalToConstant: 12)
+            viewButton.heightAnchor.constraint(equalToConstant: 36)
         ])
     }
     
@@ -536,8 +355,6 @@ class ProviderTableCell: UITableViewCell {
         nameLabel.text = provider.name
         roleLabel.text = provider.role
         ratingLabel.text = "⭐️ \(provider.rating)"
-        
-        // Try to load the image
         if let image = UIImage(named: provider.imageName) {
             avatarImageView.image = image
         } else {
