@@ -10,15 +10,14 @@ class ProviderDashboardTableViewController: UITableViewController {
     // MARK: - Lifecycle
     
     override func viewDidLoad() {
-            super.viewDidLoad()
-            
-            // 👇 التعديل هنا: غيرنا العنوان إلى Services
-            title = "Services"
-            
-            setupUI()
-            loadUserData()
-            setupMenuItems()
-        }
+        super.viewDidLoad()
+        
+        title = "Services"
+        
+        setupUI()
+        loadUserData()
+        setupMenuItems()
+    }
     
     // MARK: - Setup UI
     
@@ -65,11 +64,9 @@ class ProviderDashboardTableViewController: UITableViewController {
                 title: "Provider Profile",
                 subtitle: "Edit profile",
                 color: .systemPurple,
-                action: { [weak self] in self?.showAlert("Coming Soon", "Profile editing coming soon") }
+                action: { [weak self] in self?.showProviderProfile() }
             )
         ]
-        
-        // ❌ تم حذف خيار Manage Team من هنا بناءً على طلبك
     }
     
     // MARK: - Table View Data Source
@@ -91,7 +88,7 @@ class ProviderDashboardTableViewController: UITableViewController {
                 cell.configure(
                     name: user.name,
                     role: provider.role.displayName,
-                    company: "Masar Company", // ✅ تم التعديل هنا لتظهر Masar Company دائماً
+                    company: "Masar Company",
                     rating: provider.rating,
                     totalBookings: provider.totalBookings
                 )
@@ -120,23 +117,29 @@ class ProviderDashboardTableViewController: UITableViewController {
     // MARK: - Navigation Actions
     
     private func showMyServices() {
-        let storyboard = UIStoryboard(name: "Main", bundle: nil)
-        
-        // استخدام الاسم الصحيح للملف الذي أنشأته
-        if let vc = storyboard.instantiateViewController(withIdentifier: "MyServicesViewController") as? ProviderServicesTableViewController {
-            navigationController?.pushViewController(vc, animated: true)
-        } else {
-            showAlert("Error", "Could not find MyServicesViewController in Storyboard")
-        }
+        // ✅ استخدام Segue بدلاً من Instantiate
+        performSegue(withIdentifier: "showMyServices", sender: self)
     }
     
     private func showMyBookings() {
-        let storyboard = UIStoryboard(name: "Main", bundle: nil)
-        
-        if let vc = try? storyboard.instantiateViewController(withIdentifier: "BookingHistoryTableViewController") {
-            navigationController?.pushViewController(vc, animated: true)
-        } else {
-            showAlert("Error", "Booking History not found in storyboard")
+        // ✅ استخدام Segue بدلاً من Instantiate
+        performSegue(withIdentifier: "showMyBookings", sender: self)
+    }
+    
+    private func showProviderProfile() {
+        // ✅ استخدام Segue بدلاً من Instantiate
+        performSegue(withIdentifier: "showProviderProfile", sender: self)
+    }
+    
+    // MARK: - Prepare for Segue
+    
+    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
+        // هنا يمكنك تمرير بيانات إذا احتجت
+        if segue.identifier == "showMyServices" {
+            // مثال: تمرير بيانات للـ ProviderServicesTableViewController
+            if let destinationVC = segue.destination as? ProviderServicesTableViewController {
+                // destinationVC.someProperty = someValue
+            }
         }
     }
     

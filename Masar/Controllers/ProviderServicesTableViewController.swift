@@ -186,7 +186,7 @@ class ProviderServicesTableViewController: UITableViewController {
     }
     
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        guard let cell = tableView.dequeueReusableCell(withIdentifier: "ProviderServiceCell", for: indexPath) as? ProviderServiceCell else {
+        guard let cell = tableView.dequeueReusableCell(withIdentifier: "MyServicesCell", for: indexPath) as? ProviderServiceCell else {
             return UITableViewCell()
         }
         
