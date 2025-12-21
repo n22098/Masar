@@ -4,36 +4,50 @@ class MainTabBarController: UITabBarController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        // 1. إنشاء مستخدم تجريبي لتفعيل وضع "مقدم الخدمة"
         createTestUser()
+        
+        // 2. إعداد شكل الشريط
         setupTabBarAppearance()
+        
+        // 3. بناء التابات
         setupTabs()
     }
     
     func setupTabs() {
+        // التأكد من وجود مستخدم
         guard let user = UserManager.shared.currentUser else {
             createTestUser()
+            setupTabs() // إعادة المحاولة بعد الإنشاء
             return
         }
         
         var controllers: [UIViewController] = []
         
-        // 1. Search
+        // ---------------------------------------------------------
+        // 1. Search (من الستوري بورد)
+        // ---------------------------------------------------------
         let searchVC = createFromProviderStoryboard(
-            "SearchTableViewController",
+            id: "SearchTableViewController", // تأكد أن هذا الـ ID موجود في الستوري بورد
             title: "Search",
             icon: "magnifyingglass"
         )
         controllers.append(searchVC)
         
-        // 2. History
+        // ---------------------------------------------------------
+        // 2. History (من الستوري بورد)
+        // ---------------------------------------------------------
         let historyVC = createFromProviderStoryboard(
-            "BookingHistoryTableViewController",
+            id: "BookingHistoryTableViewController", // تأكد أن هذا الـ ID موجود في الستوري بورد
             title: "History",
             icon: "clock"
         )
         controllers.append(historyVC)
         
-        // 3. Messages
+        // ---------------------------------------------------------
+        // 3. Messages (شاشة مؤقتة)
+        // ---------------------------------------------------------
         let messagesVC = createPlaceholderViewController(
             title: "Messages",
             icon: "message",
@@ -41,24 +55,23 @@ class MainTabBarController: UITabBarController {
         )
         controllers.append(messagesVC)
         
-        // 4. Services (Dashboard سابقا)
+        // ---------------------------------------------------------
+        // 4. Provider Hub (التعديل الجديد والمهم هنا) 🛠️
+        // ---------------------------------------------------------
         if user.isProvider {
-            let servicesVC = ProviderDashboardTableViewController()
-            servicesVC.title = "Services"
-            
-            let navController = UINavigationController(rootViewController: servicesVC)
-            navController.navigationBar.prefersLargeTitles = true
-            servicesVC.navigationItem.largeTitleDisplayMode = .always
-            
-            navController.tabBarItem = UITabBarItem(
-                title: "Services",
-                image: UIImage(systemName: "briefcase"),
-                selectedImage: UIImage(systemName: "briefcase.fill")
+            // الآن نقوم بتحميل الشاشة التي صممناها من الـ Storyboard
+            // بدلاً من إنشائها بالكود
+            let providerHubVC = createFromProviderStoryboard(
+                id: "ProviderHubTableViewController", // ⚠️ مهم جداً: تأكد أنك وضعت هذا الاسم في الـ Identity Inspector
+                title: "Provider Hub",
+                icon: "briefcase"
             )
-            controllers.append(navController)
+            controllers.append(providerHubVC)
         }
         
-        // 5. Profile
+        // ---------------------------------------------------------
+        // 5. Profile (شاشة مؤقتة)
+        // ---------------------------------------------------------
         let profileVC = createPlaceholderViewController(
             title: "Profile",
             icon: "person",
@@ -66,28 +79,29 @@ class MainTabBarController: UITabBarController {
         )
         controllers.append(profileVC)
         
+        // تعيين الكل في الشريط
         viewControllers = controllers
-        tabBar.tintColor = UIColor(red: 0.35, green: 0.34, blue: 0.91, alpha: 1.0)
+        
+        // ألوان الشريط
+        tabBar.tintColor = UIColor(red: 0.35, green: 0.34, blue: 0.91, alpha: 1.0) // اللون البنفسجي
         tabBar.unselectedItemTintColor = .systemGray
     }
     
     // MARK: - Helper Methods
     
-    private func createFromProviderStoryboard(
-        _ id: String,
-        title: String,
-        icon: String
-    ) -> UIViewController {
+    // دالة لتحميل الشاشات من الـ Storyboard
+    private func createFromProviderStoryboard(id: String, title: String, icon: String) -> UIViewController {
         
-        let storyboard = UIStoryboard(name: "Provider", bundle: nil) // تأكد أن الاسم Provider أو Main حسب ملفك
+        // تأكد أن اسم ملف الستوري بورد هو "Provider" (أو "Main" حسب ملفك)
+        let storyboard = UIStoryboard(name: "Provider", bundle: nil)
+        
+        // تحميل الكنترولر باستخدام الـ ID
+        // ملاحظة: إذا صار كراش هنا، يعني الـ ID في الكود لا يطابق الـ ID في الستوري بورد
         let vc = storyboard.instantiateViewController(withIdentifier: id)
         
-        // هذا السطر مهم جداً لإظهار العنوان بعد حذف الهيدر البنفسجي
         vc.title = title
         
         let nav = UINavigationController(rootViewController: vc)
-        
-        // تفعيل العنوان الكبير (يسار)
         nav.navigationBar.prefersLargeTitles = true
         vc.navigationItem.largeTitleDisplayMode = .always
         
@@ -100,6 +114,7 @@ class MainTabBarController: UITabBarController {
         return nav
     }
     
+    // دالة لإنشاء شاشات فارغة (مؤقتة)
     private func createPlaceholderViewController(title: String, icon: String, selectedIcon: String) -> UIViewController {
         let vc = UIViewController()
         vc.view.backgroundColor = .white
@@ -128,24 +143,27 @@ class MainTabBarController: UITabBarController {
     }
     
     private func createTestUser() {
-        // ... (نفس كود المستخدم السابق) ...
+        // بيانات تجريبية كاملة
         let providerProfile = ProviderProfile(
-             role: .companyOwner,
-             companyName: "Masar Company",
-             services: [ServiceModel(name: "Service 1", price: "100", description: "Desc")],
-             totalBookings: 45,
-             completedBookings: 42,
-             rating: 4.9,
-             joinedDate: "2024-01-15"
-         )
-         
-         let user = User(
-             name: "Ahmed",
-             email: "ahmed@test.com",
-             phone: "12345678",
-             providerProfile: providerProfile
-         )
-         
-         UserManager.shared.setCurrentUser(user)
+            role: .companyOwner,
+            companyName: "Masar Company",
+            services: [
+                ServiceModel(name: "Home Cleaning", price: "20", description: "Deep cleaning"),
+                ServiceModel(name: "AC Repair", price: "35", description: "Split unit maintenance")
+            ],
+            totalBookings: 45,
+            completedBookings: 42,
+            rating: 4.9,
+            joinedDate: "2024-01-15"
+        )
+          
+        let user = User(
+            name: "Hamed",
+            email: "hamed@masar.com",
+            phone: "33333333",
+            providerProfile: providerProfile
+        )
+          
+        UserManager.shared.setCurrentUser(user)
     }
 }

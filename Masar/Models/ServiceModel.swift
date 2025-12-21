@@ -7,6 +7,9 @@ struct ServiceModel: Codable {
     var description: String
     var icon: String
     
+    // ✅ أضفنا هذا المتغير لحفظ الخدمات الفرعية التي تختارها
+    var addOns: [String]
+    
     // Properties needed for the controller
     var deliveryTime: String
     var features: [String]
@@ -20,6 +23,7 @@ struct ServiceModel: Codable {
          price: String,
          description: String,
          icon: String = "briefcase.fill",
+         addOns: [String] = [], // ✅ قيمة افتراضية فارغة
          deliveryTime: String = "TBD",
          features: [String] = [],
          category: String = "IT Solutions",
@@ -30,6 +34,7 @@ struct ServiceModel: Codable {
         self.price = price
         self.description = description
         self.icon = icon
+        self.addOns = addOns // ✅ ربط المتغير
         self.deliveryTime = deliveryTime
         self.features = features
         self.category = category
@@ -43,6 +48,7 @@ struct ServiceModel: Codable {
         case price
         case description
         case icon
+        case addOns // ✅ لا تنسى إضافته هنا للحفظ
         case deliveryTime
         case features
         case category
