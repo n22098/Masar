@@ -1424,9 +1424,6 @@
                                                 </label>
                                             </subviews>
                                         </tableViewCellContentView>
-                                        <connections>
-                                            <segue destination="Lgf-es-7c3" kind="show" identifier="myservices" id="BLu-0Z-b1w"/>
-                                        </connections>
                                     </tableViewCell>
                                     <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" insetsLayoutMarginsFromSafeArea="NO" selectionStyle="blue" accessoryType="disclosureIndicator" hidesAccessoryWhenEditing="NO" indentationLevel="1" indentationWidth="0.0" reuseIdentifier="MyBookingCell" id="NAR-Lr-xnJ" customClass="MyBookingCell" customModule="Masar" customModuleProvider="target">
                                         <rect key="frame" x="0.0" y="97.666667938232422" width="393" height="47.666667938232422"/>
@@ -1444,9 +1441,6 @@
                                                 </label>
                                             </subviews>
                                         </tableViewCellContentView>
-                                        <connections>
-                                            <segue destination="OH0-T0-sVm" kind="show" id="ROD-z6-c0q"/>
-                                        </connections>
                                     </tableViewCell>
                                     <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" insetsLayoutMarginsFromSafeArea="NO" selectionStyle="blue" accessoryType="disclosureIndicator" hidesAccessoryWhenEditing="NO" indentationLevel="1" indentationWidth="0.0" reuseIdentifier="MyProfileCell" id="mB2-yC-NY3" customClass="MyProfileCell" customModule="Masar" customModuleProvider="target">
                                         <rect key="frame" x="0.0" y="145.33333587646484" width="393" height="47.666667938232422"/>
@@ -1474,10 +1468,13 @@
                         </connections>
                     </tableView>
                     <navigationItem key="navigationItem" title="Provider Tool" id="bKe-Th-MBc"/>
+                    <connections>
+                        <segue destination="Lgf-es-7c3" kind="show" identifier="myservices" id="QLM-Fx-MSX"/>
+                    </connections>
                 </tableViewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="g8L-Af-h0m" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="439" y="1436"/>
+            <point key="canvasLocation" x="421" y="1458"/>
         </scene>
         <!--Table View Controller-->
         <scene sceneID="MOD-Fn-vc9">
@@ -1517,7 +1514,7 @@
                 </tableViewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="gDw-AJ-C5U" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="3703" y="1396"/>
+            <point key="canvasLocation" x="3969" y="1458"/>
         </scene>
         <!--My Service-->
         <scene sceneID="xA3-L2-uOr">
@@ -1584,7 +1581,7 @@
                 </tableViewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="gtk-XR-fvM" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="1610" y="1436"/>
+            <point key="canvasLocation" x="1599" y="1458"/>
         </scene>
         <!--Service-->
         <scene sceneID="7Mi-HO-03b">
@@ -1784,7 +1781,7 @@
                                                     <nil key="highlightedColor"/>
                                                 </label>
                                                 <datePicker contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" datePickerMode="date" translatesAutoresizingMaskIntoConstraints="NO" id="1f8-kD-F9d">
-                                                    <rect key="frame" x="210" y="7" width="115" height="28"/>
+                                                    <rect key="frame" x="209" y="7" width="113" height="28"/>
                                                     <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMaxY="YES"/>
                                                     <date key="minimumDate" timeIntervalSinceReferenceDate="694267200">
                                                         <!--2023-01-01 12:00:00 +0000-->
@@ -1818,7 +1815,7 @@
                 </tableViewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="yFu-ey-sBe" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="2665" y="1396"/>
+            <point key="canvasLocation" x="2702" y="1458"/>
         </scene>
         <!--Table View Controller-->
         <scene sceneID="zhh-g4-CDN">
@@ -1998,7 +1995,7 @@
                                                     <nil key="highlightedColor"/>
                                                 </label>
                                                 <datePicker contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" datePickerMode="date" translatesAutoresizingMaskIntoConstraints="NO" id="v4i-p1-2za">
-                                                    <rect key="frame" x="213" y="7" width="114" height="28"/>
+                                                    <rect key="frame" x="210" y="7" width="117" height="28"/>
                                                     <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMaxY="YES"/>
                                                     <date key="minimumDate" timeIntervalSinceReferenceDate="694267200">
                                                         <!--2023-01-01 12:00:00 +0000-->
@@ -2024,7 +2021,7 @@
                 </tableViewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="pN6-T8-49v" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="1549" y="679"/>
+            <point key="canvasLocation" x="2335" y="684"/>
         </scene>
         <!--Table View Controller-->
         <scene sceneID="G6Q-kn-Omj">
@@ -2099,7 +2096,7 @@
             <objects>
                 <tableViewController id="KvE-Rn-VK8" sceneMemberID="viewController">
                     <tableView key="view" clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="static" style="plain" separatorStyle="default" rowHeight="-1" estimatedRowHeight="-1" sectionHeaderHeight="28" estimatedSectionHeaderHeight="-1" sectionFooterHeight="28" estimatedSectionFooterHeight="-1" id="iPb-xj-SoM">
-                        <rect key="frame" x="0.0" y="0.0" width="393" height="852"/>
+                        <rect key="frame" x="0.0" y="0.0" width="393" height="783"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <sections>
                             <tableViewSection id="GDc-YM-hn4">

@@ -28,7 +28,10 @@ class ProviderDashboardTableViewController: UITableViewController {
         // تسجيل الخلايا
         tableView.register(DashboardHeaderCell.self, forCellReuseIdentifier: "HeaderCell")
         tableView.register(DashboardMenuCell.self, forCellReuseIdentifier: "MenuCell")
+        tableView.register(MyServicesCell.self, forCellReuseIdentifier: "MyServicesCell")
+
     }
+    
     
     private func loadUserData() {
         currentUser = UserManager.shared.currentUser
@@ -95,7 +98,6 @@ class ProviderDashboardTableViewController: UITableViewController {
             }
             return cell
         } else {
-            // خلية القائمة
             let cell = tableView.dequeueReusableCell(withIdentifier: "MenuCell", for: indexPath) as! DashboardMenuCell
             cell.configure(with: menuItems[indexPath.row])
             return cell
@@ -107,41 +109,57 @@ class ProviderDashboardTableViewController: UITableViewController {
         return 80
     }
     
+    // MARK: - Table View Delegate
+    
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
+        
+        // ✅ عند الضغط على أي خلية في قسم القائمة
         if indexPath.section == 1 {
-            menuItems[indexPath.row].action()
+            // استدعاء مباشر بدلاً من action closure
+            switch indexPath.row {
+            case 0:
+                showMyServices()
+            case 1:
+                showMyBookings()
+            case 2:
+                showProviderProfile()
+            default:
+                break
+            }
         }
     }
     
     // MARK: - Navigation Actions
     
     private func showMyServices() {
-        // ✅ استخدام Segue بدلاً من Instantiate
+        print("🔴 showMyServices called!")
+        print("🔴 Attempting segue with identifier: myservices")
+        
+        // manual
         performSegue(withIdentifier: "myservices", sender: self)
     }
     
     private func showMyBookings() {
-        // ✅ استخدام Segue بدلاً من Instantiate
-        performSegue(withIdentifier: "showMyBookings", sender: self)
+        showAlert("soon", "This feature will be available soon")
     }
     
     private func showProviderProfile() {
-        // ✅ استخدام Segue بدلاً من Instantiate
-        performSegue(withIdentifier: "showProviderProfile", sender: self)
+        showAlert("soon", "This feature will be available soon")
     }
     
     // MARK: - Prepare for Segue
     
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-        // هنا يمكنك تمرير بيانات إذا احتجت
+        
         if segue.identifier == "myservices" {
-            // مثال: تمرير بيانات للـ ProviderServicesTableViewController
+            // الانتقال إلى شاشة My Services
             if let destinationVC = segue.destination as? ProviderServicesTableViewController {
-                // destinationVC.someProperty = someValue
             }
         }
     }
+    
+    // MARK: - Helper Methods
     
     private func showAlert(_ title: String, _ message: String) {
         let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
