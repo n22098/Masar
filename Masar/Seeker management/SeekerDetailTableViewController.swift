@@ -14,7 +14,10 @@ class SeekerDetailTableViewController: UITableViewController {
     @IBOutlet weak var passwordTextField: UITextField!
     @IBOutlet weak var statusButton: UIButton!
     
+    private let status = ["Active","Suspend","Ban"]
+    
     var seeker: Seeker?
+    private var selectedstatus: String?
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -51,7 +54,7 @@ class SeekerDetailTableViewController: UITableViewController {
         passwordTextField.text = "********"
     }
 
-    func setupStatusMenu() {
+   private func setupStatusMenu() {
         // Create the actions with checkmark 'state' based on current status
         let activeAction = UIAction(title: "Active",
                                     image: UIImage(systemName: "checkmark.circle"),
