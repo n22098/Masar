@@ -82,7 +82,7 @@
                                             </subviews>
                                         </tableViewCellContentView>
                                         <connections>
-                                            <segue destination="Bmp-EE-rgw" kind="show" id="yxS-Gs-g3K"/>
+                                            <segue destination="Bmp-EE-rgw" kind="presentation" id="yxS-Gs-g3K"/>
                                         </connections>
                                     </tableViewCell>
                                     <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" insetsLayoutMarginsFromSafeArea="NO" selectionStyle="blue" accessoryType="disclosureIndicator" hidesAccessoryWhenEditing="NO" indentationLevel="1" indentationWidth="0.0" id="eUF-aw-vtG" customClass="ReportCell" customModule="Masar" customModuleProvider="target">
@@ -144,7 +144,7 @@
             <objects>
                 <tableViewController id="Bmp-EE-rgw" customClass="CategoryManagementtableviewcontroller" customModule="Masar" customModuleProvider="target" sceneMemberID="viewController">
                     <tableView key="view" clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="default" rowHeight="-1" estimatedRowHeight="-1" sectionHeaderHeight="-1" estimatedSectionHeaderHeight="-1" sectionFooterHeight="-1" estimatedSectionFooterHeight="-1" id="GX7-1I-Y9q">
-                        <rect key="frame" x="0.0" y="0.0" width="393" height="852"/>
+                        <rect key="frame" x="0.0" y="0.0" width="393" height="783"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <color key="backgroundColor" systemColor="systemBackgroundColor"/>
                         <prototypes>
@@ -191,7 +191,7 @@
             <objects>
                 <tableViewController id="hNb-zd-5Od" customClass="AddCategoryViewController" customModule="Masar" customModuleProvider="target" sceneMemberID="viewController">
                     <tableView key="view" clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="static" style="plain" separatorStyle="default" rowHeight="-1" estimatedRowHeight="-1" sectionHeaderHeight="-1" estimatedSectionHeaderHeight="-1" sectionFooterHeight="-1" estimatedSectionFooterHeight="-1" id="5bm-6E-oX7">
-                        <rect key="frame" x="0.0" y="0.0" width="393" height="852"/>
+                        <rect key="frame" x="0.0" y="0.0" width="393" height="783"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <color key="backgroundColor" systemColor="systemBackgroundColor"/>
                         <sections>
@@ -704,7 +704,7 @@
         <!--Seeker Details-->
         <scene sceneID="lbJ-bn-pTc">
             <objects>
-                <tableViewController id="MR0-fm-oov" sceneMemberID="viewController">
+                <tableViewController modalPresentationStyle="fullScreen" id="MR0-fm-oov" customClass="SeekerDetailTableViewController" customModule="Masar" customModuleProvider="target" sceneMemberID="viewController">
                     <tableView key="view" clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="static" style="plain" separatorStyle="default" rowHeight="-1" estimatedRowHeight="-1" sectionHeaderHeight="-1" estimatedSectionHeaderHeight="-1" sectionFooterHeight="-1" estimatedSectionFooterHeight="-1" id="kye-nB-cIN">
                         <rect key="frame" x="0.0" y="0.0" width="393" height="852"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
@@ -765,6 +765,12 @@
                                                     <nil key="textColor"/>
                                                     <nil key="highlightedColor"/>
                                                 </label>
+                                                <textField opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="248" fixedFrame="YES" contentHorizontalAlignment="left" contentVerticalAlignment="center" borderStyle="roundedRect" textAlignment="natural" minimumFontSize="17" translatesAutoresizingMaskIntoConstraints="NO" id="ssx-Zt-P77">
+                                                    <rect key="frame" x="166" y="6" width="207" height="34"/>
+                                                    <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                                    <fontDescription key="fontDescription" type="system" pointSize="14"/>
+                                                    <textInputTraits key="textInputTraits"/>
+                                                </textField>
                                             </subviews>
                                         </tableViewCellContentView>
                                     </tableViewCell>
@@ -782,6 +788,12 @@
                                                     <nil key="textColor"/>
                                                     <nil key="highlightedColor"/>
                                                 </label>
+                                                <textField opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="248" fixedFrame="YES" contentHorizontalAlignment="left" contentVerticalAlignment="center" borderStyle="roundedRect" textAlignment="natural" minimumFontSize="17" translatesAutoresizingMaskIntoConstraints="NO" id="ZFZ-k1-EUQ">
+                                                    <rect key="frame" x="166" y="7" width="207" height="34"/>
+                                                    <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                                    <fontDescription key="fontDescription" type="system" pointSize="14"/>
+                                                    <textInputTraits key="textInputTraits"/>
+                                                </textField>
                                             </subviews>
                                         </tableViewCellContentView>
                                     </tableViewCell>
@@ -799,6 +811,18 @@
                                                     <nil key="textColor"/>
                                                     <nil key="highlightedColor"/>
                                                 </label>
+                                                <textField opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="248" fixedFrame="YES" contentHorizontalAlignment="left" contentVerticalAlignment="center" borderStyle="roundedRect" textAlignment="natural" minimumFontSize="17" translatesAutoresizingMaskIntoConstraints="NO" id="TPi-zb-T6r">
+                                                    <rect key="frame" x="166" y="7" width="207" height="34"/>
+                                                    <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                                    <fontDescription key="fontDescription" type="system" pointSize="14"/>
+                                                    <textInputTraits key="textInputTraits"/>
+                                                </textField>
+                                                <textField opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="248" fixedFrame="YES" contentHorizontalAlignment="left" contentVerticalAlignment="center" borderStyle="roundedRect" textAlignment="natural" minimumFontSize="17" translatesAutoresizingMaskIntoConstraints="NO" id="qMP-Xy-ZcX">
+                                                    <rect key="frame" x="176" y="-38.333335876464844" width="207" height="34"/>
+                                                    <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                                    <fontDescription key="fontDescription" type="system" pointSize="14"/>
+                                                    <textInputTraits key="textInputTraits"/>
+                                                </textField>
                                             </subviews>
                                         </tableViewCellContentView>
                                     </tableViewCell>
@@ -816,6 +840,12 @@
                                                     <nil key="textColor"/>
                                                     <nil key="highlightedColor"/>
                                                 </label>
+                                                <textField opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="248" fixedFrame="YES" contentHorizontalAlignment="left" contentVerticalAlignment="center" borderStyle="roundedRect" textAlignment="natural" minimumFontSize="17" translatesAutoresizingMaskIntoConstraints="NO" id="pSE-5R-T3U">
+                                                    <rect key="frame" x="166" y="6" width="207" height="34"/>
+                                                    <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                                    <fontDescription key="fontDescription" type="system" pointSize="14"/>
+                                                    <textInputTraits key="textInputTraits"/>
+                                                </textField>
                                             </subviews>
                                         </tableViewCellContentView>
                                     </tableViewCell>
@@ -833,6 +863,12 @@
                                                     <nil key="textColor"/>
                                                     <nil key="highlightedColor"/>
                                                 </label>
+                                                <textField opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="248" fixedFrame="YES" contentHorizontalAlignment="left" contentVerticalAlignment="center" borderStyle="roundedRect" textAlignment="natural" minimumFontSize="17" translatesAutoresizingMaskIntoConstraints="NO" id="4gX-cs-uaZ">
+                                                    <rect key="frame" x="166" y="7" width="207" height="34"/>
+                                                    <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                                    <fontDescription key="fontDescription" type="system" pointSize="14"/>
+                                                    <textInputTraits key="textInputTraits"/>
+                                                </textField>
                                             </subviews>
                                         </tableViewCellContentView>
                                     </tableViewCell>
@@ -871,6 +907,18 @@
                         </connections>
                     </tableView>
                     <navigationItem key="navigationItem" title="Seeker Details" id="IT8-mB-zo3"/>
+                    <connections>
+                        <outlet property="RoleTypeLabel" destination="OCf-WD-Wst" id="Aux-6a-9VS"/>
+                        <outlet property="emailTextField" destination="ZFZ-k1-EUQ" id="Uk4-vE-R4Q"/>
+                        <outlet property="fullNameTextField" destination="ssx-Zt-P77" id="4GR-8l-KLb"/>
+                        <outlet property="passwordTextField" destination="4gX-cs-uaZ" id="5SO-t5-lh1"/>
+                        <outlet property="phoneTextField" destination="TPi-zb-T6r" id="zJX-XZ-h5a"/>
+                        <outlet property="profileImageView" destination="VC7-i9-4SR" id="NZd-ud-JsN"/>
+                        <outlet property="statusButton" destination="jZH-4w-Cbf" id="mCe-Zm-oQd"/>
+                        <outlet property="statusLabel" destination="AZK-6P-Gyr" id="BID-hz-huP"/>
+                        <outlet property="userNameLabel" destination="FxN-Ke-aex" id="9oN-XX-2NK"/>
+                        <outlet property="usernameTextField" destination="pSE-5R-T3U" id="MCd-VV-yq9"/>
+                    </connections>
                 </tableViewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="3OK-jr-mN7" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
@@ -896,7 +944,7 @@
         <!--Navigation Controller-->
         <scene sceneID="wfn-hT-QE4">
             <objects>
-                <navigationController id="aQq-W8-kPY" sceneMemberID="viewController">
+                <navigationController modalPresentationStyle="fullScreen" id="aQq-W8-kPY" sceneMemberID="viewController">
                     <navigationItem key="navigationItem" id="sVp-OA-8oZ"/>
                     <navigationBar key="navigationBar" contentMode="scaleToFill" id="ifM-g0-pUD">
                         <rect key="frame" x="0.0" y="118" width="393" height="44"/>
@@ -933,7 +981,7 @@
                 <navigationController id="Faf-Nc-dah" sceneMemberID="viewController">
                     <navigationItem key="navigationItem" id="UNp-XD-SEm"/>
                     <navigationBar key="navigationBar" contentMode="scaleToFill" id="yQR-yi-XJv">
-                        <rect key="frame" x="0.0" y="118" width="393" height="44"/>
+                        <rect key="frame" x="0.0" y="0.0" width="393" height="56"/>
                         <autoresizingMask key="autoresizingMask"/>
                     </navigationBar>
                     <connections>
@@ -955,17 +1003,13 @@
                         <sections>
                             <tableViewSection id="vqd-Ke-w9E">
                                 <cells>
-                                    <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" preservesSuperviewLayoutMargins="YES" selectionStyle="default" accessoryType="disclosureIndicator" indentationWidth="10" rowHeight="145" id="Osy-lE-tuj">
+                                    <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" preservesSuperviewLayoutMargins="YES" selectionStyle="default" accessoryType="disclosureIndicator" indentationWidth="10" reuseIdentifier="showSeekerDetailsCell" rowHeight="145" id="Osy-lE-tuj" customClass="showSeekerDetailsCell" customModule="Masar" customModuleProvider="target">
                                         <rect key="frame" x="0.0" y="50" width="393" height="145"/>
                                         <autoresizingMask key="autoresizingMask"/>
                                         <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" preservesSuperviewLayoutMargins="YES" insetsLayoutMarginsFromSafeArea="NO" tableViewCell="Osy-lE-tuj" id="eQa-jX-yAE">
                                             <rect key="frame" x="0.0" y="0.0" width="362.66666666666669" height="145"/>
                                             <autoresizingMask key="autoresizingMask"/>
                                             <subviews>
-                                                <stackView opaque="NO" contentMode="scaleToFill" fixedFrame="YES" axis="vertical" spacing="2" translatesAutoresizingMaskIntoConstraints="NO" id="nwS-wy-I2q">
-                                                    <rect key="frame" x="39" y="12" width="363" height="145"/>
-                                                    <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                                                </stackView>
                                                 <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" text="Seeker management" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="295-hq-dPs">
                                                     <rect key="frame" x="52" y="56" width="240" height="33"/>
                                                     <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
@@ -973,13 +1017,17 @@
                                                     <nil key="textColor"/>
                                                     <nil key="highlightedColor"/>
                                                 </label>
+                                                <stackView opaque="NO" contentMode="scaleToFill" fixedFrame="YES" axis="vertical" spacing="2" translatesAutoresizingMaskIntoConstraints="NO" id="nwS-wy-I2q">
+                                                    <rect key="frame" x="0.0" y="0.0" width="363" height="145"/>
+                                                    <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                                </stackView>
                                             </subviews>
                                         </tableViewCellContentView>
                                         <connections>
                                             <segue destination="NqW-W0-aNg" kind="show" id="Tci-4W-0jL"/>
                                         </connections>
                                     </tableViewCell>
-                                    <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" preservesSuperviewLayoutMargins="YES" selectionStyle="default" accessoryType="disclosureIndicator" indentationWidth="10" rowHeight="145" id="SxM-Gt-PSx">
+                                    <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" preservesSuperviewLayoutMargins="YES" selectionStyle="default" accessoryType="disclosureIndicator" indentationWidth="10" rowHeight="145" id="SxM-Gt-PSx" customClass="showProviderDetailsCell" customModule="Masar" customModuleProvider="target">
                                         <rect key="frame" x="0.0" y="195" width="393" height="145"/>
                                         <autoresizingMask key="autoresizingMask"/>
                                         <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" preservesSuperviewLayoutMargins="YES" insetsLayoutMarginsFromSafeArea="NO" tableViewCell="SxM-Gt-PSx" id="G1k-qO-DMg">
@@ -1247,7 +1295,7 @@
                             <viewLayoutGuide key="frameLayoutGuide" id="uKG-IL-Qw3"/>
                         </scrollView>
                         <prototypes>
-                            <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" preservesSuperviewLayoutMargins="YES" selectionStyle="default" accessoryType="disclosureIndicator" indentationWidth="10" reuseIdentifier="CategoryCell" rowHeight="59" id="4Xj-nR-2tE" customClass="showSeekerDetailsCell" customModule="Masar" customModuleProvider="target">
+                            <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" preservesSuperviewLayoutMargins="YES" selectionStyle="default" accessoryType="disclosureIndicator" indentationWidth="10" reuseIdentifier="showSeekerDetailsCell" rowHeight="59" id="4Xj-nR-2tE" customClass="showSeekerDetailsCell" customModule="Masar" customModuleProvider="target">
                                 <rect key="frame" x="0.0" y="94" width="393" height="59"/>
                                 <autoresizingMask key="autoresizingMask"/>
                                 <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" preservesSuperviewLayoutMargins="YES" insetsLayoutMarginsFromSafeArea="NO" tableViewCell="4Xj-nR-2tE" id="SzD-A7-28O">
@@ -1264,7 +1312,7 @@
                                     </subviews>
                                 </tableViewCellContentView>
                                 <connections>
-                                    <segue destination="aQq-W8-kPY" kind="show" id="Pmg-fo-Xna"/>
+                                    <segue destination="aQq-W8-kPY" kind="show" identifier="goToDetails" id="Pmg-fo-Xna"/>
                                 </connections>
                             </tableViewCell>
                         </prototypes>
@@ -1537,13 +1585,13 @@
         <image name="person.crop.circle" catalog="system" width="128" height="123"/>
         <image name="waveform.path.ecg.text.page" catalog="system" width="115" height="128"/>
         <systemColor name="separatorColor">
-            <color red="0.23529411759999999" green="0.23529411759999999" blue="0.26274509800000001" alpha="0.28999999999999998" colorSpace="custom" customColorSpace="sRGB"/>
+            <color red="0.23529411764705882" green="0.23529411764705882" blue="0.2627450980392157" alpha="0.28999999999999998" colorSpace="custom" customColorSpace="sRGB"/>
         </systemColor>
         <systemColor name="systemBackgroundColor">
             <color white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
         </systemColor>
         <systemColor name="systemPurpleColor">
-            <color red="0.68627450980000004" green="0.32156862749999998" blue="0.87058823529999996" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+            <color red="0.68627450980392157" green="0.32156862745098042" blue="0.87058823529411766" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
         </systemColor>
     </resources>
 </document>
