@@ -53,6 +53,8 @@ class PersonalInformationViewController: UIViewController {
                self.usernameTextField.text = data["username"] as? String
            }
        }
+    
+    
     @IBAction func saveBtn(_ sender: UIButton) {
         
         guard let uid = uid else { return }
