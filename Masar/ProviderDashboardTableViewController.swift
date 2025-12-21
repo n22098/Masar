@@ -118,7 +118,7 @@ class ProviderDashboardTableViewController: UITableViewController {
     
     private func showMyServices() {
         // ✅ استخدام Segue بدلاً من Instantiate
-        performSegue(withIdentifier: "showMyServices", sender: self)
+        performSegue(withIdentifier: "myservices", sender: self)
     }
     
     private func showMyBookings() {
@@ -135,7 +135,7 @@ class ProviderDashboardTableViewController: UITableViewController {
     
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
         // هنا يمكنك تمرير بيانات إذا احتجت
-        if segue.identifier == "showMyServices" {
+        if segue.identifier == "myservices" {
             // مثال: تمرير بيانات للـ ProviderServicesTableViewController
             if let destinationVC = segue.destination as? ProviderServicesTableViewController {
                 // destinationVC.someProperty = someValue
