@@ -9,7 +9,6 @@ class ProviderRequestTVC: UITableViewController {
     @IBOutlet weak var emailLabel: UILabel!
     @IBOutlet weak var phoneLabel: UILabel!
     @IBOutlet weak var categoryLabel: UILabel!
-    @IBOutlet weak var skillsLabel: UILabel!
     @IBOutlet weak var skillsLevelLabel: UILabel!
 
     // MARK: - Properties
