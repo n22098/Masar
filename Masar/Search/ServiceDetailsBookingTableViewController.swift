@@ -8,76 +8,124 @@ class ServiceDetailsBookingTableViewController: UITableViewController {
     @IBOutlet weak var priceLabel: UILabel!
     @IBOutlet weak var locationLabel: UILabel!
     @IBOutlet weak var confirmButton: UIButton!
-
-    // MARK: - Data
+    
+    // MARK: - Data Variables
     var receivedServiceName: String?
     var receivedServicePrice: String?
     var receivedLocation: String?
+    
+    let brandColor = UIColor(red: 0.35, green: 0.34, blue: 0.91, alpha: 1.0)
 
     // MARK: - Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
         setupUI()
+        setupNavigationBar()
         fillData()
     }
 
-    // MARK: - UI Setup
+    // MARK: - Setup UI
     func setupUI() {
-        title = "Check Out"
-        confirmButton.layer.cornerRadius = 8
+        // تصميم الزر
+        confirmButton?.layer.cornerRadius = 12
+        confirmButton?.backgroundColor = brandColor
+        confirmButton?.setTitleColor(.white, for: .normal)
+        confirmButton?.titleLabel?.font = UIFont.systemFont(ofSize: 16, weight: .semibold)
+        
+        // إعدادات الجدول
+        tableView.backgroundColor = UIColor(red: 248/255, green: 248/255, blue: 252/255, alpha: 1.0)
+        tableView.separatorStyle = .none
+        
+        // Date picker styling
+        datePicker?.preferredDatePickerStyle = .compact
+        datePicker?.minimumDate = Date()
+        datePicker?.tintColor = brandColor
+    }
+    
+    func setupNavigationBar() {
+        title = "Booking"
+        
+        // إجبار العنوان أن يكون صغيراً
+        navigationItem.largeTitleDisplayMode = .never
+        
+        let appearance = UINavigationBarAppearance()
+        appearance.configureWithOpaqueBackground()
+        appearance.backgroundColor = brandColor
+        appearance.titleTextAttributes = [
+            .foregroundColor: UIColor.white,
+            .font: UIFont.systemFont(ofSize: 18, weight: .semibold)
+        ]
+        
+        navigationController?.navigationBar.standardAppearance = appearance
+        navigationController?.navigationBar.scrollEdgeAppearance = appearance
+        navigationController?.navigationBar.compactAppearance = appearance
+        navigationController?.navigationBar.tintColor = .white
+        
+        // Add Book button on right
+        let bookButton = UIBarButtonItem(
+            title: "Book",
+            style: .done,
+            target: self,
+            action: #selector(bookButtonPressed)
+        )
+        bookButton.tintColor = .white
+        navigationItem.rightBarButtonItem = bookButton
     }
 
     func fillData() {
-        serviceNameLabel.text = receivedServiceName ?? ""
-        priceLabel.text = receivedServicePrice ?? ""
-        locationLabel.text = receivedLocation ?? "Online"
+        serviceNameLabel?.text = receivedServiceName ?? "Unknown Service"
+        priceLabel?.text = receivedServicePrice ?? "BHD 0.000"
+        locationLabel?.text = receivedLocation ?? "Online"
     }
 
-    // MARK: - Book Button
+    // MARK: - Book Action
     @IBAction func bookButtonPressed(_ sender: Any) {
-
+        // Add haptic feedback
+        let generator = UIImpactFeedbackGenerator(style: .medium)
+        generator.impactOccurred()
+        
         let confirmAlert = UIAlertController(
             title: "Confirm Booking",
-            message: "Are you sure you want to proceed?",
+            message: "Are you sure you want to proceed with this booking?",
             preferredStyle: .alert
         )
 
         confirmAlert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
 
-        confirmAlert.addAction(UIAlertAction(title: "Yes", style: .default) { _ in
-            self.showSuccessAlert()
+        confirmAlert.addAction(UIAlertAction(title: "Confirm", style: .default) { [weak self] _ in
+            self?.showSuccessAlert()
         })
 
         present(confirmAlert, animated: true)
     }
 
-    // MARK: - Success Alert
+    // MARK: - Success Logic
     func showSuccessAlert() {
-
-        let dateString = datePicker.date.formatted(
-            date: .long,
-            time: .shortened
-        )
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateStyle = .long
+        dateFormatter.timeStyle = .short
+        let dateString = dateFormatter.string(from: datePicker?.date ?? Date())
 
         let successAlert = UIAlertController(
-            title: "Success! 🎉",
-            message: "Booking confirmed for \(receivedServiceName ?? "")\nDate: \(dateString)",
+            title: "🎉 Booking Confirmed!",
+            message: "Your booking for '\(receivedServiceName ?? "Service")' has been confirmed.\n\nDate: \(dateString)\nLocation: \(receivedLocation ?? "TBD")",
             preferredStyle: .alert
         )
 
-        successAlert.addAction(
-            UIAlertAction(title: "Done", style: .default) { _ in
-
-                // 🔁 رجوع لصفحة البداية
-                self.navigationController?.popToRootViewController(animated: false)
-
-                // 🏠 اختيار أول Tab (Search)
-                if let tabBar = self.tabBarController {
-                    tabBar.selectedIndex = 0
-                }
-            }
-        )
+        successAlert.addAction(UIAlertAction(title: "Done", style: .default) { [weak self] _ in
+            // Add success haptic
+            let generator = UINotificationFeedbackGenerator()
+            generator.notificationOccurred(.success)
+            
+            // Navigate back to root
+            self?.navigationController?.popToRootViewController(animated: true)
+        })
 
         present(successAlert, animated: true)
+    }
+    
+    // MARK: - Table View Delegate
+    override func tableView(_ tableView: UITableView, willDisplay cell: UITableViewCell, forRowAt indexPath: IndexPath) {
+        cell.backgroundColor = .clear
     }
 }

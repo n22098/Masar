@@ -1,98 +1,71 @@
 import UIKit
 
 class BookingHistoryDetailsViewController: UITableViewController {
+    
+    // MARK: - Outlets
+    // اربط هذه العناصر في الستوري بورد
+    @IBOutlet weak var statusLabel: UILabel!
+    @IBOutlet weak var serviceNameLabel: UILabel!
+    @IBOutlet weak var providerLabel: UILabel!
+    @IBOutlet weak var priceLabel: UILabel!
+    @IBOutlet weak var dateLabel: UILabel!
+    @IBOutlet weak var descriptionLabel: UILabel!
+    @IBOutlet weak var cancelButton: UIBarButtonItem!
 
-    // MARK: - Data Variable (المتغير لاستقبال البيانات)
+    // MARK: - Variables
     var bookingData: BookingModel?
 
-    // MARK: - Outlets (اربط هذه العناصر في الستوري بورد)
-    @IBOutlet weak var dateLabel: UILabel!
-    @IBOutlet weak var statusLabel: UILabel!
-    @IBOutlet weak var locationLabel: UILabel!
-    @IBOutlet weak var nameLabel: UILabel!  // اسم الموظف
-    @IBOutlet weak var priceLabel: UILabel!
-    @IBOutlet weak var skillsLabel: UILabel! // اسم الخدمة أو المهارات
-
-    // MARK: - Lifecycle
-        override func viewDidLoad() {
-            super.viewDidLoad()
-            setupUI()
-            populateData()
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        tableView.separatorStyle = .none
+        fillData()
+    }
+    
+    func fillData() {
+        guard let data = bookingData else { return }
+        
+        serviceNameLabel.text = data.serviceName
+        providerLabel.text = data.providerName
+        priceLabel.text = data.price
+        dateLabel.text = data.date
+        descriptionLabel.text = data.descriptionText
+        
+        // تلوين الحالة
+        let fullText = "status | \(data.status.rawValue)"
+        let attributedString = NSMutableAttributedString(string: fullText)
+        attributedString.addAttribute(.foregroundColor, value: UIColor.gray, range: (fullText as NSString).range(of: "status | "))
+        
+        let statusColor: UIColor
+        switch data.status {
+        case .upcoming: statusColor = .orange
+        case .completed: statusColor = .green
+        case .canceled: statusColor = .red
         }
         
-        func setupUI() {
-            title = "Booking Details"
-            
-            // Add Cancel button in navigation bar
-            let cancelButton = UIBarButtonItem(title: "Cancel", style: .plain, target: self, action: #selector(cancelButtonTapped))
-            // Only show cancel button if the booking is upcoming
-            if bookingData?.status == .upcoming {
-                navigationItem.rightBarButtonItem = cancelButton
-                navigationItem.rightBarButtonItem?.tintColor = .systemRed
-            }
-            
-            tableView.tableFooterView = UIView()
-            tableView.backgroundColor = UIColor(red: 248/255, green: 248/255, blue: 252/255, alpha: 1.0)
-        }
+        attributedString.addAttribute(.foregroundColor, value: statusColor, range: (fullText as NSString).range(of: data.status.rawValue))
+        statusLabel.attributedText = attributedString
         
-        func populateData() {
-            guard let booking = bookingData else { return }
-            
-            dateLabel?.text = booking.date
-            statusLabel?.text = booking.status.rawValue
-            nameLabel?.text = booking.providerName
-            priceLabel?.text = booking.price
-            skillsLabel?.text = booking.serviceName
-            locationLabel?.text = "Online"
-            
-            switch booking.status {
-            case .upcoming:
-                statusLabel?.textColor = .systemBlue
-            case .completed:
-                statusLabel?.textColor = .systemGreen
-            case .canceled:
-                statusLabel?.textColor = .systemRed
-            }
-        }
-        
-        // MARK: - Cancel Booking Action
-        @objc func cancelButtonTapped() {
-            let alert = UIAlertController(
-                title: "Confirm Cancellation",
-                message: "Do you want to confirm cancelling this booking?",
-                preferredStyle: .alert
-            )
-            
-            let cancelAction = UIAlertAction(title: "No", style: .cancel, handler: nil)
-            let yesAction = UIAlertAction(title: "Yes", style: .destructive) { [weak self] _ in
-                self?.confirmCancellation()
-            }
-            
-            alert.addAction(cancelAction)
-            alert.addAction(yesAction)
-            present(alert, animated: true, completion: nil)
-        }
-        
-        func confirmCancellation() {
-            // ✅ This works now because 'status' is a 'var' in a Class
-            bookingData?.status = .canceled
-            
-            // Update UI
-            populateData()
-            
-            // Remove the Cancel button since it's now canceled
-            navigationItem.rightBarButtonItem = nil
-            
-            let successAlert = UIAlertController(
-                title: "Booking Cancelled",
-                message: "Your booking has been cancelled successfully",
-                preferredStyle: .alert
-            )
-            
-            successAlert.addAction(UIAlertAction(title: "OK", style: .default) { [weak self] _ in
-                self?.navigationController?.popViewController(animated: true)
-            })
-            
-            present(successAlert, animated: true, completion: nil)
+        // إخفاء زر الإلغاء إذا لم يكن قادماً
+        if data.status != .upcoming {
+            cancelButton.isEnabled = false
         }
     }
+    
+    // أكشن زر الكنسل
+    @IBAction func cancelTapped(_ sender: UIBarButtonItem) {
+        let alert = UIAlertController(title: "Cancel Booking", message: "Are you sure?", preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: "No", style: .cancel))
+        alert.addAction(UIAlertAction(title: "Yes", style: .destructive, handler: { _ in
+            // تحديث الحالة
+            self.updateUIForCancellation()
+        }))
+        present(alert, animated: true)
+    }
+    
+    func updateUIForCancellation() {
+        // تحديث الواجهة فورياً
+        statusLabel.text = "status | Canceled"
+        statusLabel.textColor = .red
+        cancelButton.isEnabled = false
+    }
+}

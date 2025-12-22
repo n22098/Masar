@@ -1,4 +1,5 @@
 import Foundation
+import UIKit
 
 enum BookingStatus: String {
     case upcoming = "Upcoming"
@@ -11,16 +12,17 @@ class BookingModel {
     let seekerName: String
     let serviceName: String
     let date: String
+    
+    // ✅ التغيير هنا: حولناها إلى var لتسمح بالتعديل
     var status: BookingStatus
-
+    
     let providerName: String
-
     let email: String
     let phoneNumber: String
     let price: String
     let instructions: String
     let descriptionText: String
-
+    
     init(id: String,
          seekerName: String,
          serviceName: String,
@@ -32,7 +34,7 @@ class BookingModel {
          price: String,
          instructions: String,
          descriptionText: String) {
-
+        
         self.id = id
         self.seekerName = seekerName
         self.serviceName = serviceName
