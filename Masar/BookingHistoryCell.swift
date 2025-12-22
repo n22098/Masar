@@ -9,15 +9,51 @@ import UIKit
 
 class BookingHistoryCell: UITableViewCell {
 
+    @IBOutlet weak var serviceNameLabel: UILabel!
+    @IBOutlet weak var providerNameLabel: UILabel!
+    @IBOutlet weak var dateLabel: UILabel!
+    @IBOutlet weak var priceLabel: UILabel!
+    @IBOutlet weak var statusLabel: UILabel!
+    class BookingHistoryCell: UITableViewCell {
+        @IBOutlet weak var ratingButton: UIButton!
+        
+        // Closure to handle the tap in the ViewController
+        var onRatingTapped: (() -> Void)?
+
+        @IBAction func ratingButtonAction(_ sender: UIButton) {
+            onRatingTapped?()
+        }
+    }
     override func awakeFromNib() {
         super.awakeFromNib()
-        // Initialization code
+        selectionStyle = .none
     }
 
-    override func setSelected(_ selected: Bool, animated: Bool) {
-        super.setSelected(selected, animated: animated)
+    func configure(with booking: BookingModel) {
 
-        // Configure the view for the selected state
+        // ✅ إذا أي outlet مو مربوط، لا تسوي crash — اطبع تحذير
+        guard serviceNameLabel != nil,
+              providerNameLabel != nil,
+              dateLabel != nil,
+              priceLabel != nil,
+              statusLabel != nil else {
+            print("❌ BookingHistoryCell outlets are not connected. Check storyboard wiring.")
+            return
+        }
+
+        serviceNameLabel.text = booking.serviceName
+        providerNameLabel.text = booking.providerName
+        dateLabel.text = booking.date
+        priceLabel.text = booking.price
+
+        switch booking.status {
+        case .upcoming:
+            statusLabel.text = "Upcoming"
+        case .completed:
+            statusLabel.text = "Completed"
+        case .canceled:
+            statusLabel.text = "Canceled"
+        }
     }
-
 }
+

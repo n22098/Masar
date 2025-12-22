@@ -1,8 +1,15 @@
-//
-//  BookingModel.swift
-//  Masar
-//
-//  Created by BP-36-212-14 on 22/12/2025.
-//
-
 import Foundation
+
+enum BookingStatus: String {
+    case upcoming = "Upcoming"
+    case completed = "Completed"
+    case canceled = "Canceled"
+}
+
+struct BookingModel {
+    let serviceName: String
+    let providerName: String
+    let date: String
+    let price: String
+    var status: BookingStatus
+}
