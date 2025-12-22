@@ -1,7 +1,3 @@
-//
-//  SignUpSeekerViewController.swift
-//  Masar
-//
 
 import UIKit
 import FirebaseAuth
@@ -19,19 +15,13 @@ class SignUpSeekerViewController: UIViewController {
 
     let db = Firestore.firestore()
 
-    // MARK: - Lifecycle
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         applyAsProviderSwitch.setOn(false, animated: false)
     }
 
-    override func viewDidLoad() {
-        super.viewDidLoad()
-    }
-
     // MARK: - Sign Up
     @IBAction func signUpBtn(_ sender: UIButton) {
-
         if applyAsProviderSwitch.isOn {
             showAlert("Please complete provider information first.")
             return
@@ -39,10 +29,10 @@ class SignUpSeekerViewController: UIViewController {
 
         guard validateInputs() else { return }
 
-        let name = nameTextField.text!
-        let email = emailTextField.text!
-        let username = usernameTextField.text!
-        let phone = phoneNumberTextField.text!
+        let name = nameTextField.text!.trimmingCharacters(in: .whitespacesAndNewlines)
+        let email = emailTextField.text!.trimmingCharacters(in: .whitespacesAndNewlines)
+        let username = usernameTextField.text!.trimmingCharacters(in: .whitespacesAndNewlines)
+        let phone = phoneNumberTextField.text!.trimmingCharacters(in: .whitespacesAndNewlines)
         let password = passwordTextField.text!
 
         checkIfUserDataExists(email: email, username: username, phone: phone) { exists in
@@ -79,7 +69,6 @@ class SignUpSeekerViewController: UIViewController {
 
     // MARK: - Apply As Provider
     @IBAction func switchBtn(_ sender: UISwitch) {
-
         guard sender.isOn else { return }
 
         guard validateInputs() else {
@@ -87,9 +76,10 @@ class SignUpSeekerViewController: UIViewController {
             return
         }
 
-        let email = emailTextField.text!
-        let username = usernameTextField.text!
-        let phone = phoneNumberTextField.text!
+        let name = nameTextField.text!.trimmingCharacters(in: .whitespacesAndNewlines)
+        let email = emailTextField.text!.trimmingCharacters(in: .whitespacesAndNewlines)
+        let username = usernameTextField.text!.trimmingCharacters(in: .whitespacesAndNewlines)
+        let phone = phoneNumberTextField.text!.trimmingCharacters(in: .whitespacesAndNewlines)
 
         checkIfUserDataExists(email: email, username: username, phone: phone) { exists in
             if exists {
@@ -99,9 +89,18 @@ class SignUpSeekerViewController: UIViewController {
             }
 
             let storyboard = UIStoryboard(name: "Main", bundle: nil)
-            let providerVC = storyboard.instantiateViewController(
+            guard let providerVC = storyboard.instantiateViewController(
                 withIdentifier: "ApplyProviderTableViewController"
-            )
+            ) as? ApplyProviderTableViewController else {
+                sender.setOn(false, animated: true)
+                self.showAlert("Provider screen not found. Check storyboard ID.")
+                return
+            }
+
+            // ✅ PASS DATA
+            providerVC.userName = name
+            providerVC.userEmail = email
+            providerVC.userPhone = phone
 
             self.navigationController?.pushViewController(providerVC, animated: true)
         }
@@ -109,14 +108,12 @@ class SignUpSeekerViewController: UIViewController {
 
     // MARK: - Validation
     func validateInputs() -> Bool {
-
         if nameTextField.text?.isEmpty == true ||
             emailTextField.text?.isEmpty == true ||
             usernameTextField.text?.isEmpty == true ||
             phoneNumberTextField.text?.isEmpty == true ||
             passwordTextField.text?.isEmpty == true ||
             confirmPasswordTextField.text?.isEmpty == true {
-
             showAlert("All fields are required.")
             return false
         }
@@ -141,7 +138,6 @@ class SignUpSeekerViewController: UIViewController {
         phone: String,
         completion: @escaping (Bool) -> Void
     ) {
-
         db.collection("users")
             .whereFilter(Filter.orFilter([
                 Filter.whereField("email", isEqualTo: email),
