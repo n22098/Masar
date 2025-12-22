@@ -1,37 +1,48 @@
 import Foundation
-import UIKit
 
-// 1. Define the Status Enum
 enum BookingStatus: String {
     case upcoming = "Upcoming"
     case completed = "Completed"
-    case canceled = "Canceled" // Spelling matches your code
+    case canceled = "Canceled"
 }
 
-// 2. Define the Model as a CLASS (so data updates sync everywhere)
 class BookingModel {
+    let id: String
+    let seekerName: String
     let serviceName: String
     let date: String
-    let price: String
-    var status: BookingStatus // ✅ Changed to 'var' so it can be modified
-    
+    var status: BookingStatus
+
     let providerName: String
-    
-    // Extra fields needed to prevent "Missing Argument" errors
-    let seekerName: String
+
     let email: String
     let phoneNumber: String
+    let price: String
     let instructions: String
-    
-    init(serviceName: String, date: String, price: String, status: BookingStatus, providerName: String, seekerName: String = "", email: String = "", phoneNumber: String = "", instructions: String = "") {
+    let descriptionText: String
+
+    init(id: String,
+         seekerName: String,
+         serviceName: String,
+         date: String,
+         status: BookingStatus,
+         providerName: String,
+         email: String,
+         phoneNumber: String,
+         price: String,
+         instructions: String,
+         descriptionText: String) {
+
+        self.id = id
+        self.seekerName = seekerName
         self.serviceName = serviceName
         self.date = date
-        self.price = price
         self.status = status
         self.providerName = providerName
-        self.seekerName = seekerName
         self.email = email
         self.phoneNumber = phoneNumber
+        self.price = price
         self.instructions = instructions
+        self.descriptionText = descriptionText
     }
 }

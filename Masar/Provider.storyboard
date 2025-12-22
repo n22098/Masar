@@ -1747,12 +1747,18 @@
                                                             <color key="tintColor" red="0.37254901959999998" green="0.40000000000000002" blue="0.5568627451" alpha="1" colorSpace="custom" customColorSpace="displayP3"/>
                                                             <state key="normal" title="Button"/>
                                                             <buttonConfiguration key="configuration" style="filled" title="Cancel"/>
+                                                            <connections>
+                                                                <action selector="cancelButtonTapped:" destination="KvE-Rn-VK8" eventType="touchUpInside" id="WzX-cX-4ZH"/>
+                                                            </connections>
                                                         </button>
                                                         <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="0MZ-Ca-V4T">
                                                             <rect key="frame" x="194" y="0.0" width="179" height="38.666666666666664"/>
                                                             <color key="tintColor" red="0.37254901959999998" green="0.40000000000000002" blue="0.5568627451" alpha="1" colorSpace="custom" customColorSpace="displayP3"/>
                                                             <state key="normal" title="Button"/>
                                                             <buttonConfiguration key="configuration" style="filled" title="Completed"/>
+                                                            <connections>
+                                                                <action selector="completeButtonTapped:" destination="KvE-Rn-VK8" eventType="touchUpInside" id="4F0-NU-QZD"/>
+                                                            </connections>
                                                         </button>
                                                     </subviews>
                                                 </stackView>

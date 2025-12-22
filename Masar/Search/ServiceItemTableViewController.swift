@@ -228,7 +228,7 @@ class ServiceItemTableViewController: UITableViewController {
         let service = services[indexPath.row]
         
         // استخدام الخلية البرمجية الحديثة أولاً
-        if let cell = tableView.dequeueReusableCell(withIdentifier: "ModernBookingCell") as? ModernBookingCell {
+        if let cell = tableView.dequeueReusableCell(withIdentifier: "ModernBookingCell", for: indexPath) as? ModernBookingCell {
             cell.configure(title: service.name, price: service.price, description: service.description, icon: service.icon)
             cell.onBookingTapped = { [weak self] in self?.handleBooking(for: service) }
             return cell
