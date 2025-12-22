@@ -1705,7 +1705,7 @@
                                     <outlet property="dateLabel" destination="E5Z-Lm-Uio" id="PNO-tW-4FS"/>
                                     <outlet property="seekerLabel" destination="DaZ-eE-vcJ" id="94L-za-Uq8"/>
                                     <outlet property="serviceNameLabel" destination="Og4-Xq-eM4" id="skx-zx-BFg"/>
-                                    <segue destination="KvE-Rn-VK8" kind="show" id="9C1-de-6VK"/>
+                                    <segue destination="KvE-Rn-VK8" kind="show" identifier="ShowBookingDetails" id="9C1-de-6VK"/>
                                 </connections>
                             </tableViewCell>
                         </prototypes>
@@ -1725,7 +1725,7 @@
         <!--Booking Details-->
         <scene sceneID="VTh-Q3-eOb">
             <objects>
-                <tableViewController id="KvE-Rn-VK8" sceneMemberID="viewController">
+                <tableViewController id="KvE-Rn-VK8" customClass="BookingProviderDetailsTableViewController" customModule="Masar" customModuleProvider="target" sceneMemberID="viewController">
                     <tableView key="view" clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="static" style="plain" separatorStyle="default" rowHeight="-1" estimatedRowHeight="-1" sectionHeaderHeight="28" estimatedSectionHeaderHeight="-1" sectionFooterHeight="28" estimatedSectionFooterHeight="-1" id="iPb-xj-SoM">
                         <rect key="frame" x="0.0" y="0.0" width="393" height="852"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
@@ -2078,6 +2078,16 @@
                     </tableView>
                     <navigationItem key="navigationItem" title="Booking Details" id="bkt-uW-4lU"/>
                     <connections>
+                        <outlet property="cancelButton" destination="ZyB-83-s3q" id="0Nc-tu-rKx"/>
+                        <outlet property="completeButton" destination="0MZ-Ca-V4T" id="Asd-Vf-JiJ"/>
+                        <outlet property="dateLabel" destination="K3z-Y7-bkW" id="14F-B0-Um0"/>
+                        <outlet property="emailLabel" destination="6Bh-lA-Sa0" id="Rbb-zy-v9x"/>
+                        <outlet property="instructionsLabel" destination="9AR-yJ-qZF" id="WV6-Ef-6BE"/>
+                        <outlet property="phoneLabel" destination="53R-aD-6yC" id="O4r-sw-vyY"/>
+                        <outlet property="priceLabel" destination="WDz-UA-wvm" id="9bK-gK-iBu"/>
+                        <outlet property="seekerNameLabel" destination="gGF-9R-CZP" id="LsN-bs-KKr"/>
+                        <outlet property="serviceNameLabel" destination="Gl4-ex-ggb" id="a27-6A-BU2"/>
+                        <outlet property="statusInfoLabel" destination="tZD-Zx-e0e" id="APD-LH-g12"/>
                         <segue destination="HXR-BX-yv5" kind="unwind" identifier="unwindToLabBokingPage" unwindAction="unwindToLabBookingPageWithSegue:" id="l4d-hA-4Ll"/>
                     </connections>
                 </tableViewController>
@@ -2244,7 +2254,7 @@
                 </tableViewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="CNF-hj-hSf" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="2085" y="2947"/>
+            <point key="canvasLocation" x="-782" y="2167"/>
         </scene>
     </scenes>
     <resources>
