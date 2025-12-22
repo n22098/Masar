@@ -3,7 +3,7 @@ import UniformTypeIdentifiers
 
 class ApplyProviderTableViewController: UITableViewController, UIDocumentPickerDelegate {
 
-    // MARK: - IBOutlets (Menus)
+    // MARK: - Menus
     @IBOutlet weak var skillLevelMenu: UIButton!
     @IBOutlet weak var categoryMenu: UIButton!
     @IBOutlet weak var registerBtn: UIBarButtonItem!
@@ -28,79 +28,83 @@ class ApplyProviderTableViewController: UITableViewController, UIDocumentPickerD
     private var currentUploadType: UploadType?
 
     enum UploadType {
-        case idCard
-        case certificate
-        case portfolio
+        case idCard, certificate, portfolio
     }
 
     // MARK: - Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
         setupMenus()
-        setupLabels()
+        setupUploadLabels()
         updateRegisterButtonState()
     }
 
-    // MARK: - Setup
+    // MARK: - UI Setup
     private func setupMenus() {
 
-        let skillActions = skillLevels.map { level in
+        skillLevelMenu.showsMenuAsPrimaryAction = true
+        skillLevelMenu.menu = UIMenu(children: skillLevels.map { level in
             UIAction(title: level) { _ in
                 self.selectedSkillLevel = level
                 self.skillLevelMenu.setTitle(level, for: .normal)
+                self.skillLevelMenu.setTitleColor(.systemBlue, for: .normal)
                 self.updateRegisterButtonState()
             }
-        }
-        skillLevelMenu.menu = UIMenu(children: skillActions)
-        skillLevelMenu.showsMenuAsPrimaryAction = true
+        })
 
-        let categoryActions = categories.map { category in
+        categoryMenu.showsMenuAsPrimaryAction = true
+        categoryMenu.menu = UIMenu(children: categories.map { category in
             UIAction(title: category) { _ in
                 self.selectedCategory = category
                 self.categoryMenu.setTitle(category, for: .normal)
+                self.categoryMenu.setTitleColor(.systemBlue, for: .normal)
                 self.updateRegisterButtonState()
             }
-        }
-        categoryMenu.menu = UIMenu(children: categoryActions)
-        categoryMenu.showsMenuAsPrimaryAction = true
+        })
     }
 
-    private func setupLabels() {
-        [idCardLabel, certificateLabel, portfolioLabel].forEach {
-            $0?.text = "No file"
-            $0?.textColor = .systemGray
-            $0?.textAlignment = .right
+    private func setupUploadLabels() {
+        [idCardLabel, certificateLabel, portfolioLabel].forEach { label in
+            label?.text = ""
+            label?.font = .systemFont(ofSize: 15)
+            label?.textColor = .systemBlue
+            label?.textAlignment = .right
+            label?.numberOfLines = 1
+            label?.lineBreakMode = .byTruncatingMiddle
         }
     }
 
-    // MARK: - Upload Selection
+    // MARK: - Table Selection
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-
         tableView.deselectRow(at: indexPath, animated: true)
 
-        if indexPath.section == 2 {
-            switch indexPath.row {
-            case 0: currentUploadType = .idCard
-            case 1: currentUploadType = .certificate
-            case 2: currentUploadType = .portfolio
-            default: return
-            }
-            openDocumentPicker()
+        guard indexPath.section == 2 else { return }
+
+        switch indexPath.row {
+        case 0: currentUploadType = .idCard
+        case 1: currentUploadType = .certificate
+        case 2: currentUploadType = .portfolio
+        default: return
         }
+
+        openDocumentPicker()
     }
 
     // MARK: - Document Picker
     private func openDocumentPicker() {
         let picker = UIDocumentPickerViewController(
-            forOpeningContentTypes: [UTType.pdf, UTType.image],
+            forOpeningContentTypes: [.pdf, .image],
             asCopy: true
         )
         picker.delegate = self
         present(picker, animated: true)
     }
 
-    func documentPicker(_ controller: UIDocumentPickerViewController, didPickDocumentsAt urls: [URL]) {
-        guard let url = urls.first, let type = currentUploadType else { return }
+    func documentPicker(_ controller: UIDocumentPickerViewController,
+                        didPickDocumentsAt urls: [URL]) {
+
+        guard let url = urls.first,
+              let type = currentUploadType else { return }
 
         let fileName = url.lastPathComponent
 
@@ -108,23 +112,20 @@ class ApplyProviderTableViewController: UITableViewController, UIDocumentPickerD
         case .idCard:
             idCardURL = url
             idCardLabel.text = fileName
-            idCardLabel.textColor = .systemBlue
 
         case .certificate:
             certificateURL = url
             certificateLabel.text = fileName
-            certificateLabel.textColor = .systemBlue
 
         case .portfolio:
             portfolioURL = url
             portfolioLabel.text = fileName
-            portfolioLabel.textColor = .systemBlue
         }
 
         updateRegisterButtonState()
     }
 
-    // MARK: - Register Button State
+    // MARK: - Register Button
     private func updateRegisterButtonState() {
         registerBtn.isEnabled =
             selectedSkillLevel != nil &&
@@ -132,7 +133,6 @@ class ApplyProviderTableViewController: UITableViewController, UIDocumentPickerD
             idCardURL != nil
     }
 
-    // MARK: - Register
     @IBAction func registerTapped(_ sender: UIBarButtonItem) {
         let alert = UIAlertController(
             title: "Success",
