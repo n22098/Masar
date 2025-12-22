@@ -1618,7 +1618,7 @@
                                                     <nil key="highlightedColor"/>
                                                 </label>
                                                 <datePicker contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" datePickerMode="date" translatesAutoresizingMaskIntoConstraints="NO" id="1f8-kD-F9d">
-                                                    <rect key="frame" x="205" y="7" width="115" height="28"/>
+                                                    <rect key="frame" x="204" y="7" width="116" height="28"/>
                                                     <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMaxY="YES"/>
                                                     <date key="minimumDate" timeIntervalSinceReferenceDate="694267200">
                                                         <!--2023-01-01 12:00:00 +0000-->
@@ -2156,7 +2156,7 @@
                                             <segue destination="OH0-T0-sVm" kind="show" id="z3c-Mk-3ps"/>
                                         </connections>
                                     </tableViewCell>
-                                    <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" preservesSuperviewLayoutMargins="YES" selectionStyle="default" indentationWidth="10" id="QGA-WK-GIK" customClass="ActionItemCell" customModule="Masar" customModuleProvider="target">
+                                    <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" preservesSuperviewLayoutMargins="YES" selectionStyle="default" indentationWidth="10" reuseIdentifier="PortfolioCell" id="QGA-WK-GIK" customClass="ActionItemCell" customModule="Masar" customModuleProvider="target">
                                         <rect key="frame" x="0.0" y="145.33333587646484" width="393" height="47.666667938232422"/>
                                         <autoresizingMask key="autoresizingMask"/>
                                         <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" preservesSuperviewLayoutMargins="YES" insetsLayoutMarginsFromSafeArea="NO" tableViewCell="QGA-WK-GIK" id="j4I-O1-rIy">
@@ -2174,6 +2174,7 @@
                                         </tableViewCellContentView>
                                         <connections>
                                             <outlet property="titleLabel" destination="Zo8-a4-Un6" id="iv1-B8-5Jr"/>
+                                            <segue destination="4Fj-uj-dxM" kind="show" id="DUf-Ku-gRu"/>
                                         </connections>
                                     </tableViewCell>
                                 </cells>
