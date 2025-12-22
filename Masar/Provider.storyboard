@@ -1618,7 +1618,7 @@
                                                     <nil key="highlightedColor"/>
                                                 </label>
                                                 <datePicker contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" datePickerMode="date" translatesAutoresizingMaskIntoConstraints="NO" id="1f8-kD-F9d">
-                                                    <rect key="frame" x="207" y="7" width="114" height="28"/>
+                                                    <rect key="frame" x="205" y="7" width="115" height="28"/>
                                                     <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMaxY="YES"/>
                                                     <date key="minimumDate" timeIntervalSinceReferenceDate="694267200">
                                                         <!--2023-01-01 12:00:00 +0000-->
@@ -2087,13 +2087,14 @@
                         <outlet property="cancelButton" destination="ZyB-83-s3q" id="0Nc-tu-rKx"/>
                         <outlet property="completeButton" destination="0MZ-Ca-V4T" id="Asd-Vf-JiJ"/>
                         <outlet property="dateLabel" destination="K3z-Y7-bkW" id="14F-B0-Um0"/>
+                        <outlet property="descriptionLabel" destination="tZD-Zx-e0e" id="qxA-HE-c4F"/>
                         <outlet property="emailLabel" destination="6Bh-lA-Sa0" id="Rbb-zy-v9x"/>
                         <outlet property="instructionsLabel" destination="9AR-yJ-qZF" id="WV6-Ef-6BE"/>
                         <outlet property="phoneLabel" destination="53R-aD-6yC" id="O4r-sw-vyY"/>
                         <outlet property="priceLabel" destination="WDz-UA-wvm" id="9bK-gK-iBu"/>
                         <outlet property="seekerNameLabel" destination="gGF-9R-CZP" id="LsN-bs-KKr"/>
                         <outlet property="serviceNameLabel" destination="Gl4-ex-ggb" id="a27-6A-BU2"/>
-                        <outlet property="statusInfoLabel" destination="tZD-Zx-e0e" id="APD-LH-g12"/>
+                        <outlet property="statusInfoLabel" destination="W9I-aJ-06F" id="9N1-8X-uFk"/>
                         <segue destination="HXR-BX-yv5" kind="unwind" identifier="unwindToLabBokingPage" unwindAction="unwindToLabBookingPageWithSegue:" id="l4d-hA-4Ll"/>
                     </connections>
                 </tableViewController>

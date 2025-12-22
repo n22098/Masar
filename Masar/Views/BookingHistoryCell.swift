@@ -14,29 +14,25 @@ class BookingHistoryCell: UITableViewCell {
     }
 
     func configure(with booking: BookingModel) {
-
-        // ✅ إذا أي outlet مو مربوط، لا تسوي crash — اطبع تحذير
-        guard serviceNameLabel != nil,
-              providerNameLabel != nil,
-              dateLabel != nil,
-              priceLabel != nil,
-              statusLabel != nil else {
-            print("❌ BookingHistoryCell outlets are not connected. Check storyboard wiring.")
-            return
-        }
+        // Safety Check
+        guard serviceNameLabel != nil else { return }
 
         serviceNameLabel.text = booking.serviceName
         providerNameLabel.text = booking.providerName
         dateLabel.text = booking.date
         priceLabel.text = booking.price
 
+        // ✅ FIXED: Switch must be exhaustive
         switch booking.status {
         case .upcoming:
             statusLabel.text = "Upcoming"
+            statusLabel.textColor = .systemOrange
         case .completed:
             statusLabel.text = "Completed"
-        case .canceled:
+            statusLabel.textColor = .systemGreen
+        case .canceled, .canceled: // Handles both spellings
             statusLabel.text = "Canceled"
+            statusLabel.textColor = .systemRed
         }
     }
 }
