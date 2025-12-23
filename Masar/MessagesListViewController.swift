@@ -199,6 +199,7 @@ final class MessagesListViewController: UIViewController, UITableViewDelegate {
                 senderId: otherUserId,
                 receiverId: currentUserId,
                 text: "Hello, I need to create a website for my work",
+                imageURL: nil,
                 timestamp: Date()
             ),
             Message(
@@ -210,21 +211,21 @@ final class MessagesListViewController: UIViewController, UITableViewDelegate {
     and I will help you with my template
     or create new one if you have
     specific design
-    """,
+    """, imageURL: nil,
                 timestamp: Date()
             ),
             Message(
                 id: "msg_3",
                 senderId: otherUserId,
                 receiverId: currentUserId,
-                text: "Ok Thanks, I will send you after a few hours",
+                text: "Ok Thanks, I will send you after a few hours", imageURL: nil,
                 timestamp: Date()
             ),
             Message(
                 id: "msg_4",
                 senderId: currentUserId,
                 receiverId: otherUserId,
-                text: "Thanks!",
+                text: "Thanks!", imageURL: nil,
                 timestamp: Date()
             )
         ]

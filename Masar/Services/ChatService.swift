@@ -233,22 +233,32 @@ final class ChatService {
                 let messages = snapshot?.documents.compactMap { doc -> Message? in
                     let data = doc.data()
 
-                    guard
-                        let senderId = data["senderId"] as? String,
-                        let receiverId = data["receiverId"] as? String,
-                        let text = data["text"] as? String,
-                        let timestamp = data["timestamp"] as? Timestamp
-                    else {
-                        return nil
-                    }
+                    let senderId = data["senderId"] as? String ?? ""
+                    let receiverId = data["receiverId"] as? String ?? ""
+                    let text = data["text"] as? String
+                    let imageURL = data["imageURL"] as? String
+
+                    let timestamp = (data["timestamp"] as? Timestamp)?.dateValue() ?? Date()
 
                     return Message(
                         id: doc.documentID,
                         senderId: senderId,
                         receiverId: receiverId,
                         text: text,
-                        timestamp: timestamp.dateValue()
+                        imageURL: imageURL,
+                        timestamp: timestamp
                     )
+
+
+                    return Message(
+                        id: doc.documentID,
+                        senderId: senderId,
+                        receiverId: receiverId,
+                        text: text,
+                        imageURL: imageURL,
+                        timestamp: timestamp
+                    )
+
                 } ?? []
 
                 completion(messages)
@@ -280,13 +290,10 @@ final class ChatService {
                 let messages = snapshot?.documents.compactMap { doc -> Message? in
                     let data = doc.data()
 
-                    guard
-                        let senderId = data["senderId"] as? String,
-                        let receiverId = data["receiverId"] as? String,
-                        let text = data["text"] as? String
-                    else {
-                        return nil
-                    }
+                    let senderId = data["senderId"] as? String ?? ""
+                    let receiverId = data["receiverId"] as? String ?? ""
+                    let text = data["text"] as? String
+                    let imageURL = data["imageURL"] as? String
 
                     let timestamp = (data["timestamp"] as? Timestamp)?.dateValue() ?? Date()
 
@@ -295,8 +302,10 @@ final class ChatService {
                         senderId: senderId,
                         receiverId: receiverId,
                         text: text,
+                        imageURL: imageURL,
                         timestamp: timestamp
                     )
+
                 } ?? []
 
 

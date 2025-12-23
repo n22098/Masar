@@ -11,8 +11,10 @@ struct Message {
     let id: String
     let senderId: String
     let receiverId: String
-    let text: String
+    let text: String?
+    let imageURL: String?
     let timestamp: Date
 }
+
 
 
