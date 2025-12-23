@@ -1,265 +1,198 @@
 import UIKit
 import UniformTypeIdentifiers
+import FirebaseStorage
+import FirebaseFirestore
+import FirebaseAuth
 
-class ApplyProviderTableViewController: UITableViewController, UIDocumentPickerDelegate {
+class ApplyProviderTableViewController: UITableViewController, UIDocumentPickerDelegate, UINavigationControllerDelegate, UIImagePickerControllerDelegate, UITextViewDelegate {
 
     // MARK: - Outlets
     @IBOutlet weak var nameLabel: UILabel!
     @IBOutlet weak var emailLabel: UILabel!
     @IBOutlet weak var phoneLabel: UILabel!
-    
-    @IBOutlet weak var skillLevelMenu: UIButton!
+    @IBOutlet weak var tellUsTxt: UITextView!
     @IBOutlet weak var categoryMenu: UIButton!
+    @IBOutlet weak var skillLevelMenu: UIButton!
     @IBOutlet weak var registerBtn: UIBarButtonItem!
     
-    @IBOutlet weak var idCardLabel: UILabel!
-    @IBOutlet weak var certificateLabel: UILabel!
-    @IBOutlet weak var portfolioLabel: UILabel!
-
-    // MARK: - User Data Properties (passed from SignUp)
-    var userName: String?
-    var userEmail: String?
-    var userPhone: String?
-    var userUsername: String?
-    var userPassword: String?
+    // Upload Labels from your storyboard
+    @IBOutlet weak var idUpload: UILabel!
+    @IBOutlet weak var workPortfolioUpload: UILabel!
+    @IBOutlet weak var certificateUpload: UILabel!
 
     // MARK: - Properties
-    private let skillLevels = ["Beginner", "Intermediate", "Advanced"]
-    private let categories = ["IT Teaching", "Digital Services"]
+    var userName: String?, userEmail: String?, userPhone: String?
+    private var idCardURL: URL?, portfolioURL: URL?, certificateURL: URL?
+    private var currentUploadType: Int = 0 // 0: ID, 1: Portfolio, 2: Cert
 
-    private var selectedSkillLevel: String?
-    private var selectedCategory: String?
-
-    private var idCardURL: URL?
-    private var certificateURL: URL?
-    private var portfolioURL: URL?
-
-    private var currentUploadType: UploadType?
-
-    enum UploadType {
-        case idCard, certificate, portfolio
-    }
-
-    // MARK: - Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
-        configureAppearance()
-        displayUserData()
+        setupUI()
         setupMenus()
-        setupUploadLabels()
-        updateRegisterButtonState()
+        setupLabelTaps()
     }
 
-    // MARK: - Display User Data
-    private func displayUserData() {
-        nameLabel.text = userName ?? "N/A"
-        emailLabel.text = userEmail ?? "N/A"
-        phoneLabel.text = userPhone ?? "N/A"
-    }
-
-    // MARK: - Appearance Configuration
-    private func configureAppearance() {
-        // Table view styling
-        tableView.backgroundColor = .systemGroupedBackground
-        tableView.separatorStyle = .singleLine
-        tableView.separatorInset = UIEdgeInsets(top: 0, left: 20, bottom: 0, right: 20)
+    private func setupUI() {
+        title = "Data"
+        registerBtn.title = "submit"
+        registerBtn.isEnabled = false
         
-        // Navigation bar
-        title = "Become a Provider"
-        navigationController?.navigationBar.prefersLargeTitles = true
+        nameLabel.text = userName
+        emailLabel.text = userEmail
+        phoneLabel.text = userPhone
         
-        // Register button styling
-        registerBtn.tintColor = .systemBlue
-    }
-
-    // MARK: - UI Setup
-    private func setupMenus() {
-        // Skill Level Menu
-        configureMenuButton(
-            skillLevelMenu,
-            placeholder: "Select Skill Level",
-            options: skillLevels
-        ) { [weak self] level in
-            self?.selectedSkillLevel = level
-            self?.updateMenuButton(self?.skillLevelMenu, title: level)
-        }
-
-        // Category Menu
-        configureMenuButton(
-            categoryMenu,
-            placeholder: "Select Category",
-            options: categories
-        ) { [weak self] category in
-            self?.selectedCategory = category
-            self?.updateMenuButton(self?.categoryMenu, title: category)
-        }
-    }
-    
-    private func configureMenuButton(
-        _ button: UIButton,
-        placeholder: String,
-        options: [String],
-        handler: @escaping (String) -> Void
-    ) {
-        button.setTitle(placeholder, for: .normal)
-        button.setTitleColor(.systemGray, for: .normal)
-        button.contentHorizontalAlignment = .left
-        button.contentEdgeInsets = UIEdgeInsets(top: 0, left: 16, bottom: 0, right: 16)
-        button.showsMenuAsPrimaryAction = true
+        tellUsTxt.delegate = self
         
-        button.menu = UIMenu(children: options.map { option in
-            UIAction(title: option) { _ in
-                handler(option)
-            }
-        })
-        
-        // Add chevron indicator
-        var config = UIButton.Configuration.plain()
-        config.imagePlacement = .trailing
-        config.imagePadding = 8
-        button.configuration = config
-        button.setImage(UIImage(systemName: "chevron.down"), for: .normal)
-        button.tintColor = .systemGray2
-    }
-    
-    private func updateMenuButton(_ button: UIButton?, title: String) {
-        button?.setTitle(title, for: .normal)
-        button?.setTitleColor(.label, for: .normal)
-        button?.tintColor = .systemBlue
-        updateRegisterButtonState()
-    }
-
-    private func setupUploadLabels() {
-        [idCardLabel, certificateLabel, portfolioLabel].forEach { label in
+        // Configure labels for FULL NAME display in one line
+        [idUpload, workPortfolioUpload, certificateUpload].forEach { label in
             label?.text = "Upload"
-            label?.font = .systemFont(ofSize: 15, weight: .medium)
             label?.textColor = .systemBlue
-            label?.textAlignment = .right
+            label?.isUserInteractionEnabled = true
+            
+            // Fix: This ensures the full name shows in one line without "..."
             label?.numberOfLines = 1
-            label?.lineBreakMode = .byTruncatingMiddle
+            label?.adjustsFontSizeToFitWidth = true
+            label?.minimumScaleFactor = 0.5 // Allows font to shrink to 50% to fit the name
+            label?.lineBreakMode = .byClipping // Removes the "..."
         }
     }
 
-    // MARK: - Table View Delegate
-    override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        tableView.deselectRow(at: indexPath, animated: true)
-
-        guard indexPath.section == 2 else { return }
-
-        switch indexPath.row {
-        case 0: currentUploadType = .idCard
-        case 1: currentUploadType = .certificate
-        case 2: currentUploadType = .portfolio
-        default: return
-        }
-
-        openDocumentPicker()
-    }
-    
-    override func tableView(_ tableView: UITableView, willDisplay cell: UITableViewCell, forRowAt indexPath: IndexPath) {
-        cell.backgroundColor = .secondarySystemGroupedBackground
+    // MARK: - Tap Gestures
+    private func setupLabelTaps() {
+        idUpload.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(idTapped)))
+        workPortfolioUpload.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(portfolioTapped)))
+        certificateUpload.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(certTapped)))
     }
 
-    // MARK: - Document Picker
-    private func openDocumentPicker() {
-        let picker = UIDocumentPickerViewController(
-            forOpeningContentTypes: [.pdf, .image],
-            asCopy: true
-        )
-        picker.delegate = self
-        picker.allowsMultipleSelection = false
-        present(picker, animated: true)
-    }
+    @objc func idTapped() { currentUploadType = 0; showUploadSourceMenu() }
+    @objc func portfolioTapped() { currentUploadType = 1; showUploadSourceMenu() }
+    @objc func certTapped() { currentUploadType = 2; showUploadSourceMenu() }
 
-    func documentPicker(_ controller: UIDocumentPickerViewController,
-                        didPickDocumentsAt urls: [URL]) {
-
-        guard let url = urls.first,
-              let type = currentUploadType else { return }
-
-        let fileName = url.lastPathComponent
-
-        switch type {
-        case .idCard:
-            idCardURL = url
-            updateUploadLabel(idCardLabel, fileName: fileName)
-
-        case .certificate:
-            certificateURL = url
-            updateUploadLabel(certificateLabel, fileName: fileName)
-
-        case .portfolio:
-            portfolioURL = url
-            updateUploadLabel(portfolioLabel, fileName: fileName)
-        }
-
-        updateRegisterButtonState()
-    }
-    
-    private func updateUploadLabel(_ label: UILabel, fileName: String) {
-        label.text = fileName
-        label.textColor = .systemGreen
+    // MARK: - Source Menu
+    private func showUploadSourceMenu() {
+        let alert = UIAlertController(title: "Select Source", message: nil, preferredStyle: .actionSheet)
         
-        // Add checkmark icon
-        let attachment = NSTextAttachment()
-        attachment.image = UIImage(systemName: "checkmark.circle.fill")?.withTintColor(.systemGreen)
-        attachment.bounds = CGRect(x: 0, y: -2, width: 16, height: 16)
-        
-        let attributedString = NSMutableAttributedString(attachment: attachment)
-        attributedString.append(NSAttributedString(string: " \(fileName)"))
-        
-        label.attributedText = attributedString
-    }
-
-    // MARK: - Register Button
-    private func updateRegisterButtonState() {
-        let isValid = selectedSkillLevel != nil &&
-                      selectedCategory != nil &&
-                      idCardURL != nil
-        
-        registerBtn.isEnabled = isValid
-        registerBtn.tintColor = isValid ? .systemBlue : .systemGray
-    }
-
-    @IBAction func registerTapped(_ sender: UIBarButtonItem) {
-        // Add haptic feedback
-        let generator = UINotificationFeedbackGenerator()
-        generator.notificationOccurred(.success)
-        
-        // Here you would normally create the provider account with Firebase
-        // using the stored user data (userName, userEmail, etc.)
-        // and provider-specific info (skillLevel, category, documents)
-        
-        let alert = UIAlertController(
-            title: "Success",
-            message: "Your provider request has been submitted successfully. We'll review your application and get back to you soon.",
-            preferredStyle: .alert
-        )
-        
-        alert.addAction(UIAlertAction(title: "OK", style: .default) { [weak self] _ in
-            // Go back to sign in screen (pop to root)
-            self?.navigationController?.popToRootViewController(animated: true)
+        alert.addAction(UIAlertAction(title: "Files (PDF)", style: .default) { _ in
+            let picker = UIDocumentPickerViewController(forOpeningContentTypes: [.pdf])
+            picker.delegate = self
+            self.present(picker, animated: true)
         })
         
+        if UIImagePickerController.isSourceTypeAvailable(.camera) {
+            alert.addAction(UIAlertAction(title: "Camera", style: .default) { _ in
+                let picker = UIImagePickerController()
+                picker.sourceType = .camera
+                picker.delegate = self
+                self.present(picker, animated: true)
+            })
+        }
+        
+        alert.addAction(UIAlertAction(title: "Photo Library", style: .default) { _ in
+            let picker = UIImagePickerController()
+            picker.sourceType = .photoLibrary
+            picker.delegate = self
+            self.present(picker, animated: true)
+        })
+        
+        alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
         present(alert, animated: true)
     }
-}
 
-// MARK: - Section Headers
-extension ApplyProviderTableViewController {
-    override func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
-        switch section {
-        case 0: return "Your Information"
-        case 1: return "Request Details"
-        case 2: return "Required Documents"
-        default: return nil
+    // MARK: - File Handling
+    func documentPicker(_ controller: UIDocumentPickerViewController, didPickDocumentsAt urls: [URL]) {
+        if let url = urls.first { processSelectedFile(url: url) }
+    }
+
+    func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey : Any]) {
+        picker.dismiss(animated: true)
+        if let image = info[.originalImage] as? UIImage,
+           let data = image.jpegData(compressionQuality: 0.7) {
+            let tempURL = FileManager.default.temporaryDirectory.appendingPathComponent("\(UUID().uuidString).jpg")
+            try? data.write(to: tempURL)
+            processSelectedFile(url: tempURL)
         }
     }
-    
-    override func tableView(_ tableView: UITableView, titleForFooterInSection section: Int) -> String? {
-        switch section {
-        case 2: return "ID Card is required. Certificate and portfolio are optional but recommended."
-        default: return nil
+
+    private func processSelectedFile(url: URL) {
+        let fileName = url.lastPathComponent
+        switch currentUploadType {
+        case 0:
+            idCardURL = url
+            updateLabelSuccess(idUpload, fileName: fileName)
+        case 1:
+            portfolioURL = url
+            updateLabelSuccess(workPortfolioUpload, fileName: fileName)
+        case 2:
+            certificateURL = url
+            updateLabelSuccess(certificateUpload, fileName: fileName)
+        default: break
         }
+        validateForm()
+    }
+
+    private func updateLabelSuccess(_ label: UILabel?, fileName: String) {
+        // Displays the checkmark and the full filename
+        label?.text = "✓ \(fileName)"
+        label?.textColor = .systemGreen
+    }
+
+    // MARK: - Submit & Firebase
+    @IBAction func registerTapped(_ sender: UIBarButtonItem) {
+        guard let uid = Auth.auth().currentUser?.uid else { return }
+        sender.isEnabled = false
+        
+        let storageRef = Storage.storage().reference().child("providers/\(uid)")
+        let group = DispatchGroup()
+        var uploadedURLs: [String: String] = [:]
+
+        let files = [("idCard", idCardURL), ("portfolio", portfolioURL), ("certificate", certificateURL)]
+
+        for (key, fileURL) in files {
+            guard let url = fileURL else { continue }
+            group.enter()
+            let ref = storageRef.child("\(key).\(url.pathExtension)")
+            ref.putFile(from: url, metadata: nil) { _, _ in
+                ref.downloadURL { dURL, _ in
+                    if let d = dURL?.absoluteString { uploadedURLs[key] = d }
+                    group.leave()
+                }
+            }
+        }
+
+        group.notify(queue: .main) {
+            self.saveToFirestore(uid: uid, urls: uploadedURLs)
+        }
+    }
+
+    private func saveToFirestore(uid: String, urls: [String: String]) {
+        let data: [String: Any] = [
+            "role": "provider",
+            "category": categoryMenu.title(for: .normal) ?? "",
+            "bio": tellUsTxt.text ?? "",
+            "idCardURL": urls["idCard"] ?? "",
+            "portfolioURL": urls["portfolio"] ?? "",
+            "certificateURL": urls["certificate"] ?? "",
+            "timestamp": FieldValue.serverTimestamp()
+        ]
+
+        Firestore.firestore().collection("users").document(uid).setData(data, merge: true) { _ in
+            self.navigationController?.popToRootViewController(animated: true)
+        }
+    }
+
+    // MARK: - Helper Methods
+    private func setupMenus() {
+        let categories = ["Electrician", "Plumber", "Carpenter", "Painter"]
+        categoryMenu.menu = UIMenu(children: categories.map { name in
+            UIAction(title: name) { _ in self.categoryMenu.setTitle(name, for: .normal); self.validateForm() }
+        })
+        categoryMenu.showsMenuAsPrimaryAction = true
+    }
+
+    func textViewDidChange(_ textView: UITextView) { validateForm() }
+
+    private func validateForm() {
+        let hasBio = !tellUsTxt.text.trimmingCharacters(in: .whitespaces).isEmpty
+        registerBtn.isEnabled = hasBio && idCardURL != nil
     }
 }
