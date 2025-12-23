@@ -38,30 +38,88 @@ class ProviderPortfolioTableViewController: UITableViewController {
     
     // MARK: - Properties
     let brandColor = UIColor(red: 0.35, green: 0.34, blue: 0.91, alpha: 1.0)
-    var providerData: ServiceProviderModel? // Assuming this model exists in your project
+    var providerData: ServiceProviderModel?
     var uploadedMedia: [PortfolioMedia] = []
     
-    // MARK: - FIX: Store the URL to be previewed here
+    // NEW: Flag to determine if user can edit
+    var isReadOnlyMode: Bool = false
+    
     private var currentPreviewURL: URL?
     
-    private let storageKey = "PermanentPortfolioStorage"
-    private let portfolioSections = [
-        PortfolioSection(
-            title: "About me",
-            content: "I'm a passionate developer with 5+ years of experience in web and mobile development. I specialize in creating beautiful and functional iOS applications.",
-            type: .text
-        ),
-        PortfolioSection(
-            title: "Skills",
-            content: "Swift • iOS Development • UIKit • SwiftUI • Firebase • REST APIs • Git",
-            type: .text
-        ),
-        PortfolioSection(
-            title: "Upload Portfolio",
-            content: nil,
-            type: .button
-        )
-    ]
+    // UPDATED: Dynamic storage key based on provider ID
+    private var storageKey: String {
+        guard let provider = providerData else {
+            return "DefaultPortfolioStorage"
+        }
+        // Use provider's unique ID for more reliable storage
+        return "Portfolio_\(provider.id)"
+    }
+    
+    // Dynamic sections based on mode and provider data
+    private var portfolioSections: [PortfolioSection] {
+        var sections: [PortfolioSection] = []
+        
+        // Use provider's actual data if available
+        if let provider = providerData {
+            // About Me section with provider-specific content
+            let aboutContent = provider.aboutMe
+            sections.append(
+                PortfolioSection(
+                    title: "About me",
+                    content: aboutContent,
+                    type: .text
+                )
+            )
+            
+            // Experience section
+            sections.append(
+                PortfolioSection(
+                    title: "Experience",
+                    content: "\(provider.experience) | \(provider.completedProjects) Projects Completed",
+                    type: .text
+                )
+            )
+            
+            // Skills section with provider's skills
+            let skillsContent = provider.skills.joined(separator: " • ")
+            sections.append(
+                PortfolioSection(
+                    title: "Skills",
+                    content: skillsContent,
+                    type: .text
+                )
+            )
+        } else {
+            // Fallback content
+            sections.append(
+                PortfolioSection(
+                    title: "About me",
+                    content: "I'm a passionate developer with 5+ years of experience in web and mobile development. I specialize in creating beautiful and functional iOS applications.",
+                    type: .text
+                )
+            )
+            sections.append(
+                PortfolioSection(
+                    title: "Skills",
+                    content: "Swift • iOS Development • UIKit • SwiftUI • Firebase • REST APIs • Git",
+                    type: .text
+                )
+            )
+        }
+        
+        // Only add upload button if NOT in read-only mode
+        if !isReadOnlyMode {
+            sections.append(
+                PortfolioSection(
+                    title: "Upload Portfolio",
+                    content: nil,
+                    type: .button
+                )
+            )
+        }
+        
+        return sections
+    }
     
     // MARK: - Lifecycle
     override func viewDidLoad() {
@@ -92,7 +150,12 @@ class ProviderPortfolioTableViewController: UITableViewController {
     
     // MARK: - Setup UI
     private func setupUI() {
-        title = "Portfolio"
+        // Set title based on provider
+        if let provider = providerData {
+            title = "\(provider.name)'s Portfolio"
+        } else {
+            title = "Portfolio"
+        }
         
         tableView.backgroundColor = UIColor(red: 248/255, green: 248/255, blue: 252/255, alpha: 1.0)
         tableView.separatorStyle = .none
@@ -162,7 +225,7 @@ class ProviderPortfolioTableViewController: UITableViewController {
             let media = uploadedMedia[mediaIndex]
             
             let cell = tableView.dequeueReusableCell(withIdentifier: "PortfolioMediaCell", for: indexPath) as! PortfolioMediaCell
-            cell.configure(with: media, brandColor: brandColor)
+            cell.configure(with: media, brandColor: brandColor, isReadOnly: isReadOnlyMode)
             cell.onDeleteTapped = { [weak self] in
                 self?.deleteMedia(at: mediaIndex)
             }
@@ -177,39 +240,12 @@ class ProviderPortfolioTableViewController: UITableViewController {
             let mediaIndex = indexPath.row - portfolioSections.count
             let media = uploadedMedia[mediaIndex]
             
-            // FIX: Set the variable before calling preview
             self.currentPreviewURL = media.url
             previewMedia(media)
         }
     }
     
     // MARK: - Upload Logic
-    private func showUploadOptions() {
-        let alert = UIAlertController(title: "Upload Media", message: "Choose media type", preferredStyle: .actionSheet)
-        
-        alert.addAction(UIAlertAction(title: "📷 Photo", style: .default) { [weak self] _ in
-            self?.pickImage()
-        })
-        
-        alert.addAction(UIAlertAction(title: "📄 Document", style: .default) { [weak self] _ in
-            self?.pickDocument()
-        })
-        
-        alert.addAction(UIAlertAction(title: "🎥 Video", style: .default) { [weak self] _ in
-            self?.pickVideo()
-        })
-        
-        alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
-        
-        if let popover = alert.popoverPresentationController {
-            popover.sourceView = self.view
-            popover.sourceRect = CGRect(x: self.view.bounds.midX, y: self.view.bounds.midY, width: 0, height: 0)
-            popover.permittedArrowDirections = []
-        }
-        
-        present(alert, animated: true)
-    }
-    
     private func pickImage() {
         var config = PHPickerConfiguration()
         config.filter = .images
@@ -283,6 +319,12 @@ class ProviderPortfolioTableViewController: UITableViewController {
     }
     
     private func deleteMedia(at index: Int) {
+        // Prevent deletion in read-only mode
+        guard !isReadOnlyMode else {
+            showErrorMessage(message: "Cannot delete files in view-only mode")
+            return
+        }
+        
         let media = uploadedMedia[index]
         
         let alert = UIAlertController(
@@ -403,6 +445,7 @@ extension ProviderPortfolioTableViewController: UIDocumentPickerDelegate {
         saveFile(from: url, type: .document)
     }
 }
+
 // MARK: - QLPreviewControllerDataSource
 extension ProviderPortfolioTableViewController: QLPreviewControllerDataSource {
     func numberOfPreviewItems(in controller: QLPreviewController) -> Int {
@@ -410,14 +453,11 @@ extension ProviderPortfolioTableViewController: QLPreviewControllerDataSource {
     }
     
     func previewController(_ controller: QLPreviewController, previewItemAt index: Int) -> QLPreviewItem {
-        // FIX: Cast currentPreviewURL to NSURL explicitly.
-        // This ensures both sides of '??' are NSURL, resolving the ambiguity.
         return (currentPreviewURL as NSURL?) ?? NSURL()
     }
 }
 
 // MARK: - Custom Cells
-// (Kept exactly the same as your code below)
 
 class PortfolioTextCell: UITableViewCell {
     private let containerView: UIView = {
@@ -760,8 +800,11 @@ class PortfolioMediaCell: UITableViewCell {
         ])
     }
     
-    func configure(with media: PortfolioMedia, brandColor: UIColor) {
+    func configure(with media: PortfolioMedia, brandColor: UIColor, isReadOnly: Bool = false) {
         nameLabel.text = media.name
+        
+        // Hide or show delete button based on mode
+        deleteButton.isHidden = isReadOnly
         
         switch media.type {
         case .image:

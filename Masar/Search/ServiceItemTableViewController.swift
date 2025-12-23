@@ -402,10 +402,13 @@ class ServiceItemTableViewController: UITableViewController {
             destVC.receivedServicePrice = service.price
             destVC.receivedServiceDetails = service.description
             destVC.providerData = self.providerData
-        } else if segue.identifier == "showPortfolio",
+        }
+        // NEW: Configure portfolio for read-only mode when navigating from service item
+        else if segue.identifier == "showPortfolio",
                   let destVC = segue.destination as? ProviderPortfolioTableViewController,
                   let provider = sender as? ServiceProviderModel {
             destVC.providerData = provider
+            destVC.isReadOnlyMode = true  // KEY LINE: Set to read-only
         }
     }
 }
