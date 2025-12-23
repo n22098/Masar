@@ -1,11 +1,15 @@
 import UIKit
+import FirebaseCore
 
 @main
 class AppDelegate: UIResponder, UIApplicationDelegate {
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
         
-        // 🔥 حط كود الاختبار هنا
+        // Configure Firebase
+        FirebaseApp.configure()
+        
+        // 🔥 Place test code here
         createTestUser()
         
         return true
@@ -16,15 +20,15 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         // Test: Create provider user
         let testProvider = ProviderProfile(
             role: .companyOwner,
-            companyName: "شركة الاختبار",
+            companyName: "Test Company", // Changed from Arabic
             services: []
         )
         
         let testUser = User(
-            name: "أحمد",
+            name: "Ahmed", // Changed from Arabic
             email: "test@test.com",
             phone: "12345678",
-            providerProfile: testProvider // حط nil لو تبي Seeker
+            providerProfile: testProvider // Pass nil if you want a Seeker
         )
         
         UserManager.shared.setCurrentUser(testUser)
