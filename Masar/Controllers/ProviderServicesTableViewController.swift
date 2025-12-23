@@ -1,46 +1,45 @@
 import UIKit
 
-
 class ProviderServicesTableViewController: UITableViewController {
     
     // MARK: - Properties
     let brandColor = UIColor(red: 0.35, green: 0.34, blue: 0.91, alpha: 1.0)
     
-    // 🔥 4 خدمات جديدة
+    // 👇 التصليح: الأسعار صارت أرقام (Double) بدون علامة تنصيص للكلام
     var myServices: [ServiceModel] = [
         ServiceModel(
             name: "Website Starter",
-            price: "BHD 85.000",
+            price: 85.0,
             description: "5 pages • Responsive design",
             icon: "doc.text.fill"
         ),
         ServiceModel(
             name: "Business Website",
-            price: "BHD 150.000",
+            price: 150.0,
             description: "10 pages • Custom layout",
             icon: "building.2.fill"
         ),
         ServiceModel(
             name: "E-Commerce Store",
-            price: "BHD 250.000",
+            price: 250.0,
             description: "Full store • Payment gateway",
             icon: "cart.fill"
         ),
         ServiceModel(
             name: "Mobile App Design",
-            price: "BHD 180.000",
+            price: 180.0,
             description: "iOS & Android • UI/UX",
             icon: "iphone"
         ),
         ServiceModel(
             name: "SEO Optimization",
-            price: "BHD 120.000",
+            price: 120.0,
             description: "Google ranking • Analytics",
             icon: "chart.line.uptrend.xyaxis"
         ),
         ServiceModel(
             name: "Social Media Management",
-            price: "BHD 95.000",
+            price: 95.0,
             description: "Content creation • Posting",
             icon: "person.3.fill"
         )
@@ -87,7 +86,6 @@ class ProviderServicesTableViewController: UITableViewController {
         navigationController?.navigationBar.compactAppearance = appearance
         navigationController?.navigationBar.tintColor = .white
         
-        // زر الإضافة
         let addButton = UIBarButtonItem(
             image: UIImage(systemName: "plus"),
             style: .plain,
@@ -105,7 +103,7 @@ class ProviderServicesTableViewController: UITableViewController {
         tableView.estimatedRowHeight = 80
         tableView.contentInset = UIEdgeInsets(top: 16, left: 0, bottom: 16, right: 0)
         
-        // تسجيل الخلية المخصصة
+        // 👇 تأكد من وجود كلاس ServiceCell في نهاية الملف
         tableView.register(ServiceCell.self, forCellReuseIdentifier: "ServiceCell")
     }
     
@@ -134,7 +132,6 @@ class ProviderServicesTableViewController: UITableViewController {
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
         
-        // Animation
         if let cell = tableView.cellForRow(at: indexPath) {
             UIView.animate(withDuration: 0.1, animations: {
                 cell.transform = CGAffineTransform(scaleX: 0.97, y: 0.97)
@@ -148,7 +145,7 @@ class ProviderServicesTableViewController: UITableViewController {
         performSegue(withIdentifier: "editService", sender: indexPath)
     }
     
-    // MARK: - Delete Action
+    // MARK: - Delete & Navigation
     override func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
         if editingStyle == .delete {
             let serviceName = myServices[indexPath.row].name
@@ -205,17 +202,14 @@ class ProviderServicesTableViewController: UITableViewController {
         present(alert, animated: true)
     }
     
-    // MARK: - Navigation
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
         if segue.identifier == "editService" {
             if let destVC = segue.destination as? EditServiceTableViewController {
                 if let indexPath = sender as? IndexPath {
-                    // Edit mode
                     let selectedService = myServices[indexPath.row]
                     destVC.serviceToEdit = selectedService
                     selectedServiceIndex = indexPath.row
                 } else {
-                    // Add mode
                     destVC.serviceToEdit = nil
                     selectedServiceIndex = nil
                 }
@@ -235,13 +229,12 @@ class ProviderServicesTableViewController: UITableViewController {
         }
     }
     
-    // MARK: - Actions
     @objc private func addServiceTapped() {
         performSegue(withIdentifier: "editService", sender: nil)
     }
 }
 
-// MARK: - Custom Service Cell
+// 👇👇 الكلاس المهم لعرض الخلية (كان ناقصاً) 👇👇
 class ServiceCell: UITableViewCell {
     
     private let containerView: UIView = {
@@ -361,11 +354,14 @@ class ServiceCell: UITableViewCell {
     
     func configure(with service: ServiceModel, brandColor: UIColor) {
         nameLabel.text = service.name
-        priceLabel.text = service.price
+        // 👇 هنا الإصلاح: نستخدم formattedPrice التي أنشأناها في الموديل
+        priceLabel.text = service.formattedPrice
         priceLabel.textColor = brandColor
         descriptionLabel.text = service.description
         
-        iconImageView.image = UIImage(systemName: service.icon) ?? UIImage(systemName: "briefcase.fill")
+        let iconName = service.icon ?? "briefcase.fill"
+        iconImageView.image = UIImage(systemName: iconName)
+        
         iconBackgroundView.backgroundColor = brandColor.withAlphaComponent(0.15)
         iconImageView.tintColor = brandColor
     }

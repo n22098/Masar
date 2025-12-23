@@ -19,15 +19,7 @@ class BookingHistoryTableViewController: UITableViewController {
         return segment
     }()
 
-    // بيانات وهمية
-    var allBookings: [BookingModel] = [
-        BookingModel(id: "H1", seekerName: "You", serviceName: "IT Solutions", date: "25 Dec 2025", status: .upcoming, providerName: "Tech Experts Co.", email: "you@example.com", phoneNumber: "00000000", price: "120 BHD", instructions: "Please contact me before arriving.", descriptionText: "General IT support and troubleshooting."),
-        BookingModel(id: "H2", seekerName: "You", serviceName: "Math Tutoring", date: "28 Dec 2025", status: .upcoming, providerName: "Mr. Ahmed Ali", email: "you@example.com", phoneNumber: "00000000", price: "20 BHD", instructions: "Focus on calculus chapter 4.", descriptionText: "1 hour tutoring session."),
-        BookingModel(id: "H3", seekerName: "You", serviceName: "Digital Services", date: "30 Dec 2025", status: .completed, providerName: "Creative Digital", email: "you@example.com", phoneNumber: "00000000", price: "45 BHD", instructions: "Share logo assets and brand colors.", descriptionText: "Digital marketing + design services."),
-        BookingModel(id: "H4", seekerName: "You", serviceName: "Website Design", date: "15 Nov 2025", status: .completed, providerName: "Sayed Husain", email: "you@example.com", phoneNumber: "00000000", price: "85 BHD", instructions: "Portfolio website with 3 pages.", descriptionText: "Website design + basic implementation."),
-        BookingModel(id: "H5", seekerName: "You", serviceName: "Logo Design", date: "01 Nov 2025", status: .canceled, providerName: "Osama Graphics", email: "you@example.com", phoneNumber: "00000000", price: "30 BHD", instructions: "Send sample logos you like.", descriptionText: "Logo concepts + revisions.")
-    ]
-
+    var allBookings: [BookingModel] = []
     var filteredBookings: [BookingModel] = []
     let brandColor = UIColor(red: 98/255, green: 84/255, blue: 243/255, alpha: 1.0)
 
@@ -37,19 +29,32 @@ class BookingHistoryTableViewController: UITableViewController {
         title = "History"
         setupNavigationBar()
         setupUI()
-        filterBookings()
         
-        // ✅ هذا السطر يسجل الخلية لكي يتعرف عليها الجدول
+        // تسجيل الخلية
         tableView.register(ModernBookingHistoryCell.self, forCellReuseIdentifier: "ModernBookingHistoryCell")
+        
+        // جلب البيانات
+        fetchBookingsFromFirebase()
     }
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-        filterBookings()
-        tableView.reloadData()
+        fetchBookingsFromFirebase()
     }
 
-    // MARK: - UI Setup & Logic
+    // MARK: - Firebase Fetching 📡
+    func fetchBookingsFromFirebase() {
+        ServiceManager.shared.fetchAllBookings { [weak self] bookings in
+            guard let self = self else { return }
+            self.allBookings = bookings
+            self.filterBookings()
+            DispatchQueue.main.async {
+                self.tableView.reloadData()
+            }
+        }
+    }
+
+    // MARK: - UI Setup
     func setupNavigationBar() {
         navigationController?.navigationBar.prefersLargeTitles = true
         navigationItem.largeTitleDisplayMode = .always
@@ -106,7 +111,6 @@ class BookingHistoryTableViewController: UITableViewController {
     override func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat { return 140 }
 
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        // ✅ استخدام الخلية التي سنعرفها في الأسفل
         let cell = tableView.dequeueReusableCell(withIdentifier: "ModernBookingHistoryCell", for: indexPath) as! ModernBookingHistoryCell
         let booking = filteredBookings[indexPath.row]
         cell.configure(with: booking)
@@ -117,13 +121,10 @@ class BookingHistoryTableViewController: UITableViewController {
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
         let selectedBooking = filteredBookings[indexPath.row]
-        // الانتقال
-        performSegue(withIdentifier: "showBookingDetails", sender: selectedBooking) // تأكد أن الاسم في الستوري بورد "showBookingDetails"
+        performSegue(withIdentifier: "showBookingDetails", sender: selectedBooking)
     }
 
-    // ✅ الربط مع ملف التفاصيل الخاص بك (BookinghistoryappTableViewController)
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-        // تأكد من الستوري بورد أن الـ Segue Identifier هو "showBookingDetails" أو "Show" وغيره هنا ليطابق
         if let destVC = segue.destination as? Bookinghistoryapp,
            let booking = sender as? BookingModel {
             destVC.bookingData = booking
@@ -131,7 +132,7 @@ class BookingHistoryTableViewController: UITableViewController {
     }
 }
 
-// MARK: - ✅ ModernBookingHistoryCell Class (تمت إضافته هنا ليختفي الخطأ)
+// MARK: - ModernBookingHistoryCell Fix
 class ModernBookingHistoryCell: UITableViewCell {
 
     private let containerView: UIView = {
@@ -234,11 +235,15 @@ class ModernBookingHistoryCell: UITableViewCell {
         ])
     }
 
+    // 🔥🔥 هنا التصليح: استخدام dateString و priceString
     func configure(with booking: BookingModel) {
         serviceNameLabel.text = booking.serviceName
         providerNameLabel.text = booking.providerName
-        dateLabel.text = "📅 \(booking.date)"
-        priceLabel.text = booking.price
+        
+        // استخدام المتغيرات المساعدة التي أنشأناها في الموديل
+        dateLabel.text = "📅 \(booking.dateString)"
+        priceLabel.text = booking.priceString
+        
         statusLabel.text = "  \(booking.status.rawValue)  "
 
         switch booking.status {

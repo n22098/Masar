@@ -351,15 +351,23 @@ class ServiceInformationTableViewController: UITableViewController {
     }
     
     // MARK: - Navigation
-    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-        if segue.identifier == "showBookingForm",
-           let destVC = segue.destination as? ServiceDetailsBookingTableViewController {
-            destVC.receivedServiceName = self.receivedServiceName
-            destVC.receivedServicePrice = self.receivedServicePrice
-            destVC.receivedLocation = self.providerData?.location
+        override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
+            // تأكد من اسم المعرف (Identifier) في الستوري بورد، غالباً هو "showBooking"
+            if segue.identifier == "showBooking" {
+                if let destVC = segue.destination as? ServiceDetailsBookingTableViewController {
+                    
+                    // تمرير البيانات الموجودة
+                    destVC.receivedServiceName = self.receivedServiceName
+                    destVC.receivedServicePrice = self.receivedServicePrice
+                    destVC.receivedLocation = "Online" // أو أي موقع افتراضي
+                    destVC.receivedServiceDetails = self.receivedServiceDetails
+                    
+                    // 🔥🔥 هذا هو السطر الناقص الذي يحل المشكلة!
+                    // نقوم بتمرير بيانات الموفر إلى صفحة الحجز
+                    destVC.providerData = self.providerData
+                }
+            }
         }
-    }
-    
     // MARK: - Table View Data Source
     override func numberOfSections(in tableView: UITableView) -> Int {
         return 0  // No table content, using header and footer only

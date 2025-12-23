@@ -9,10 +9,35 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         // Configure Firebase
         FirebaseApp.configure()
         
-        // 🔥 Place test code here
+        // 1. Create local test user
         createTestUser()
         
+        // 2. 🔥 Test fetching data from Firebase console
+        testFirebaseFetch()
+        
         return true
+    }
+    
+    // MARK: - Firebase Fetch Test
+    private func testFirebaseFetch() {
+        print("\n⏳ Starting Firebase connection test...")
+        
+        ServiceManager.shared.fetchAllServices { services in
+            print("\n----- 📡 FIREBASE DATA RESULT -----")
+            
+            if services.isEmpty {
+                print("⚠️ No services found! Check your Firestore collection name.")
+            } else {
+                print("✅ Connection Successful! Found \(services.count) services:")
+                for service in services {
+                    // We use 'service.name' because we mapped it to 'title' in ServiceModel
+                    print("🔹 Service: \(service.name)")
+                    print("💰 Price: \(service.formattedPrice)")
+                    print("-----------------------------")
+                }
+            }
+            print("-----------------------------------\n")
+        }
     }
     
     // MARK: - Test User Creation
@@ -20,19 +45,19 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         // Test: Create provider user
         let testProvider = ProviderProfile(
             role: .companyOwner,
-            companyName: "Test Company", // Changed from Arabic
+            companyName: "Test Company",
             services: []
         )
         
         let testUser = User(
-            name: "Ahmed", // Changed from Arabic
+            name: "Ahmed",
             email: "test@test.com",
             phone: "12345678",
-            providerProfile: testProvider // Pass nil if you want a Seeker
+            providerProfile: testProvider
         )
         
         UserManager.shared.setCurrentUser(testUser)
-        print("✅ Test user created!")
+        print("✅ Local test user created!")
     }
 
     // MARK: UISceneSession Lifecycle

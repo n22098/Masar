@@ -148,22 +148,23 @@ class MainTabBarController: UITabBarController {
             role: .companyOwner,
             companyName: "Masar Company",
             services: [
-                ServiceModel(name: "Home Cleaning", price: "20", description: "Deep cleaning"),
-                ServiceModel(name: "AC Repair", price: "35", description: "Split unit maintenance")
+                // 👇 التصليح هنا: الأسعار أرقام (20.0) وليست نصوص ("20")
+                ServiceModel(name: "Home Cleaning", price: 20.0, description: "Deep cleaning"),
+                ServiceModel(name: "AC Repair", price: 35.0, description: "Split unit maintenance")
             ],
             totalBookings: 45,
             completedBookings: 42,
             rating: 4.9,
             joinedDate: "2024-01-15"
         )
-          
+        
         let user = User(
             name: "Hamed",
             email: "hamed@masar.com",
             phone: "33333333",
             providerProfile: providerProfile
         )
-          
+        
         UserManager.shared.setCurrentUser(user)
     }
 }

@@ -106,16 +106,18 @@ class BookingsProviderTableViewController: UITableViewController {
     
     // MARK: - Data
     private func fetchData() {
+        // ✅ إصلاح البيانات: استخدام Date() و Double للأرقام
+        
         let b1 = BookingModel(
             id: "1",
             seekerName: "Sayed Husain",
             serviceName: "Website Design",
-            date: "25 Dec 2025",
+            date: Date(), // تاريخ اليوم
             status: .upcoming,
             providerName: "Provider",
             email: "sayed@example.com",
             phoneNumber: "33991122",
-            price: "BHD 50.000",
+            price: 50.0, // رقم Double
             instructions: "I need a portfolio website with 3 pages.",
             descriptionText: "Portfolio website (Home, About, Projects)."
         )
@@ -124,12 +126,12 @@ class BookingsProviderTableViewController: UITableViewController {
             id: "2",
             seekerName: "Kashmala",
             serviceName: "Math Tutoring",
-            date: "26 Dec 2025",
+            date: Date().addingTimeInterval(86400), // غداً
             status: .upcoming,
             providerName: "Provider",
             email: "kashmala@example.com",
             phoneNumber: "33445566",
-            price: "BHD 15.000",
+            price: 15.0,
             instructions: "Focus on Calculus chapter 4 please.",
             descriptionText: "1 hour tutoring session covering Calculus Ch.4."
         )
@@ -138,12 +140,12 @@ class BookingsProviderTableViewController: UITableViewController {
             id: "3",
             seekerName: "Ahmed Ali",
             serviceName: "AC Repair",
-            date: "20 Dec 2025",
+            date: Date().addingTimeInterval(-86400), // الأمس
             status: .completed,
             providerName: "Provider",
             email: "ahmed@example.com",
             phoneNumber: "33123123",
-            price: "BHD 25.000",
+            price: 25.0,
             instructions: "AC is leaking water indoors.",
             descriptionText: "Fix AC leakage and test cooling performance."
         )
@@ -152,12 +154,12 @@ class BookingsProviderTableViewController: UITableViewController {
             id: "4",
             seekerName: "Sara Smith",
             serviceName: "Home Cleaning",
-            date: "18 Dec 2025",
+            date: Date().addingTimeInterval(-172800), // قبل يومين
             status: .canceled,
             providerName: "Provider",
             email: "sara@example.com",
             phoneNumber: "36667777",
-            price: "BHD 12.000",
+            price: 12.0,
             instructions: "Please bring your own cleaning supplies.",
             descriptionText: "Apartment cleaning: living room + kitchen + bathroom."
         )
@@ -166,12 +168,12 @@ class BookingsProviderTableViewController: UITableViewController {
             id: "5",
             seekerName: "Mohamed Radhi",
             serviceName: "App Development",
-            date: "28 Dec 2025",
+            date: Date().addingTimeInterval(172800), // بعد يومين
             status: .upcoming,
             providerName: "Provider",
             email: "mohamed@example.com",
             phoneNumber: "39998888",
-            price: "BHD 120.000",
+            price: 120.0,
             instructions: "Need to fix bugs in the login screen.",
             descriptionText: "Fix login issues + improve validation and error handling."
         )
@@ -395,15 +397,20 @@ class BookingProviderCell: UITableViewCell {
     }
     
     func configure(with booking: BookingModel, brandColor: UIColor) {
-        // Avatar (أول حرفين من الاسم)
+        // Avatar
         let initials = booking.seekerName.split(separator: " ").prefix(2).map { String($0.prefix(1)) }.joined()
         avatarLabel.text = initials.uppercased()
         
         // Labels
         seekerNameLabel.text = booking.seekerName
         serviceNameLabel.text = booking.serviceName
-        dateLabel.text = "📅 \(booking.date)"
-        priceLabel.text = booking.price
+        
+        // ✅ استخدام dateString بدلاً من التاريخ المباشر
+        dateLabel.text = "📅 \(booking.dateString)"
+        
+        // ✅ استخدام priceString بدلاً من السعر المباشر
+        priceLabel.text = booking.priceString
+        
         priceLabel.textColor = brandColor
         
         // Status badge

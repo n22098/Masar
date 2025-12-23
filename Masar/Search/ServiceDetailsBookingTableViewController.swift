@@ -13,7 +13,8 @@ class ServiceDetailsBookingTableViewController: UITableViewController {
     var receivedServiceName: String?
     var receivedServicePrice: String?
     var receivedLocation: String?
-    
+    var providerData: ServiceProviderModel? // نحتاج بيانات الموفر لحفظ اسمه
+    var receivedServiceDetails: String?
     let brandColor = UIColor(red: 0.35, green: 0.34, blue: 0.91, alpha: 1.0)
 
     // MARK: - Lifecycle
@@ -26,17 +27,14 @@ class ServiceDetailsBookingTableViewController: UITableViewController {
 
     // MARK: - Setup UI
     func setupUI() {
-        // تصميم الزر
         confirmButton?.layer.cornerRadius = 12
         confirmButton?.backgroundColor = brandColor
         confirmButton?.setTitleColor(.white, for: .normal)
         confirmButton?.titleLabel?.font = UIFont.systemFont(ofSize: 16, weight: .semibold)
         
-        // إعدادات الجدول
         tableView.backgroundColor = UIColor(red: 248/255, green: 248/255, blue: 252/255, alpha: 1.0)
         tableView.separatorStyle = .none
         
-        // Date picker styling
         datePicker?.preferredDatePickerStyle = .compact
         datePicker?.minimumDate = Date()
         datePicker?.tintColor = brandColor
@@ -44,8 +42,6 @@ class ServiceDetailsBookingTableViewController: UITableViewController {
     
     func setupNavigationBar() {
         title = "Booking"
-        
-        // إجبار العنوان أن يكون صغيراً
         navigationItem.largeTitleDisplayMode = .never
         
         let appearance = UINavigationBarAppearance()
@@ -80,7 +76,6 @@ class ServiceDetailsBookingTableViewController: UITableViewController {
 
     // MARK: - Book Action
     @IBAction func bookButtonPressed(_ sender: Any) {
-        // Add haptic feedback
         let generator = UIImpactFeedbackGenerator(style: .medium)
         generator.impactOccurred()
         
@@ -93,11 +88,59 @@ class ServiceDetailsBookingTableViewController: UITableViewController {
         confirmAlert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
 
         confirmAlert.addAction(UIAlertAction(title: "Confirm", style: .default) { [weak self] _ in
-            self?.showSuccessAlert()
+            self?.saveBookingToFirebase() // 🔥 استدعاء دالة الحفظ
         })
 
         present(confirmAlert, animated: true)
     }
+    
+    // MARK: - Firebase Logic 📡
+        func saveBookingToFirebase() {
+            // 1. تحضير البيانات الأساسية
+            let serviceName = receivedServiceName ?? "Unknown Service"
+            
+            // تنظيف السعر وتحويله لرقم
+            let priceString = receivedServicePrice?.replacingOccurrences(of: "BHD ", with: "") ?? "0"
+            let price = Double(priceString) ?? 0.0
+            
+            let date = datePicker.date
+            let providerName = providerData?.name ?? "Unknown Provider"
+            
+            // 2. جلب بيانات المستخدم الحالي (Seeker)
+            // إذا لم يسجل الدخول، نستخدم بيانات افتراضية
+            let currentUser = UserManager.shared.currentUser
+            let seekerName = currentUser?.name ?? "Guest User"
+            let seekerEmail = currentUser?.email ?? "no-email@example.com"
+            let seekerPhone = currentUser?.phone ?? "No Phone"
+            
+            // 3. إنشاء كائن الحجز (بالشكل الجديد المطابق للموديل)
+            let newBooking = BookingModel(
+                seekerName: seekerName,
+                serviceName: serviceName,
+                date: date,
+                status: .upcoming,        // ✅ تصحيح: استخدام Enum (.upcoming) بدلاً من النص
+                providerName: providerName,
+                email: seekerEmail,       // ✅ إضافة الإيميل
+                phoneNumber: seekerPhone, // ✅ إضافة الهاتف
+                price: price,
+                instructions: "No special instructions", // ✅ خانة التعليمات (يمكنك ربطها بحقل نصي لاحقاً)
+                descriptionText: "Booking made via App"  // ✅ خانة الوصف
+            )
+            // ❌ ملاحظة: تم حذف 'location' لأنك حذفته من الموديل
+            
+            // 4. إرسال للفايربيس
+            ServiceManager.shared.saveBooking(booking: newBooking) { [weak self] success in
+                DispatchQueue.main.async {
+                    if success {
+                        self?.showSuccessAlert()
+                    } else {
+                        let errorAlert = UIAlertController(title: "Error", message: "Failed to save booking. Please try again.", preferredStyle: .alert)
+                        errorAlert.addAction(UIAlertAction(title: "OK", style: .default))
+                        self?.present(errorAlert, animated: true)
+                    }
+                }
+            }
+        }
 
     // MARK: - Success Logic
     func showSuccessAlert() {
@@ -113,11 +156,9 @@ class ServiceDetailsBookingTableViewController: UITableViewController {
         )
 
         successAlert.addAction(UIAlertAction(title: "Done", style: .default) { [weak self] _ in
-            // Add success haptic
             let generator = UINotificationFeedbackGenerator()
             generator.notificationOccurred(.success)
             
-            // Navigate back to root
             self?.navigationController?.popToRootViewController(animated: true)
         })
 

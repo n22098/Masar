@@ -14,24 +14,26 @@ class BookingHistoryCell: UITableViewCell {
     }
 
     func configure(with booking: BookingModel) {
-        // Safety Check
         guard serviceNameLabel != nil else { return }
 
         serviceNameLabel.text = booking.serviceName
         providerNameLabel.text = booking.providerName
-        dateLabel.text = booking.date
-        priceLabel.text = booking.price
+        
+        // ✅ التصحيح: استخدمنا المترجم .dateString
+        dateLabel.text = booking.dateString
+        
+        // ✅ التصحيح: استخدمنا المترجم .priceString
+        priceLabel.text = booking.priceString
 
-        // ✅ FIXED: Switch must be exhaustive
+        // ضبط الحالة
+        statusLabel.text = booking.status.rawValue
+        
         switch booking.status {
         case .upcoming:
-            statusLabel.text = "Upcoming"
             statusLabel.textColor = .systemOrange
         case .completed:
-            statusLabel.text = "Completed"
             statusLabel.textColor = .systemGreen
-        case .canceled, .canceled: // Handles both spellings
-            statusLabel.text = "Canceled"
+        case .canceled:
             statusLabel.textColor = .systemRed
         }
     }

@@ -6,7 +6,8 @@ class SearchTableViewController: UITableViewController {
     private let searchController = UISearchController(searchResultsController: nil)
     
     private lazy var categorySegment: UISegmentedControl = {
-        let sc = UISegmentedControl(items: ["IT Solutions", "Teaching", "Digital Services"])
+        // قمنا بإضافة "All" لرؤية كل شيء للتجربة
+        let sc = UISegmentedControl(items: ["All", "IT Solutions", "Teaching", "Digital Services"])
         sc.selectedSegmentIndex = 0
         
         // Modern styling
@@ -27,20 +28,8 @@ class SearchTableViewController: UITableViewController {
         return sc
     }()
     
-    var allProviders: [ServiceProviderModel] = [
-        // IT Solutions
-        ServiceProviderModel(id: "1", name: "Sayed Husain", role: "Software Engineer", imageName: "it1", rating: 4.9, skills: ["HTML", "CSS"], availability: "Sat-Thu", location: "Online", phone: "36666222", services: [], aboutMe: "Dev", portfolio: [], certifications: [], reviews: [], experience: "5 Yrs", completedProjects: 20),
-        ServiceProviderModel(id: "2", name: "Joe Dean", role: "Network Technician", imageName: "it2", rating: 4.5, skills: ["Net"], availability: "Sun-Thu", location: "Manama", phone: "33333333", services: [], aboutMe: "Net", portfolio: [], certifications: [], reviews: [], experience: "3 Yrs", completedProjects: 15),
-        ServiceProviderModel(id: "3", name: "Amin Altajer", role: "Computer Repair", imageName: "it3", rating: 4.8, skills: ["Hardware"], availability: "Daily", location: "Riffa", phone: "39999999", services: [], aboutMe: "Repair", portfolio: [], certifications: [], reviews: [], experience: "7 Yrs", completedProjects: 50),
-        
-        // Teaching
-        ServiceProviderModel(id: "4", name: "Kashmala Saleem", role: "Math Teacher", imageName: "t1", rating: 5.0, skills: ["Math"], availability: "Weekends", location: "Online", phone: "34444444", services: [], aboutMe: "Teacher", portfolio: [], certifications: [], reviews: [], experience: "4 Yrs", completedProjects: 100),
-        ServiceProviderModel(id: "9", name: "Fatima Ahmed", role: "English Teacher", imageName: "t2", rating: 4.8, skills: ["English"], availability: "Daily", location: "Riffa", phone: "36111111", services: [], aboutMe: "Eng", portfolio: [], certifications: [], reviews: [], experience: "5 Yrs", completedProjects: 80),
-        
-        // Digital Services
-        ServiceProviderModel(id: "5", name: "Osama Hasan", role: "UI/UX Designer", imageName: "d1", rating: 4.6, skills: ["Figma"], availability: "Flexible", location: "Online", phone: "37777777", services: [], aboutMe: "Design", portfolio: [], certifications: [], reviews: [], experience: "3 Yrs", completedProjects: 25),
-        ServiceProviderModel(id: "6", name: "Vishal Santhosh", role: "Content Creator", imageName: "d3", rating: 4.8, skills: ["Video"], availability: "Mon-Sat", location: "Muharraq", phone: "38888888", services: [], aboutMe: "Creator", portfolio: [], certifications: [], reviews: [], experience: "4 Yrs", completedProjects: 60)
-    ]
+    // هذه المصفوفة ستمتلئ من الفايربيس، لا حاجة للبيانات الوهمية الآن
+    var allProviders: [ServiceProviderModel] = []
     
     private var filteredProviders: [ServiceProviderModel] = []
     private var isAscending = true
@@ -52,22 +41,78 @@ class SearchTableViewController: UITableViewController {
         setupSearchController()
         setupTableView()
         
-        // Show IT Solutions providers by default
-        filterProvidersByCategory()
+        // 🔥 تشغيل دالة جلب البيانات من الفايربيس
+        fetchProvidersFromFirebase()
+    }
+    
+    // MARK: - Firebase Fetching 📡
+    private func fetchProvidersFromFirebase() {
+        print("⏳ Fetching data from Firebase...")
+        
+        // استدعاء المانجر الذي أنشأناه سابقاً
+        ServiceManager.shared.fetchAllServices { [weak self] services in
+            guard let self = self else { return }
+            
+            // 1. تجميع الخدمات حسب اسم الموفر (Grouping)
+            // يعني: إذا "Hamed Studio" عنده 3 خدمات، نجمعهم في مكان واحد
+            var providersMap: [String: [ServiceModel]] = [:]
+            
+            for service in services {
+                // نستخدم providerName، وإذا كان nil نعتبره "Unknown"
+                let pName = service.providerName ?? "Unknown Provider"
+                
+                if providersMap[pName] == nil {
+                    providersMap[pName] = []
+                }
+                providersMap[pName]?.append(service)
+            }
+            
+            // 2. تحويل المجموعات إلى ServiceProviderModel
+            var newProviders: [ServiceProviderModel] = []
+            
+            for (providerName, providerServices) in providersMap {
+                // نأخذ التصنيف (Category) من أول خدمة عشان نحدد دور الشخص
+                let role = providerServices.first?.category ?? "Service Provider"
+                
+                let provider = ServiceProviderModel(
+                    id: UUID().uuidString,
+                    name: providerName,
+                    role: role,
+                    imageName: "person.circle.fill", // صورة افتراضية حالياً
+                    rating: 5.0, // تقييم افتراضي
+                    skills: providerServices.map { $0.name }, // المهارات هي أسماء الخدمات
+                    availability: "Available",
+                    location: "Online",
+                    phone: "N/A",
+                    services: providerServices, // 🔥 نضع الخدمات الحقيقية هنا
+                    aboutMe: "Provider from Firebase",
+                    portfolio: [],
+                    certifications: [],
+                    reviews: [],
+                    experience: "N/A",
+                    completedProjects: 0
+                )
+                newProviders.append(provider)
+            }
+            
+            // 3. تحديث الواجهة
+            DispatchQueue.main.async {
+                self.allProviders = newProviders
+                self.filterProvidersByCategory() // إعادة الفلترة والعرض
+                print("✅ Successfully loaded \(newProviders.count) providers from Firebase!")
+            }
+        }
     }
     
     // MARK: - Setup
     private func setupNavigationBar() {
-        // ✅ تفعيل العنوان الكبير
         navigationController?.navigationBar.prefersLargeTitles = true
         navigationItem.largeTitleDisplayMode = .always
         title = "Search"
         
-        // Purple navigation bar
         let appearance = UINavigationBarAppearance()
         appearance.configureWithOpaqueBackground()
         appearance.backgroundColor = UIColor(red: 98/255, green: 84/255, blue: 243/255, alpha: 1)
-        
         appearance.titleTextAttributes = [.foregroundColor: UIColor.white]
         appearance.largeTitleTextAttributes = [
             .foregroundColor: UIColor.white,
@@ -79,9 +124,6 @@ class SearchTableViewController: UITableViewController {
         navigationController?.navigationBar.compactAppearance = appearance
         navigationController?.navigationBar.tintColor = .white
         
-        // ❌ تم حذف زر Logout من هنا
-        
-        // Sort button (RIGHT)
         let sortButton = UIBarButtonItem(
             image: UIImage(systemName: "arrow.up.arrow.down"),
             style: .plain,
@@ -108,45 +150,33 @@ class SearchTableViewController: UITableViewController {
         tableView.separatorStyle = .none
         tableView.backgroundColor = UIColor(red: 248/255, green: 248/255, blue: 252/255, alpha: 1)
         tableView.contentInset = UIEdgeInsets(top: 10, left: 0, bottom: 20, right: 0)
-        
-        // Register custom cell
         tableView.register(ProviderTableCell.self, forCellReuseIdentifier: "ProviderCell")
-        
-        // Add segment control as header
         tableView.tableHeaderView = createHeaderView()
     }
     
     private func createHeaderView() -> UIView {
         let headerView = UIView(frame: CGRect(x: 0, y: 0, width: view.frame.width, height: 60))
         headerView.backgroundColor = UIColor(red: 248/255, green: 248/255, blue: 252/255, alpha: 1)
-        
         categorySegment.frame = CGRect(x: 16, y: 8, width: view.frame.width - 32, height: 40)
         headerView.addSubview(categorySegment)
-        
         return headerView
     }
     
     // MARK: - Actions
-    
     @objc private func sortTapped() {
         let alert = UIAlertController(title: nil, message: "Sort by Name:", preferredStyle: .actionSheet)
-        
         alert.addAction(UIAlertAction(title: "A-Z", style: .default) { [weak self] _ in
             self?.isAscending = true
             self?.applySorting()
         })
-        
         alert.addAction(UIAlertAction(title: "Z-A", style: .default) { [weak self] _ in
             self?.isAscending = false
             self?.applySorting()
         })
-        
         alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
-        
         if let popover = alert.popoverPresentationController {
             popover.barButtonItem = navigationItem.rightBarButtonItem
         }
-        
         present(alert, animated: true)
     }
     
@@ -170,21 +200,22 @@ class SearchTableViewController: UITableViewController {
         var categoryProviders: [ServiceProviderModel] = []
         
         switch selectedCategory {
-        case 0: // IT Solutions
+        case 0: // All
+            categoryProviders = allProviders
+        case 1: // IT Solutions
             categoryProviders = allProviders.filter {
-                $0.role.contains("Engineer") || $0.role.contains("Technician") || $0.role.contains("Repair") || $0.role.contains("Administrator")
+                $0.role.contains("IT") || $0.role.contains("Engineer") || $0.role.contains("Technician")
             }
-        case 1: // Teaching
-            categoryProviders = allProviders.filter { $0.role.contains("Teacher") }
-        case 2: // Digital Services
+        case 2: // Teaching
+            categoryProviders = allProviders.filter { $0.role.contains("Teacher") || $0.role.contains("Tutor") }
+        case 3: // Digital Services
             categoryProviders = allProviders.filter {
-                $0.role.contains("Designer") || $0.role.contains("Creator") || $0.role.contains("Editor") || $0.role.contains("Manager")
+                $0.role.contains("Design") || $0.role.contains("Creative") || $0.role.contains("Media")
             }
         default:
             categoryProviders = allProviders
         }
         
-        // Apply search filter if active
         if let searchText = searchController.searchBar.text, !searchText.isEmpty {
             filteredProviders = categoryProviders.filter { provider in
                 provider.name.lowercased().contains(searchText.lowercased()) ||
@@ -197,12 +228,7 @@ class SearchTableViewController: UITableViewController {
         applySorting()
     }
     
-    private func filterContent(for searchText: String) {
-        // First re-apply category logic to get base list
-        filterProvidersByCategory()
-    }
-    
-    // MARK: - Table view data source
+    // MARK: - Table View Data Source
     override func numberOfSections(in tableView: UITableView) -> Int { 1 }
     
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
@@ -239,12 +265,11 @@ class SearchTableViewController: UITableViewController {
 
 extension SearchTableViewController: UISearchResultsUpdating {
     func updateSearchResults(for searchController: UISearchController) {
-        guard let _ = searchController.searchBar.text else { return }
-        filterProvidersByCategory() // Call main filter logic
+        filterProvidersByCategory()
     }
 }
 
-// MARK: - Provider Cell (Included to avoid missing class error)
+// MARK: - Provider Cell
 class ProviderTableCell: UITableViewCell {
     private let containerView: UIView = {
         let view = UIView()

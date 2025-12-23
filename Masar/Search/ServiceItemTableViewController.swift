@@ -12,17 +12,13 @@ class ServiceItemTableViewController: UITableViewController {
         return [
             ServiceModel(
                 name: "Website Starter",
-                price: "BHD 85.000",
-                description: "Includes responsive design, basic contact form, and fast delivery.",
-                deliveryTime: "3-5 days",
-                features: ["Responsive Design", "Contact Form", "SEO Ready"]
+                price: 85.0,
+                description: "Includes responsive design, basic contact form, and fast delivery."
             ),
             ServiceModel(
                 name: "Business Website",
-                price: "BHD 150.000",
-                description: "Includes custom layout, database support, admin panel, and SEO.",
-                deliveryTime: "7-10 days",
-                features: ["Custom Design", "Database", "Admin Panel", "SEO"]
+                price: 150.0,
+                description: "Includes custom layout, database support, admin panel, and SEO."
             )
         ]
     }
@@ -189,78 +185,56 @@ class ServiceItemTableViewController: UITableViewController {
         headerView.addSubview(nameLabel)
         headerView.addSubview(roleLabel)
         headerView.addSubview(skillsLabel)
-        
-        // Add container and stack view
         headerView.addSubview(ratingContainerView)
         ratingContainerView.addSubview(ratingStackView)
-        
         headerView.addSubview(infoStackView)
         headerView.addSubview(viewPortfolioButton)
         headerView.addSubview(chatButton)
         
-        // Create info items
-        let availabilityView = createInfoItem(
-            icon: "clock.fill",
-            text: providerData?.availability ?? "Sat-Thu"
-        )
-        let locationView = createInfoItem(
-            icon: "mappin.circle.fill",
-            text: providerData?.location ?? "Online"
-        )
-        let phoneView = createInfoItem(
-            icon: "phone.fill",
-            text: providerData?.phone ?? "36666222"
-        )
+        let availabilityView = createInfoItem(icon: "clock.fill", text: providerData?.availability ?? "Sat-Thu")
+        let locationView = createInfoItem(icon: "mappin.circle.fill", text: providerData?.location ?? "Online")
+        let phoneView = createInfoItem(icon: "phone.fill", text: providerData?.phone ?? "36666222")
         
         infoStackView.addArrangedSubview(availabilityView)
         infoStackView.addArrangedSubview(locationView)
         infoStackView.addArrangedSubview(phoneView)
         
         NSLayoutConstraint.activate([
-            // Profile Image
             profileImageView.topAnchor.constraint(equalTo: headerView.topAnchor, constant: 16),
             profileImageView.leadingAnchor.constraint(equalTo: headerView.leadingAnchor, constant: 20),
             profileImageView.widthAnchor.constraint(equalToConstant: 90),
             profileImageView.heightAnchor.constraint(equalToConstant: 90),
             
-            // Name Label
             nameLabel.topAnchor.constraint(equalTo: headerView.topAnchor, constant: 20),
             nameLabel.leadingAnchor.constraint(equalTo: profileImageView.trailingAnchor, constant: 16),
             nameLabel.trailingAnchor.constraint(equalTo: ratingContainerView.leadingAnchor, constant: -8),
             
-            // Role Label
             roleLabel.topAnchor.constraint(equalTo: nameLabel.bottomAnchor, constant: 4),
             roleLabel.leadingAnchor.constraint(equalTo: nameLabel.leadingAnchor),
             roleLabel.trailingAnchor.constraint(equalTo: nameLabel.trailingAnchor),
             
-            // Skills Label
             skillsLabel.topAnchor.constraint(equalTo: roleLabel.bottomAnchor, constant: 6),
             skillsLabel.leadingAnchor.constraint(equalTo: nameLabel.leadingAnchor),
             skillsLabel.trailingAnchor.constraint(equalTo: nameLabel.trailingAnchor),
             
-            // Rating Container
             ratingContainerView.topAnchor.constraint(equalTo: headerView.topAnchor, constant: 20),
             ratingContainerView.trailingAnchor.constraint(equalTo: headerView.trailingAnchor, constant: -20),
             
-            // Rating Stack View
             ratingStackView.topAnchor.constraint(equalTo: ratingContainerView.topAnchor, constant: 8),
             ratingStackView.leadingAnchor.constraint(equalTo: ratingContainerView.leadingAnchor, constant: 12),
             ratingStackView.trailingAnchor.constraint(equalTo: ratingContainerView.trailingAnchor, constant: -12),
             ratingStackView.bottomAnchor.constraint(equalTo: ratingContainerView.bottomAnchor, constant: -8),
             
-            // Info Stack
             infoStackView.topAnchor.constraint(equalTo: profileImageView.bottomAnchor, constant: 20),
             infoStackView.leadingAnchor.constraint(equalTo: headerView.leadingAnchor, constant: 20),
             infoStackView.trailingAnchor.constraint(equalTo: headerView.trailingAnchor, constant: -20),
             infoStackView.heightAnchor.constraint(equalToConstant: 60),
             
-            // View Portfolio Button
             viewPortfolioButton.topAnchor.constraint(equalTo: infoStackView.bottomAnchor, constant: 16),
             viewPortfolioButton.leadingAnchor.constraint(equalTo: headerView.leadingAnchor, constant: 20),
             viewPortfolioButton.widthAnchor.constraint(equalTo: headerView.widthAnchor, multiplier: 0.5, constant: -26),
             viewPortfolioButton.heightAnchor.constraint(equalToConstant: 50),
             
-            // Chat/Contact Button
             chatButton.topAnchor.constraint(equalTo: infoStackView.bottomAnchor, constant: 16),
             chatButton.trailingAnchor.constraint(equalTo: headerView.trailingAnchor, constant: -20),
             chatButton.widthAnchor.constraint(equalTo: headerView.widthAnchor, multiplier: 0.5, constant: -26),
@@ -343,9 +317,7 @@ class ServiceItemTableViewController: UITableViewController {
     @objc private func chatTapped() {
         let phone = providerData?.phone ?? "Not available"
         let alert = UIAlertController(title: "Contact Provider", message: "You can contact this provider at: \(phone)", preferredStyle: .alert)
-        alert.addAction(UIAlertAction(title: "Call", style: .default, handler: { _ in
-            print("Calling \(phone)")
-        }))
+        alert.addAction(UIAlertAction(title: "Call", style: .default, handler: { _ in print("Calling \(phone)") }))
         alert.addAction(UIAlertAction(title: "OK", style: .cancel))
         present(alert, animated: true)
     }
@@ -378,7 +350,14 @@ class ServiceItemTableViewController: UITableViewController {
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let service = services[indexPath.row]
         let cell = tableView.dequeueReusableCell(withIdentifier: "ModernBookingCell", for: indexPath) as! ModernBookingCell
-        cell.configure(title: service.name, price: service.price, description: service.description, icon: "briefcase.fill")
+        
+        cell.configure(
+            title: service.name,
+            price: service.price,
+            description: service.description,
+            icon: "briefcase.fill"
+        )
+        
         cell.onBookingTapped = { [weak self] in
             self?.handleBooking(for: service)
         }
@@ -398,17 +377,20 @@ class ServiceItemTableViewController: UITableViewController {
         if segue.identifier == "showDetails",
            let destVC = segue.destination as? ServiceInformationTableViewController,
            let service = sender as? ServiceModel {
+            
             destVC.receivedServiceName = service.name
-            destVC.receivedServicePrice = service.price
+            
+            // 🔥 الإصلاح هنا: تحويل السعر من رقم إلى نص مع العملة
+            destVC.receivedServicePrice = String(format: "BHD %.3f", service.price)
+            
             destVC.receivedServiceDetails = service.description
             destVC.providerData = self.providerData
         }
-        // NEW: Configure portfolio for read-only mode when navigating from service item
         else if segue.identifier == "showPortfolio",
-                  let destVC = segue.destination as? ProviderPortfolioTableViewController,
-                  let provider = sender as? ServiceProviderModel {
+                let destVC = segue.destination as? ProviderPortfolioTableViewController,
+                let provider = sender as? ServiceProviderModel {
             destVC.providerData = provider
-            destVC.isReadOnlyMode = true  // KEY LINE: Set to read-only
+            destVC.isReadOnlyMode = true
         }
     }
 }
@@ -533,9 +515,9 @@ class ModernBookingCell: UITableViewCell {
         onBookingTapped?()
     }
     
-    func configure(title: String, price: String, description: String, icon: String) {
+    func configure(title: String, price: Double, description: String, icon: String) {
         titleLabel.text = title
-        priceLabel.text = price
+        priceLabel.text = String(format: "BHD %.3f", price)
         descriptionLabel.text = description
         iconView.image = UIImage(systemName: icon)
     }

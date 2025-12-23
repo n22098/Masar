@@ -1,10 +1,3 @@
-//
-//  EditServiceTableViewController.swift
-//  Masar
-//
-//  Created by Moe Radhi  on 19/12/2025.
-//
-
 import UIKit
 
 class EditServiceTableViewController: UITableViewController {
@@ -13,6 +6,7 @@ class EditServiceTableViewController: UITableViewController {
     var serviceToEdit: ServiceModel?
     var onSaveComplete: ((ServiceModel) -> Void)?
     var selectedSubServices: [String] = []
+    
     // MARK: - Outlets
     @IBOutlet weak var serviceNameTextField: UITextField!
     @IBOutlet weak var priceTextField: UITextField!
@@ -24,239 +18,223 @@ class EditServiceTableViewController: UITableViewController {
     let brandColor = UIColor(red: 98/255, green: 84/255, blue: 243/255, alpha: 1.0)
     
     // MARK: - Lifecycle
-        override func viewDidLoad() {
-            super.viewDidLoad()
-            setupUI()
-            setupNavigationBar()
-            populateData()
-            setupTextViews()
-        }
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        setupUI()
+        setupNavigationBar()
+        populateData()
+        setupTextViews()
+    }
         
-        // MARK: - Navigation (الربط مع صفحة الاختيار)
-        override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-            
-            if segue.identifier == "showItemsSelection" {
+    // MARK: - Navigation
+    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
+        if segue.identifier == "showItemsSelection" {
+            if let destVC = segue.destination as? ServiceItemsSelectionTableViewController {
+                destVC.previouslySelectedItems = self.selectedSubServices
                 
-                if let destVC = segue.destination as? ServiceItemsSelectionTableViewController {
+                destVC.onSelectionComplete = { [weak self] selectedNames in
+                    guard let self = self else { return }
                     
-                    // 1. إرسال الاختيارات الحالية للصفحة الثانية
-                    destVC.previouslySelectedItems = self.selectedSubServices
+                    self.selectedSubServices = selectedNames
+                    let resultString = selectedNames.joined(separator: ", ")
                     
-                    // 2. استقبال البيانات الجديدة عند العودة
-                    destVC.onSelectionComplete = { [weak self] selectedNames in
-                        guard let self = self else { return }
-                        
-                        self.selectedSubServices = selectedNames
-                        let resultString = selectedNames.joined(separator: ", ")
-                        
-                        print("✅ Selected: \(resultString)")
-                        
-                        // تحديث الليبل
-                        if selectedNames.isEmpty {
-                            self.packageItemsLabel.text = "Select add-ons (Optional)"
-                            self.packageItemsLabel.textColor = .lightGray
-                        } else {
-                            self.packageItemsLabel.text = resultString
-                            self.packageItemsLabel.textColor = .black
-                        }
+                    if selectedNames.isEmpty {
+                        self.packageItemsLabel.text = "Select add-ons (Optional)"
+                        self.packageItemsLabel.textColor = .lightGray
+                    } else {
+                        self.packageItemsLabel.text = resultString
+                        self.packageItemsLabel.textColor = .black
                     }
                 }
             }
         }
+    }
         
-        // MARK: - Setup UI & Styling
-        func setupUI() {
-            tableView.backgroundColor = UIColor(red: 248/255, green: 248/255, blue: 252/255, alpha: 1.0)
-            tableView.keyboardDismissMode = .interactive
-            
-            styleTextField(serviceNameTextField, placeholder: "Service Name")
-            styleTextField(priceTextField, placeholder: "eg. 25")
-            priceTextField?.keyboardType = .decimalPad
-            
-            if let datePicker = expiryDatePicker {
-                datePicker.minimumDate = Date()
-                datePicker.datePickerMode = .date
-                if #available(iOS 13.4, *) {
-                    datePicker.preferredDatePickerStyle = .compact
-                }
+    // MARK: - Setup UI & Styling
+    func setupUI() {
+        tableView.backgroundColor = UIColor(red: 248/255, green: 248/255, blue: 252/255, alpha: 1.0)
+        tableView.keyboardDismissMode = .interactive
+        
+        styleTextField(serviceNameTextField, placeholder: "Service Name")
+        styleTextField(priceTextField, placeholder: "eg. 25")
+        priceTextField?.keyboardType = .decimalPad
+        
+        if let datePicker = expiryDatePicker {
+            datePicker.minimumDate = Date()
+            datePicker.datePickerMode = .date
+            if #available(iOS 13.4, *) {
+                datePicker.preferredDatePickerStyle = .compact
             }
         }
+    }
         
-        func setupNavigationBar() {
-            title = serviceToEdit == nil ? "Add Service" : "Edit Service"
-            
-            let appearance = UINavigationBarAppearance()
-            appearance.configureWithOpaqueBackground()
-            appearance.backgroundColor = brandColor
-            
-            appearance.titleTextAttributes = [
-                .foregroundColor: UIColor.white,
-                .font: UIFont.systemFont(ofSize: 17, weight: .semibold)
-            ]
-            appearance.largeTitleTextAttributes = [
-                .foregroundColor: UIColor.white,
-                .font: UIFont.boldSystemFont(ofSize: 34)
-            ]
-            
-            navigationController?.navigationBar.standardAppearance = appearance
-            navigationController?.navigationBar.scrollEdgeAppearance = appearance
-            navigationController?.navigationBar.compactAppearance = appearance
-            navigationController?.navigationBar.tintColor = .white
-            
-            navigationItem.leftBarButtonItem = UIBarButtonItem(title: "Back", style: .plain, target: self, action: #selector(backTapped))
-            navigationItem.rightBarButtonItem = UIBarButtonItem(title: "Save", style: .done, target: self, action: #selector(saveTapped))
+    func setupNavigationBar() {
+        title = serviceToEdit == nil ? "Add Service" : "Edit Service"
+        
+        let appearance = UINavigationBarAppearance()
+        appearance.configureWithOpaqueBackground()
+        appearance.backgroundColor = brandColor
+        
+        appearance.titleTextAttributes = [
+            .foregroundColor: UIColor.white,
+            .font: UIFont.systemFont(ofSize: 17, weight: .semibold)
+        ]
+        appearance.largeTitleTextAttributes = [
+            .foregroundColor: UIColor.white,
+            .font: UIFont.boldSystemFont(ofSize: 34)
+        ]
+        
+        navigationController?.navigationBar.standardAppearance = appearance
+        navigationController?.navigationBar.scrollEdgeAppearance = appearance
+        navigationController?.navigationBar.compactAppearance = appearance
+        navigationController?.navigationBar.tintColor = .white
+        
+        navigationItem.leftBarButtonItem = UIBarButtonItem(title: "Back", style: .plain, target: self, action: #selector(backTapped))
+        navigationItem.rightBarButtonItem = UIBarButtonItem(title: "Save", style: .done, target: self, action: #selector(saveTapped))
+    }
+        
+    func setupTextViews() {
+        let borderColor = UIColor.lightGray.withAlphaComponent(0.3).cgColor
+        
+        if let descView = descriptionTextView {
+            descView.layer.borderColor = borderColor
+            descView.layer.borderWidth = 1
+            descView.layer.cornerRadius = 8
+            descView.textContainerInset = UIEdgeInsets(top: 8, left: 4, bottom: 8, right: 4)
+            styleTextView(descView)
         }
         
-        func setupTextViews() {
-            let borderColor = UIColor.lightGray.withAlphaComponent(0.3).cgColor
-            
-            if let descView = descriptionTextView {
-                descView.layer.borderColor = borderColor
-                descView.layer.borderWidth = 1
-                descView.layer.cornerRadius = 8
-                descView.textContainerInset = UIEdgeInsets(top: 8, left: 4, bottom: 8, right: 4)
-                styleTextView(descView)
-            }
-            
-            if let instView = instructionsTextView {
-                instView.layer.borderColor = borderColor
-                instView.layer.borderWidth = 1
-                instView.layer.cornerRadius = 8
-                instView.textContainerInset = UIEdgeInsets(top: 8, left: 4, bottom: 8, right: 4)
-                styleTextView(instView)
-            }
+        if let instView = instructionsTextView {
+            instView.layer.borderColor = borderColor
+            instView.layer.borderWidth = 1
+            instView.layer.cornerRadius = 8
+            instView.textContainerInset = UIEdgeInsets(top: 8, left: 4, bottom: 8, right: 4)
+            styleTextView(instView)
+        }
+    }
+        
+    func styleTextField(_ textField: UITextField?, placeholder: String) {
+        guard let tf = textField else { return }
+        tf.placeholder = placeholder
+        tf.borderStyle = .roundedRect
+        tf.backgroundColor = .white
+        tf.font = UIFont.systemFont(ofSize: 16)
+    }
+        
+    func styleTextView(_ textView: UITextView?) {
+        guard let tv = textView else { return }
+        tv.font = UIFont.systemFont(ofSize: 15)
+        tv.backgroundColor = .white
+        tv.textColor = .black
+    }
+        
+    // MARK: - Populate Data
+    func populateData() {
+        packageItemsLabel?.font = UIFont.systemFont(ofSize: 15, weight: .regular)
+        
+        guard let service = serviceToEdit else {
+            packageItemsLabel?.text = "Select add-ons (Optional)"
+            packageItemsLabel?.textColor = .lightGray
+            selectedSubServices = []
+            return
         }
         
-        func styleTextField(_ textField: UITextField?, placeholder: String) {
-            guard let tf = textField else { return }
-            tf.placeholder = placeholder
-            tf.borderStyle = .roundedRect
-            tf.backgroundColor = .white
-            tf.font = UIFont.systemFont(ofSize: 16)
-        }
+        selectedSubServices = service.addOns ?? []
+        serviceNameTextField?.text = service.name
         
-        func styleTextView(_ textView: UITextView?) {
-            guard let tv = textView else { return }
-            tv.font = UIFont.systemFont(ofSize: 15)
-            tv.backgroundColor = .white
-            tv.textColor = .black
-        }
+        // عرض السعر كرقم بدون BHD
+        priceTextField?.text = String(format: "%.0f", service.price)
         
-        // MARK: - Populate Data
-        func populateData() {
-            // إعداد الخط ليكون عادياً وليس غامقاً
-            packageItemsLabel?.font = UIFont.systemFont(ofSize: 15, weight: .regular)
-            
-            guard let service = serviceToEdit else {
-                // حالة إضافة خدمة جديدة
-                packageItemsLabel?.text = "Select add-ons (Optional)"
-                packageItemsLabel?.textColor = .lightGray
-                selectedSubServices = []
-                return
-            }
-            
-            // ✅ استرجاع الإضافات المحفوظة من الموديل
-            selectedSubServices = service.addOns
-            
-            serviceNameTextField?.text = service.name
-            priceTextField?.text = service.price.replacingOccurrences(of: "BHD ", with: "")
-            descriptionTextView?.text = service.description
-            instructionsTextView?.text = "Instructions for this service"
-            
-            // تحديث النص بناءً على البيانات
-            if selectedSubServices.isEmpty {
-                packageItemsLabel?.text = "Select add-ons (Optional)"
-                packageItemsLabel?.textColor = .lightGray
-            } else {
-                packageItemsLabel?.text = selectedSubServices.joined(separator: ", ")
-                packageItemsLabel?.textColor = .black
-            }
-        }
+        descriptionTextView?.text = service.description
+        instructionsTextView?.text = "Instructions for this service"
         
-        // MARK: - Actions
-        @objc func backTapped() {
-            if hasUnsavedChanges() {
-                let alert = UIAlertController(title: "Unsaved Changes", message: "You have unsaved changes. Are you sure you want to go back?", preferredStyle: .alert)
-                alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
-                alert.addAction(UIAlertAction(title: "Discard", style: .destructive) { [weak self] _ in
-                    self?.navigationController?.popViewController(animated: true)
-                })
-                present(alert, animated: true)
-            } else {
-                navigationController?.popViewController(animated: true)
-            }
+        if selectedSubServices.isEmpty {
+            packageItemsLabel?.text = "Select add-ons (Optional)"
+            packageItemsLabel?.textColor = .lightGray
+        } else {
+            packageItemsLabel?.text = selectedSubServices.joined(separator: ", ")
+            packageItemsLabel?.textColor = .black
         }
+    }
         
-        @objc func saveTapped() {
-            guard let name = serviceNameTextField?.text, !name.isEmpty else {
-                showAlert(title: "Error", message: "Please enter a service name")
-                return
-            }
-            
-            guard let priceText = priceTextField?.text, !priceText.isEmpty else {
-                showAlert(title: "Error", message: "Please enter a price")
-                return
-            }
-            
-            guard let description = descriptionTextView?.text, !description.isEmpty else {
-                showAlert(title: "Error", message: "Please enter a description")
-                return
-            }
-            
-            let price = "BHD \(priceText)"
-            
-            if var service = serviceToEdit {
-                // تحديث
-                service.name = name
-                service.price = price
-                service.description = description
-                service.addOns = selectedSubServices // ✅ حفظ الإضافات
-                onSaveComplete?(service)
-            } else {
-                // جديد
-                var newService = ServiceModel(
-                    name: name,
-                    price: price,
-                    description: description,
-                    icon: "star.fill"
-                )
-                newService.addOns = selectedSubServices // ✅ حفظ الإضافات
-                onSaveComplete?(newService)
-            }
-            
+    // MARK: - Actions
+    @objc func backTapped() {
+        if hasUnsavedChanges() {
+            let alert = UIAlertController(title: "Unsaved Changes", message: "You have unsaved changes. Are you sure you want to go back?", preferredStyle: .alert)
+            alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
+            alert.addAction(UIAlertAction(title: "Discard", style: .destructive) { [weak self] _ in
+                self?.navigationController?.popViewController(animated: true)
+            })
+            present(alert, animated: true)
+        } else {
             navigationController?.popViewController(animated: true)
         }
+    }
         
-        func hasUnsavedChanges() -> Bool {
-            guard let service = serviceToEdit else {
-                let nameChanged = !(serviceNameTextField?.text?.isEmpty ?? true)
-                let priceChanged = !(priceTextField?.text?.isEmpty ?? true)
-                let descChanged = !(descriptionTextView?.text?.isEmpty ?? true)
-                return nameChanged || priceChanged || descChanged
-            }
-            
-            let nameChanged = serviceNameTextField?.text != service.name
-            let priceChanged = "BHD \(priceTextField?.text ?? "")" != service.price
-            let descChanged = descriptionTextView?.text != service.description
-            
-            return nameChanged || priceChanged || descChanged
+    @objc func saveTapped() {
+        guard let name = serviceNameTextField?.text, !name.isEmpty else {
+            showAlert(title: "Error", message: "Please enter a service name")
+            return
         }
         
-        func showAlert(title: String, message: String) {
-            let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
-            alert.addAction(UIAlertAction(title: "OK", style: .default))
-            present(alert, animated: true)
+        // التأكد من أن السعر رقم صحيح
+        guard let priceText = priceTextField?.text,
+              !priceText.isEmpty,
+              let priceValue = Double(priceText) else {
+            showAlert(title: "Error", message: "Please enter a valid numeric price")
+            return
         }
-    }
-
-    // MARK: - TextField Delegate
-    extension EditServiceTableViewController: UITextFieldDelegate {
-        func textFieldShouldReturn(_ textField: UITextField) -> Bool {
-            if textField == serviceNameTextField {
-                priceTextField?.becomeFirstResponder()
-            } else if textField == priceTextField {
-                descriptionTextView?.becomeFirstResponder()
-            }
-            return true
+        
+        guard let description = descriptionTextView?.text, !description.isEmpty else {
+            showAlert(title: "Error", message: "Please enter a description")
+            return
         }
+        
+        if var service = serviceToEdit {
+            // تحديث خدمة موجودة
+            service.name = name
+            service.price = priceValue
+            service.description = description
+            service.addOns = selectedSubServices
+            onSaveComplete?(service)
+        } else {
+            // إنشاء خدمة جديدة
+            let newService = ServiceModel(
+                name: name,
+                price: priceValue,
+                description: description,
+                icon: "briefcase.fill"
+            )
+            var mutableService = newService
+            mutableService.addOns = selectedSubServices
+            onSaveComplete?(mutableService)
+        }
+        
+        navigationController?.popViewController(animated: true)
     }
+    
+    // MARK: - Helper Methods
+    func hasUnsavedChanges() -> Bool {
+        guard let service = serviceToEdit else {
+            // خدمة جديدة - تحقق إذا في أي بيانات
+            let hasName = !(serviceNameTextField?.text?.isEmpty ?? true)
+            let hasPrice = !(priceTextField?.text?.isEmpty ?? true)
+            let hasDesc = !(descriptionTextView?.text?.isEmpty ?? true)
+            return hasName || hasPrice || hasDesc
+        }
+        
+        // خدمة موجودة - تحقق من التغييرات
+        let nameChanged = serviceNameTextField?.text != service.name
+        let priceChanged = priceTextField?.text != String(format: "%.0f", service.price)
+        let descChanged = descriptionTextView?.text != service.description
+        let addOnsChanged = selectedSubServices != (service.addOns ?? [])
+        
+        return nameChanged || priceChanged || descChanged || addOnsChanged
+    }
+    
+    func showAlert(title: String, message: String) {
+        let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: "OK", style: .default))
+        present(alert, animated: true)
+    }
+}
