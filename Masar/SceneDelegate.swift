@@ -80,10 +80,17 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
             providerHubNav,
             profileNav
         ]
+        //background color
+        let tabBackgroundColor = UIColor(
+            red: 249/255,
+            green: 249/255,
+            blue: 249/255,
+            alpha: 1
+        )
+
         let appearance = UITabBarAppearance()
         appearance.configureWithOpaqueBackground()
         appearance.backgroundColor = .white
-
         appearance.stackedLayoutAppearance.selected.iconColor =
             UIColor(red: 112/255, green: 79/255, blue: 217/255, alpha: 1)
         appearance.stackedLayoutAppearance.selected.titleTextAttributes = [
@@ -95,7 +102,7 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
             .foregroundColor: UIColor.systemGray
         ]
 
-        // Remove top shadow line
+        // Rrmoves top shadow line
         appearance.shadowColor = nil
 
         let tabBar = tabBarController.tabBar
@@ -104,6 +111,9 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         if #available(iOS 15.0, *) {
             tabBar.scrollEdgeAppearance = appearance
         }
+        tabBarController.tabBar.isTranslucent = false
+        window?.backgroundColor = tabBackgroundColor
+
 
 
         window?.rootViewController = tabBarController
