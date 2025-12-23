@@ -82,10 +82,10 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         ]
         //background color
         let tabBackgroundColor = UIColor(
-            red: 249/255,
-            green: 249/255,
-            blue: 249/255,
-            alpha: 1
+            red: 250/255,
+                green: 250/255,
+                blue: 250/255,
+                alpha: 1
         )
 
         let appearance = UITabBarAppearance()
