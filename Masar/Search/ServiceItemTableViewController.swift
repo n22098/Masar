@@ -69,23 +69,18 @@ class ServiceItemTableViewController: UITableViewController {
         return label
     }()
     
-    // MARK: - NEW RATING COMPONENTS
-    
-    // 1. The Background Container (Light Yellow)
+    // MARK: - RATING COMPONENTS
     private let ratingContainerView: UIView = {
         let view = UIView()
-        // Light Yellow Background matching your image
         view.backgroundColor = UIColor(red: 1.0, green: 0.98, blue: 0.90, alpha: 1.0)
         view.layer.cornerRadius = 12
         view.translatesAutoresizingMaskIntoConstraints = false
         return view
     }()
     
-    // 2. The Star Image
     private let starImageView: UIImageView = {
         let iv = UIImageView()
         iv.image = UIImage(systemName: "star.fill")
-        // Golden/Orange Color
         iv.tintColor = UIColor(red: 1.0, green: 0.70, blue: 0.0, alpha: 1.0)
         iv.contentMode = .scaleAspectFit
         iv.translatesAutoresizingMaskIntoConstraints = false
@@ -94,17 +89,14 @@ class ServiceItemTableViewController: UITableViewController {
         return iv
     }()
     
-    // 3. The Rating Label
     private let ratingLabel: UILabel = {
         let label = UILabel()
         label.font = UIFont.systemFont(ofSize: 15, weight: .bold)
-        // Golden/Orange Color
         label.textColor = UIColor(red: 1.0, green: 0.70, blue: 0.0, alpha: 1.0)
         label.text = "0.0"
         return label
     }()
     
-    // 4. The Stack View holding Star + Label
     private lazy var ratingStackView: UIStackView = {
         let stack = UIStackView(arrangedSubviews: [starImageView, ratingLabel])
         stack.axis = .horizontal
@@ -114,8 +106,6 @@ class ServiceItemTableViewController: UITableViewController {
         stack.translatesAutoresizingMaskIntoConstraints = false
         return stack
     }()
-    
-    // END NEW RATING COMPONENTS
     
     private lazy var infoStackView: UIStackView = {
         let stack = UIStackView()
@@ -140,7 +130,7 @@ class ServiceItemTableViewController: UITableViewController {
     
     private lazy var chatButton: UIButton = {
         let btn = UIButton(type: .system)
-        btn.setTitle("Chat", for: .normal)
+        btn.setTitle("Contact", for: .normal)
         btn.titleLabel?.font = UIFont.systemFont(ofSize: 16, weight: .semibold)
         btn.setTitleColor(UIColor(red: 0.35, green: 0.34, blue: 0.91, alpha: 1), for: .normal)
         btn.backgroundColor = .white
@@ -248,17 +238,15 @@ class ServiceItemTableViewController: UITableViewController {
             skillsLabel.leadingAnchor.constraint(equalTo: nameLabel.leadingAnchor),
             skillsLabel.trailingAnchor.constraint(equalTo: nameLabel.trailingAnchor),
             
-            // --- UPDATED RATING CONSTRAINTS ---
-            // 1. Container constraints
+            // Rating Container
             ratingContainerView.topAnchor.constraint(equalTo: headerView.topAnchor, constant: 20),
             ratingContainerView.trailingAnchor.constraint(equalTo: headerView.trailingAnchor, constant: -20),
             
-            // 2. Stack View constraints (padding inside container)
+            // Rating Stack View
             ratingStackView.topAnchor.constraint(equalTo: ratingContainerView.topAnchor, constant: 8),
             ratingStackView.leadingAnchor.constraint(equalTo: ratingContainerView.leadingAnchor, constant: 12),
             ratingStackView.trailingAnchor.constraint(equalTo: ratingContainerView.trailingAnchor, constant: -12),
             ratingStackView.bottomAnchor.constraint(equalTo: ratingContainerView.bottomAnchor, constant: -8),
-            // ----------------------------------
             
             // Info Stack
             infoStackView.topAnchor.constraint(equalTo: profileImageView.bottomAnchor, constant: 20),
@@ -272,7 +260,7 @@ class ServiceItemTableViewController: UITableViewController {
             viewPortfolioButton.widthAnchor.constraint(equalTo: headerView.widthAnchor, multiplier: 0.5, constant: -26),
             viewPortfolioButton.heightAnchor.constraint(equalToConstant: 50),
             
-            // Chat Button
+            // Chat/Contact Button
             chatButton.topAnchor.constraint(equalTo: infoStackView.bottomAnchor, constant: 16),
             chatButton.trailingAnchor.constraint(equalTo: headerView.trailingAnchor, constant: -20),
             chatButton.widthAnchor.constraint(equalTo: headerView.widthAnchor, multiplier: 0.5, constant: -26),
@@ -326,8 +314,6 @@ class ServiceItemTableViewController: UITableViewController {
         nameLabel.text = provider.name
         roleLabel.text = provider.role
         skillsLabel.text = provider.skills.joined(separator: " • ")
-        
-        // Update the new Rating Label
         ratingLabel.text = String(format: "%.1f", provider.rating)
         
         if let image = UIImage(named: provider.imageName) {
@@ -355,7 +341,13 @@ class ServiceItemTableViewController: UITableViewController {
     }
     
     @objc private func chatTapped() {
-        performSegue(withIdentifier: "showChat", sender: providerData)
+        let phone = providerData?.phone ?? "Not available"
+        let alert = UIAlertController(title: "Contact Provider", message: "You can contact this provider at: \(phone)", preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: "Call", style: .default, handler: { _ in
+            print("Calling \(phone)")
+        }))
+        alert.addAction(UIAlertAction(title: "OK", style: .cancel))
+        present(alert, animated: true)
     }
     
     private func shareProvider() {
@@ -413,11 +405,6 @@ class ServiceItemTableViewController: UITableViewController {
         } else if segue.identifier == "showPortfolio",
                   let destVC = segue.destination as? ProviderPortfolioTableViewController,
                   let provider = sender as? ServiceProviderModel {
-            destVC.providerData = provider
-        } else if segue.identifier == "showChat",
-                  let destVC = segue.destination as? MessageTableViewController,
-                  let provider = sender as? ServiceProviderModel {
-            // Pass provider data to chat screen
             destVC.providerData = provider
         }
     }
