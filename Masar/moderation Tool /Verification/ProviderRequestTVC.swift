@@ -1,5 +1,8 @@
 import UIKit
-import QuickLook // Required for document viewing
+import QuickLook
+
+// MARK: - Data Model
+
 
 class ProviderRequestTVC: UITableViewController {
 
@@ -12,45 +15,94 @@ class ProviderRequestTVC: UITableViewController {
     @IBOutlet weak var skillsLevelLabel: UILabel!
 
     // MARK: - Properties
-    // This array will hold the URLs for ID Card, Certificate, and Work Portfolio
     var documentURLs: [URL] = []
+    
+    // Sample Data Instance
+    var sampleRequest = ProviderRequest(
+        name: "Jane Doe",
+        email: "jane.doe@example.com",
+        phone: "+1 (555) 123-4567",
+        category: "Graphic Design",
+        skillLevel: "Expert / 5+ Years",
+        status: "Pending Review"
+    )
 
     override func viewDidLoad() {
         super.viewDidLoad()
+        setupUI()
         setupMockDocuments()
     }
 
+    private func setupUI() {
+        // Optional chaining (?) prevents crashes if Storyboard outlets are disconnected
+        providerNameLabel?.text = sampleRequest.name
+        emailLabel?.text = sampleRequest.email
+        phoneLabel?.text = sampleRequest.phone
+        categoryLabel?.text = sampleRequest.category
+        skillsLevelLabel?.text = sampleRequest.skillLevel
+        statusLabel?.text = sampleRequest.status
+        statusLabel?.textColor = .systemOrange
+    }
+
     private func setupMockDocuments() {
-        // Replace these with actual URLs from your data source/API
-        // For now, we use a placeholder to prevent crashes
-        if let placeholder = Bundle.main.url(forResource: "sample", withExtension: "pdf") {
-            documentURLs = [placeholder, placeholder, placeholder]
+        // Names of PDF files you should add to your Xcode project
+        let fileNames = ["id_sample", "certificate_sample", "portfolio_sample"]
+        
+        documentURLs = fileNames.compactMap { name in
+            Bundle.main.url(forResource: name, withExtension: "pdf")
+        }
+        
+        // Fallback: uses 'sample.pdf' if specific files aren't found
+        if documentURLs.isEmpty {
+            if let fallback = Bundle.main.url(forResource: "sample", withExtension: "pdf") {
+                documentURLs = [fallback, fallback, fallback]
+            }
         }
     }
 
-    // MARK: - IBActions
+    // MARK: - IBActions (Approve/Reject)
     @IBAction func approveTapped(_ sender: UIButton) {
-        statusLabel.text = "Approved"
-        statusLabel.textColor = .systemGreen
+        statusLabel?.text = "Approved"
+        statusLabel?.textColor = .systemGreen
     }
 
     @IBAction func rejectTapped(_ sender: UIButton) {
-        statusLabel.text = "Rejected"
-        statusLabel.textColor = .systemRed
+        statusLabel?.text = "Rejected"
+        statusLabel?.textColor = .systemRed
+    }
+
+    // MARK: - Document View Actions
+    // Connect these to the "View" buttons in your Storyboard
+    
+    @IBAction func viewIDCardTapped(_ sender: UIButton) {
+        showPreview(for: 0)
+    }
+
+    @IBAction func viewCertificateTapped(_ sender: UIButton) {
+        showPreview(for: 1)
+    }
+
+    @IBAction func viewPortfolioTapped(_ sender: UIButton) {
+        showPreview(for: 2)
     }
 
     // MARK: - Table View Delegate
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
 
-        // "Uploaded Documents" is the 4th section (index 3) in your storyboard
+        // Logic for tapping the row itself (Section 3)
         if indexPath.section == 3 {
-            showPreview(for: indexPath.row)
+            if indexPath.row < documentURLs.count {
+                showPreview(for: indexPath.row)
+            }
         }
     }
 
     private func showPreview(for index: Int) {
-        guard index < documentURLs.count else { return }
+        guard index < documentURLs.count else {
+            print("Error: Document at index \(index) not found.")
+            return
+        }
         
         let previewController = QLPreviewController()
         previewController.dataSource = self
@@ -60,7 +112,6 @@ class ProviderRequestTVC: UITableViewController {
 }
 
 // MARK: - QLPreviewControllerDataSource
-// ONLY keep these methods here. Remove any duplicates inside the main class.
 extension ProviderRequestTVC: QLPreviewControllerDataSource {
     
     func numberOfPreviewItems(in controller: QLPreviewController) -> Int {
