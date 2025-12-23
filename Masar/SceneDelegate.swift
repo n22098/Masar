@@ -4,37 +4,19 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 
     var window: UIWindow?
 
-    func scene(_ scene: UIScene,
-               willConnectTo session: UISceneSession,
-               options connectionOptions: UIScene.ConnectionOptions) {
+    func scene(
+        _ scene: UIScene,
+        willConnectTo session: UISceneSession,
+        options connectionOptions: UIScene.ConnectionOptions
+    ) {
+        guard let windowScene = scene as? UIWindowScene else { return }
 
-        guard let _ = (scene as? UIWindowScene) else { return }
+        let storyboard = UIStoryboard(name: "Main", bundle: nil)
+        let rootVC = storyboard.instantiateInitialViewController()
 
-        // 🔵 Global Navigation Bar Appearance
-        let appearance = UINavigationBarAppearance()
-        appearance.configureWithOpaqueBackground()
-
-        appearance.backgroundColor = UIColor(red: 98/255, green: 87/255, blue: 227/255, alpha: 1)
-
-        appearance.titleTextAttributes = [
-            .foregroundColor: UIColor.white
-        ]
-
-        appearance.largeTitleTextAttributes = [
-            .foregroundColor: UIColor.white
-        ]
-
-        UINavigationBar.appearance().standardAppearance = appearance
-        UINavigationBar.appearance().scrollEdgeAppearance = appearance
-        UINavigationBar.appearance().compactAppearance = appearance
-
-        UINavigationBar.appearance().tintColor = .white
-
+        let window = UIWindow(windowScene: windowScene)
+        window.rootViewController = rootVC
+        window.makeKeyAndVisible()
+        self.window = window
     }
-
-    func sceneDidDisconnect(_ scene: UIScene) { }
-    func sceneDidBecomeActive(_ scene: UIScene) { }
-    func sceneWillResignActive(_ scene: UIScene) { }
-    func sceneWillEnterForeground(_ scene: UIScene) { }
-    func sceneDidEnterBackground(_ scene: UIScene) { }
 }

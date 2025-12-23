@@ -1,46 +1,49 @@
 import Foundation
 
-struct User: Codable {
+struct User {
     let id: String
     var name: String
+    var username: String
     var email: String
     var phone: String
+    let avatarEmoji: String
     var profileImageName: String?
-    
-    // Every user is a seeker by default
     var isSeekerActive: Bool
-    
-    // Provider profile (optional - only if user is a provider)
     var providerProfile: ProviderProfile?
-    
-    // Computed property to check if user is a provider
+
     var isProvider: Bool {
-        return providerProfile != nil
+        providerProfile != nil
     }
-    
-    init(id: String = UUID().uuidString,
-         name: String,
-         email: String,
-         phone: String,
-         profileImageName: String? = nil,
-         isSeekerActive: Bool = true,
-         providerProfile: ProviderProfile? = nil) {
-        
+
+    init(
+        id: String = UUID().uuidString,
+        name: String,
+        username: String,
+        email: String,
+        phone: String,
+        avatarEmoji: String,
+        profileImageName: String? = nil,
+        isSeekerActive: Bool = true,
+        providerProfile: ProviderProfile? = nil
+    ) {
         self.id = id
         self.name = name
+        self.username = username
         self.email = email
         self.phone = phone
+        self.avatarEmoji = avatarEmoji
         self.profileImageName = profileImageName
         self.isSeekerActive = isSeekerActive
         self.providerProfile = providerProfile
     }
-    
-    // Custom Coding Keys
+
     enum CodingKeys: String, CodingKey {
         case id
         case name
+        case username
         case email
         case phone
+        case avatarEmoji
         case profileImageName
         case isSeekerActive
         case providerProfile
