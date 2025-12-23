@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		D3A73EA72EF06C9200DF628A /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = D3A73EA62EF06C9200DF628A /* FirebaseAuth */; };
 		D3A73EA92EF06C9200DF628A /* FirebaseFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = D3A73EA82EF06C9200DF628A /* FirebaseFirestore */; };
+		DECA62B02EFAAFB40079FDE5 /* FirebaseStorage in Frameworks */ = {isa = PBXBuildFile; productRef = DECA62AF2EFAAFB40079FDE5 /* FirebaseStorage */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -43,6 +44,7 @@
 			files = (
 				D3A73EA72EF06C9200DF628A /* FirebaseAuth in Frameworks */,
 				D3A73EA92EF06C9200DF628A /* FirebaseFirestore in Frameworks */,
+				DECA62B02EFAAFB40079FDE5 /* FirebaseStorage in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -87,6 +89,7 @@
 			packageProductDependencies = (
 				D3A73EA62EF06C9200DF628A /* FirebaseAuth */,
 				D3A73EA82EF06C9200DF628A /* FirebaseFirestore */,
+				DECA62AF2EFAAFB40079FDE5 /* FirebaseStorage */,
 			);
 			productName = Masar;
 			productReference = 507E416D2EE15769002B7336 /* Masar.app */;
@@ -369,6 +372,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = D3A73EA52EF06C9200DF628A /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
 			productName = FirebaseFirestore;
+		};
+		DECA62AF2EFAAFB40079FDE5 /* FirebaseStorage */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = D3A73EA52EF06C9200DF628A /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseStorage;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

@@ -7,7 +7,10 @@
 
 import UIKit
 
-final class ChatViewController: UIViewController, UITextFieldDelegate {
+final class ChatViewController: UIViewController,
+                               UITextFieldDelegate,
+                               UIImagePickerControllerDelegate,
+                               UINavigationControllerDelegate {
 
 
     private let user: User
@@ -317,7 +320,7 @@ final class ChatViewController: UIViewController, UITextFieldDelegate {
 
 }
 
- //delegates
+ //delegates and funcs
 extension ChatViewController: UITableViewDataSource, UITableViewDelegate {
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         messages.count
@@ -346,18 +349,48 @@ extension ChatViewController: UITableViewDataSource, UITableViewDelegate {
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
         UITableView.automaticDimension
     }
+    func imagePickerController(
+        _ picker: UIImagePickerController,
+        didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey : Any]
+    ) {
+        picker.dismiss(animated: true)
+
+        guard let image = info[.originalImage] as? UIImage else { return }
+        guard !currentUserId.isEmpty else { return }
+
+        ChatService.shared.sendImageUsingCloudinary(
+            image: image,
+            from: currentUserId,
+            to: user.id
+        )
+    }
+
+
+
+    private func openPhotoLibrary() {
+        let picker = UIImagePickerController()
+        picker.sourceType = .photoLibrary
+        picker.mediaTypes = ["public.image"]
+        picker.delegate = self
+        present(picker, animated: true)
+    }
     @objc private func didTapAttach() {
         let alert = UIAlertController(
             title: "Attachments",
-            message: "Choose an option",
+            message: nil,
             preferredStyle: .actionSheet
         )
 
-        alert.addAction(UIAlertAction(title: "Photo", style: .default))
-        alert.addAction(UIAlertAction(title: "Camera", style: .default))
+        alert.addAction(
+            UIAlertAction(title: "Photo Library", style: .default) { _ in
+                self.openPhotoLibrary()
+            }
+        )
+
         alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
 
         present(alert, animated: true)
     }
+
 
 }
