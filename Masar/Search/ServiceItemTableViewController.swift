@@ -27,7 +27,7 @@ class ServiceItemTableViewController: UITableViewController {
         ]
     }
     
-    // MARK: - Header View
+    // MARK: - Header View Components
     private lazy var headerView: UIView = {
         let view = UIView(frame: CGRect(x: 0, y: 0, width: self.view.frame.width, height: 280))
         view.backgroundColor = .white
@@ -44,7 +44,6 @@ class ServiceItemTableViewController: UITableViewController {
         return iv
     }()
     
-    // Provider Name
     private let nameLabel: UILabel = {
         let label = UILabel()
         label.font = UIFont.systemFont(ofSize: 24, weight: .bold)
@@ -53,7 +52,6 @@ class ServiceItemTableViewController: UITableViewController {
         return label
     }()
     
-    // Provider Specialist/Role
     private let roleLabel: UILabel = {
         let label = UILabel()
         label.font = UIFont.systemFont(ofSize: 16, weight: .medium)
@@ -62,7 +60,6 @@ class ServiceItemTableViewController: UITableViewController {
         return label
     }()
     
-    // Provider Skills
     private let skillsLabel: UILabel = {
         let label = UILabel()
         label.font = UIFont.systemFont(ofSize: 14, weight: .regular)
@@ -72,19 +69,54 @@ class ServiceItemTableViewController: UITableViewController {
         return label
     }()
     
-    // Rating Button (top right)
-    private let ratingButton: UIButton = {
-        let btn = UIButton(type: .system)
-        btn.titleLabel?.font = UIFont.systemFont(ofSize: 15, weight: .medium)
-        btn.setTitleColor(UIColor(red: 1.0, green: 0.58, blue: 0.0, alpha: 1), for: .normal)
-        btn.backgroundColor = UIColor(red: 1.0, green: 0.98, blue: 0.94, alpha: 1)
-        btn.layer.cornerRadius = 8
-        btn.contentEdgeInsets = UIEdgeInsets(top: 6, left: 10, bottom: 6, right: 10)
-        btn.translatesAutoresizingMaskIntoConstraints = false
-        return btn
+    // MARK: - NEW RATING COMPONENTS
+    
+    // 1. The Background Container (Light Yellow)
+    private let ratingContainerView: UIView = {
+        let view = UIView()
+        // Light Yellow Background matching your image
+        view.backgroundColor = UIColor(red: 1.0, green: 0.98, blue: 0.90, alpha: 1.0)
+        view.layer.cornerRadius = 12
+        view.translatesAutoresizingMaskIntoConstraints = false
+        return view
     }()
     
-    // Info Stack
+    // 2. The Star Image
+    private let starImageView: UIImageView = {
+        let iv = UIImageView()
+        iv.image = UIImage(systemName: "star.fill")
+        // Golden/Orange Color
+        iv.tintColor = UIColor(red: 1.0, green: 0.70, blue: 0.0, alpha: 1.0)
+        iv.contentMode = .scaleAspectFit
+        iv.translatesAutoresizingMaskIntoConstraints = false
+        iv.heightAnchor.constraint(equalToConstant: 16).isActive = true
+        iv.widthAnchor.constraint(equalToConstant: 16).isActive = true
+        return iv
+    }()
+    
+    // 3. The Rating Label
+    private let ratingLabel: UILabel = {
+        let label = UILabel()
+        label.font = UIFont.systemFont(ofSize: 15, weight: .bold)
+        // Golden/Orange Color
+        label.textColor = UIColor(red: 1.0, green: 0.70, blue: 0.0, alpha: 1.0)
+        label.text = "0.0"
+        return label
+    }()
+    
+    // 4. The Stack View holding Star + Label
+    private lazy var ratingStackView: UIStackView = {
+        let stack = UIStackView(arrangedSubviews: [starImageView, ratingLabel])
+        stack.axis = .horizontal
+        stack.spacing = 6
+        stack.alignment = .center
+        stack.distribution = .fillProportionally
+        stack.translatesAutoresizingMaskIntoConstraints = false
+        return stack
+    }()
+    
+    // END NEW RATING COMPONENTS
+    
     private lazy var infoStackView: UIStackView = {
         let stack = UIStackView()
         stack.axis = .horizontal
@@ -94,7 +126,6 @@ class ServiceItemTableViewController: UITableViewController {
         return stack
     }()
     
-    // View Portfolio Button
     private lazy var viewPortfolioButton: UIButton = {
         let btn = UIButton(type: .system)
         btn.setTitle("View Portfolio", for: .normal)
@@ -107,7 +138,6 @@ class ServiceItemTableViewController: UITableViewController {
         return btn
     }()
     
-    // Chat Button
     private lazy var chatButton: UIButton = {
         let btn = UIButton(type: .system)
         btn.setTitle("Chat", for: .normal)
@@ -169,7 +199,11 @@ class ServiceItemTableViewController: UITableViewController {
         headerView.addSubview(nameLabel)
         headerView.addSubview(roleLabel)
         headerView.addSubview(skillsLabel)
-        headerView.addSubview(ratingButton)
+        
+        // Add container and stack view
+        headerView.addSubview(ratingContainerView)
+        ratingContainerView.addSubview(ratingStackView)
+        
         headerView.addSubview(infoStackView)
         headerView.addSubview(viewPortfolioButton)
         headerView.addSubview(chatButton)
@@ -202,7 +236,7 @@ class ServiceItemTableViewController: UITableViewController {
             // Name Label
             nameLabel.topAnchor.constraint(equalTo: headerView.topAnchor, constant: 20),
             nameLabel.leadingAnchor.constraint(equalTo: profileImageView.trailingAnchor, constant: 16),
-            nameLabel.trailingAnchor.constraint(equalTo: ratingButton.leadingAnchor, constant: -8),
+            nameLabel.trailingAnchor.constraint(equalTo: ratingContainerView.leadingAnchor, constant: -8),
             
             // Role Label
             roleLabel.topAnchor.constraint(equalTo: nameLabel.bottomAnchor, constant: 4),
@@ -214,9 +248,17 @@ class ServiceItemTableViewController: UITableViewController {
             skillsLabel.leadingAnchor.constraint(equalTo: nameLabel.leadingAnchor),
             skillsLabel.trailingAnchor.constraint(equalTo: nameLabel.trailingAnchor),
             
-            // Rating Button (top right)
-            ratingButton.topAnchor.constraint(equalTo: headerView.topAnchor, constant: 20),
-            ratingButton.trailingAnchor.constraint(equalTo: headerView.trailingAnchor, constant: -20),
+            // --- UPDATED RATING CONSTRAINTS ---
+            // 1. Container constraints
+            ratingContainerView.topAnchor.constraint(equalTo: headerView.topAnchor, constant: 20),
+            ratingContainerView.trailingAnchor.constraint(equalTo: headerView.trailingAnchor, constant: -20),
+            
+            // 2. Stack View constraints (padding inside container)
+            ratingStackView.topAnchor.constraint(equalTo: ratingContainerView.topAnchor, constant: 8),
+            ratingStackView.leadingAnchor.constraint(equalTo: ratingContainerView.leadingAnchor, constant: 12),
+            ratingStackView.trailingAnchor.constraint(equalTo: ratingContainerView.trailingAnchor, constant: -12),
+            ratingStackView.bottomAnchor.constraint(equalTo: ratingContainerView.bottomAnchor, constant: -8),
+            // ----------------------------------
             
             // Info Stack
             infoStackView.topAnchor.constraint(equalTo: profileImageView.bottomAnchor, constant: 20),
@@ -284,7 +326,9 @@ class ServiceItemTableViewController: UITableViewController {
         nameLabel.text = provider.name
         roleLabel.text = provider.role
         skillsLabel.text = provider.skills.joined(separator: " • ")
-        ratingButton.setTitle("⭐️ \(String(format: "%.1f", provider.rating))", for: .normal)
+        
+        // Update the new Rating Label
+        ratingLabel.text = String(format: "%.1f", provider.rating)
         
         if let image = UIImage(named: provider.imageName) {
             profileImageView.image = image

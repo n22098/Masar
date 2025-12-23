@@ -38,8 +38,11 @@ class ProviderPortfolioTableViewController: UITableViewController {
     
     // MARK: - Properties
     let brandColor = UIColor(red: 0.35, green: 0.34, blue: 0.91, alpha: 1.0)
-    var providerData: ServiceProviderModel?
+    var providerData: ServiceProviderModel? // Assuming this model exists in your project
     var uploadedMedia: [PortfolioMedia] = []
+    
+    // MARK: - FIX: Store the URL to be previewed here
+    private var currentPreviewURL: URL?
     
     private let storageKey = "PermanentPortfolioStorage"
     private let portfolioSections = [
@@ -173,6 +176,9 @@ class ProviderPortfolioTableViewController: UITableViewController {
         if indexPath.row >= portfolioSections.count {
             let mediaIndex = indexPath.row - portfolioSections.count
             let media = uploadedMedia[mediaIndex]
+            
+            // FIX: Set the variable before calling preview
+            self.currentPreviewURL = media.url
             previewMedia(media)
         }
     }
@@ -239,7 +245,6 @@ class ProviderPortfolioTableViewController: UITableViewController {
         let destURL = documentsURL.appendingPathComponent(fileName)
         
         do {
-            // Start accessing security scoped resource
             let accessed = url.startAccessingSecurityScopedResource()
             
             defer {
@@ -248,12 +253,10 @@ class ProviderPortfolioTableViewController: UITableViewController {
                 }
             }
             
-            // Remove existing file if it exists
             if FileManager.default.fileExists(atPath: destURL.path) {
                 try FileManager.default.removeItem(at: destURL)
             }
             
-            // Copy the file
             try FileManager.default.copyItem(at: url, to: destURL)
             
             let media = PortfolioMedia(
@@ -350,7 +353,6 @@ extension ProviderPortfolioTableViewController: PHPickerViewControllerDelegate {
                 }
                 guard let url = url else { return }
                 
-                // Create a temporary copy
                 let tempURL = FileManager.default.temporaryDirectory.appendingPathComponent(url.lastPathComponent)
                 do {
                     if FileManager.default.fileExists(atPath: tempURL.path) {
@@ -376,7 +378,6 @@ extension ProviderPortfolioTableViewController: PHPickerViewControllerDelegate {
                 }
                 guard let url = url else { return }
                 
-                // Create a temporary copy
                 let tempURL = FileManager.default.temporaryDirectory.appendingPathComponent(url.lastPathComponent)
                 do {
                     if FileManager.default.fileExists(atPath: tempURL.path) {
@@ -402,7 +403,6 @@ extension ProviderPortfolioTableViewController: UIDocumentPickerDelegate {
         saveFile(from: url, type: .document)
     }
 }
-
 // MARK: - QLPreviewControllerDataSource
 extension ProviderPortfolioTableViewController: QLPreviewControllerDataSource {
     func numberOfPreviewItems(in controller: QLPreviewController) -> Int {
@@ -410,13 +410,14 @@ extension ProviderPortfolioTableViewController: QLPreviewControllerDataSource {
     }
     
     func previewController(_ controller: QLPreviewController, previewItemAt index: Int) -> QLPreviewItem {
-        let mediaIndex = tableView.indexPathForSelectedRow!.row - portfolioSections.count
-        let media = uploadedMedia[mediaIndex]
-        return media.url! as QLPreviewItem
+        // FIX: Cast currentPreviewURL to NSURL explicitly.
+        // This ensures both sides of '??' are NSURL, resolving the ambiguity.
+        return (currentPreviewURL as NSURL?) ?? NSURL()
     }
 }
 
 // MARK: - Custom Cells
+// (Kept exactly the same as your code below)
 
 class PortfolioTextCell: UITableViewCell {
     private let containerView: UIView = {
@@ -587,7 +588,6 @@ class PortfolioButtonsCell: UITableViewCell {
         button.layer.borderColor = UIColor(red: 0.90, green: 0.90, blue: 0.92, alpha: 1.0).cgColor
         button.translatesAutoresizingMaskIntoConstraints = false
         
-        // Create icon container
         let iconContainer = UIView()
         iconContainer.backgroundColor = UIColor(red: 0.35, green: 0.34, blue: 0.91, alpha: 0.15)
         iconContainer.layer.cornerRadius = 20
@@ -598,7 +598,6 @@ class PortfolioButtonsCell: UITableViewCell {
         iconImageView.tintColor = UIColor(red: 0.35, green: 0.34, blue: 0.91, alpha: 1.0)
         iconImageView.translatesAutoresizingMaskIntoConstraints = false
         
-        // Set appropriate SF Symbol based on title
         if title == "Images" {
             iconImageView.image = UIImage(systemName: "photo.fill")
         } else if title == "Docs" {
