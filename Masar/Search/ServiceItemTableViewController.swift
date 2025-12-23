@@ -44,6 +44,7 @@ class ServiceItemTableViewController: UITableViewController {
         return iv
     }()
     
+    // Provider Name
     private let nameLabel: UILabel = {
         let label = UILabel()
         label.font = UIFont.systemFont(ofSize: 24, weight: .bold)
@@ -52,6 +53,7 @@ class ServiceItemTableViewController: UITableViewController {
         return label
     }()
     
+    // Provider Specialist/Role
     private let roleLabel: UILabel = {
         let label = UILabel()
         label.font = UIFont.systemFont(ofSize: 16, weight: .medium)
@@ -60,14 +62,7 @@ class ServiceItemTableViewController: UITableViewController {
         return label
     }()
     
-    private let ratingLabel: UILabel = {
-        let label = UILabel()
-        label.font = UIFont.systemFont(ofSize: 15, weight: .medium)
-        label.textColor = UIColor(red: 1.0, green: 0.58, blue: 0.0, alpha: 1)
-        label.translatesAutoresizingMaskIntoConstraints = false
-        return label
-    }()
-    
+    // Provider Skills
     private let skillsLabel: UILabel = {
         let label = UILabel()
         label.font = UIFont.systemFont(ofSize: 14, weight: .regular)
@@ -75,6 +70,18 @@ class ServiceItemTableViewController: UITableViewController {
         label.numberOfLines = 2
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
+    }()
+    
+    // Rating Button (top right)
+    private let ratingButton: UIButton = {
+        let btn = UIButton(type: .system)
+        btn.titleLabel?.font = UIFont.systemFont(ofSize: 15, weight: .medium)
+        btn.setTitleColor(UIColor(red: 1.0, green: 0.58, blue: 0.0, alpha: 1), for: .normal)
+        btn.backgroundColor = UIColor(red: 1.0, green: 0.98, blue: 0.94, alpha: 1)
+        btn.layer.cornerRadius = 8
+        btn.contentEdgeInsets = UIEdgeInsets(top: 6, left: 10, bottom: 6, right: 10)
+        btn.translatesAutoresizingMaskIntoConstraints = false
+        return btn
     }()
     
     // Info Stack
@@ -87,15 +94,31 @@ class ServiceItemTableViewController: UITableViewController {
         return stack
     }()
     
-    private lazy var seeProfileButton: UIButton = {
+    // View Portfolio Button
+    private lazy var viewPortfolioButton: UIButton = {
         let btn = UIButton(type: .system)
-        btn.setTitle("See profile", for: .normal)
+        btn.setTitle("View Portfolio", for: .normal)
         btn.titleLabel?.font = UIFont.systemFont(ofSize: 16, weight: .semibold)
         btn.setTitleColor(.white, for: .normal)
         btn.backgroundColor = UIColor(red: 0.35, green: 0.34, blue: 0.91, alpha: 1)
         btn.layer.cornerRadius = 12
         btn.translatesAutoresizingMaskIntoConstraints = false
-        btn.addTarget(self, action: #selector(seeProfileTapped), for: .touchUpInside)
+        btn.addTarget(self, action: #selector(viewPortfolioTapped), for: .touchUpInside)
+        return btn
+    }()
+    
+    // Chat Button
+    private lazy var chatButton: UIButton = {
+        let btn = UIButton(type: .system)
+        btn.setTitle("Chat", for: .normal)
+        btn.titleLabel?.font = UIFont.systemFont(ofSize: 16, weight: .semibold)
+        btn.setTitleColor(UIColor(red: 0.35, green: 0.34, blue: 0.91, alpha: 1), for: .normal)
+        btn.backgroundColor = .white
+        btn.layer.cornerRadius = 12
+        btn.layer.borderWidth = 2
+        btn.layer.borderColor = UIColor(red: 0.35, green: 0.34, blue: 0.91, alpha: 1).cgColor
+        btn.translatesAutoresizingMaskIntoConstraints = false
+        btn.addTarget(self, action: #selector(chatTapped), for: .touchUpInside)
         return btn
     }()
     
@@ -145,15 +168,16 @@ class ServiceItemTableViewController: UITableViewController {
         headerView.addSubview(profileImageView)
         headerView.addSubview(nameLabel)
         headerView.addSubview(roleLabel)
-        headerView.addSubview(ratingLabel)
         headerView.addSubview(skillsLabel)
+        headerView.addSubview(ratingButton)
         headerView.addSubview(infoStackView)
-        headerView.addSubview(seeProfileButton)
+        headerView.addSubview(viewPortfolioButton)
+        headerView.addSubview(chatButton)
         
         // Create info items
         let availabilityView = createInfoItem(
             icon: "clock.fill",
-            text: providerData?.availability ?? "Daily"
+            text: providerData?.availability ?? "Sat-Thu"
         )
         let locationView = createInfoItem(
             icon: "mappin.circle.fill",
@@ -161,7 +185,7 @@ class ServiceItemTableViewController: UITableViewController {
         )
         let phoneView = createInfoItem(
             icon: "phone.fill",
-            text: providerData?.phone ?? "N/A"
+            text: providerData?.phone ?? "36666222"
         )
         
         infoStackView.addArrangedSubview(availabilityView)
@@ -169,36 +193,49 @@ class ServiceItemTableViewController: UITableViewController {
         infoStackView.addArrangedSubview(phoneView)
         
         NSLayoutConstraint.activate([
+            // Profile Image
             profileImageView.topAnchor.constraint(equalTo: headerView.topAnchor, constant: 16),
             profileImageView.leadingAnchor.constraint(equalTo: headerView.leadingAnchor, constant: 20),
             profileImageView.widthAnchor.constraint(equalToConstant: 90),
             profileImageView.heightAnchor.constraint(equalToConstant: 90),
             
+            // Name Label
             nameLabel.topAnchor.constraint(equalTo: headerView.topAnchor, constant: 20),
             nameLabel.leadingAnchor.constraint(equalTo: profileImageView.trailingAnchor, constant: 16),
-            nameLabel.trailingAnchor.constraint(equalTo: headerView.trailingAnchor, constant: -20),
+            nameLabel.trailingAnchor.constraint(equalTo: ratingButton.leadingAnchor, constant: -8),
             
+            // Role Label
             roleLabel.topAnchor.constraint(equalTo: nameLabel.bottomAnchor, constant: 4),
             roleLabel.leadingAnchor.constraint(equalTo: nameLabel.leadingAnchor),
             roleLabel.trailingAnchor.constraint(equalTo: nameLabel.trailingAnchor),
             
-            ratingLabel.topAnchor.constraint(equalTo: roleLabel.bottomAnchor, constant: 6),
-            ratingLabel.leadingAnchor.constraint(equalTo: nameLabel.leadingAnchor),
-            
-            skillsLabel.topAnchor.constraint(equalTo: ratingLabel.bottomAnchor, constant: 6),
+            // Skills Label
+            skillsLabel.topAnchor.constraint(equalTo: roleLabel.bottomAnchor, constant: 6),
             skillsLabel.leadingAnchor.constraint(equalTo: nameLabel.leadingAnchor),
             skillsLabel.trailingAnchor.constraint(equalTo: nameLabel.trailingAnchor),
             
+            // Rating Button (top right)
+            ratingButton.topAnchor.constraint(equalTo: headerView.topAnchor, constant: 20),
+            ratingButton.trailingAnchor.constraint(equalTo: headerView.trailingAnchor, constant: -20),
+            
+            // Info Stack
             infoStackView.topAnchor.constraint(equalTo: profileImageView.bottomAnchor, constant: 20),
             infoStackView.leadingAnchor.constraint(equalTo: headerView.leadingAnchor, constant: 20),
             infoStackView.trailingAnchor.constraint(equalTo: headerView.trailingAnchor, constant: -20),
             infoStackView.heightAnchor.constraint(equalToConstant: 60),
             
-            seeProfileButton.topAnchor.constraint(equalTo: infoStackView.bottomAnchor, constant: 16),
-            seeProfileButton.leadingAnchor.constraint(equalTo: headerView.leadingAnchor, constant: 20),
-            seeProfileButton.trailingAnchor.constraint(equalTo: headerView.trailingAnchor, constant: -20),
-            seeProfileButton.heightAnchor.constraint(equalToConstant: 50),
-            seeProfileButton.bottomAnchor.constraint(equalTo: headerView.bottomAnchor, constant: -16)
+            // View Portfolio Button
+            viewPortfolioButton.topAnchor.constraint(equalTo: infoStackView.bottomAnchor, constant: 16),
+            viewPortfolioButton.leadingAnchor.constraint(equalTo: headerView.leadingAnchor, constant: 20),
+            viewPortfolioButton.widthAnchor.constraint(equalTo: headerView.widthAnchor, multiplier: 0.5, constant: -26),
+            viewPortfolioButton.heightAnchor.constraint(equalToConstant: 50),
+            
+            // Chat Button
+            chatButton.topAnchor.constraint(equalTo: infoStackView.bottomAnchor, constant: 16),
+            chatButton.trailingAnchor.constraint(equalTo: headerView.trailingAnchor, constant: -20),
+            chatButton.widthAnchor.constraint(equalTo: headerView.widthAnchor, multiplier: 0.5, constant: -26),
+            chatButton.heightAnchor.constraint(equalToConstant: 50),
+            chatButton.bottomAnchor.constraint(equalTo: headerView.bottomAnchor, constant: -16)
         ])
     }
     
@@ -246,8 +283,8 @@ class ServiceItemTableViewController: UITableViewController {
         
         nameLabel.text = provider.name
         roleLabel.text = provider.role
-        ratingLabel.text = "⭐️ \(String(format: "%.1f", provider.rating))"
         skillsLabel.text = provider.skills.joined(separator: " • ")
+        ratingButton.setTitle("⭐️ \(String(format: "%.1f", provider.rating))", for: .normal)
         
         if let image = UIImage(named: provider.imageName) {
             profileImageView.image = image
@@ -269,8 +306,12 @@ class ServiceItemTableViewController: UITableViewController {
         present(alert, animated: true)
     }
     
-    @objc private func seeProfileTapped() {
+    @objc private func viewPortfolioTapped() {
         performSegue(withIdentifier: "showPortfolio", sender: providerData)
+    }
+    
+    @objc private func chatTapped() {
+        performSegue(withIdentifier: "showChat", sender: providerData)
     }
     
     private func shareProvider() {
@@ -328,6 +369,11 @@ class ServiceItemTableViewController: UITableViewController {
         } else if segue.identifier == "showPortfolio",
                   let destVC = segue.destination as? ProviderPortfolioTableViewController,
                   let provider = sender as? ServiceProviderModel {
+            destVC.providerData = provider
+        } else if segue.identifier == "showChat",
+                  let destVC = segue.destination as? MessageTableViewController,
+                  let provider = sender as? ServiceProviderModel {
+            // Pass provider data to chat screen
             destVC.providerData = provider
         }
     }
