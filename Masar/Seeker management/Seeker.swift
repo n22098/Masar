@@ -8,11 +8,11 @@
 import Foundation
 
 struct Seeker {
-    let fullName: String
-    let email: String
-    let phone: String
-    let username: String
+    var fullName: String
+    var email: String
+    var phone: String
+    var username: String
     var status: String
-    let imageName: String
-    let roleType: String
+    var imageName: String
+    var roleType: String
 }

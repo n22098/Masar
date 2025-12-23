@@ -13,10 +13,10 @@ class ProviderDetailsTVC: UITableViewController {
     @IBOutlet weak var headerStatusLabel: UILabel?
     
     // Personal Information Section (Middle Section)
-    @IBOutlet weak var fullNameLabel: UILabel?
-    @IBOutlet weak var emailLabel: UILabel?
-    @IBOutlet weak var phoneLabel: UILabel?
-    @IBOutlet weak var usernameLabel: UILabel?
+    @IBOutlet weak var fullNameTextField: UITextField?
+    @IBOutlet weak var emailTextField: UITextField?
+    @IBOutlet weak var phoneTextField: UITextField?
+    @IBOutlet weak var usernameTextField: UITextField?
     
     // Account Status Section (Bottom Section)
     @IBOutlet weak var statusMenuButton: UIButton?
@@ -51,10 +51,10 @@ class ProviderDetailsTVC: UITableViewController {
         if let provider = provider {
             // Load existing provider data
             headerProviderNameLabel?.text = provider.fullName
-            fullNameLabel?.text = provider.fullName
-            emailLabel?.text = provider.email
-            phoneLabel?.text = provider.phone
-            usernameLabel?.text = provider.username
+            fullNameTextField?.text = provider.fullName
+            emailTextField?.text = provider.email
+            phoneTextField?.text = provider.phone
+            usernameTextField?.text = provider.username
             
             // Set status
             let statusColor: UIColor = (provider.status == "Active") ? .systemBlue : .systemRed
@@ -62,10 +62,10 @@ class ProviderDetailsTVC: UITableViewController {
         } else {
             // Empty fields for new provider
             headerProviderNameLabel?.text = "New Provider"
-            fullNameLabel?.text = "—"
-            emailLabel?.text = "—"
-            phoneLabel?.text = "—"
-            usernameLabel?.text = "—"
+            fullNameTextField?.text = ""
+            emailTextField?.text = ""
+            phoneTextField?.text = ""
+            usernameTextField?.text = ""
             
             updateStatus(to: "Active", color: .systemBlue)
         }
@@ -144,10 +144,10 @@ class ProviderDetailsTVC: UITableViewController {
         // 1. Collect data from your labels/UI
         // Note: If you allow editing, these should be UIFields. If they are just labels,
         // we use the current text or the original provider data.
-        let name = fullNameLabel?.text ?? ""
-        let email = emailLabel?.text ?? ""
-        let phone = phoneLabel?.text ?? ""
-        let username = usernameLabel?.text ?? ""
+        let name = fullNameTextField?.text ?? ""
+        let email = emailTextField?.text ?? ""
+        let phone = phoneTextField?.text ?? ""
+        let username = usernameTextField?.text ?? ""
         let status = currentStatus // Captured from the menu selection
         
         // 2. Validate data (Optional but recommended)
