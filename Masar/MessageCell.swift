@@ -1,11 +1,3 @@
-
-//
-//  MessageCell.swift
-//  Masar
-//
-//  Created by BP-36-212-19 on 11/12/2025.
-//
-
 import UIKit
 
 final class MessageCell: UITableViewCell {
@@ -29,7 +21,6 @@ final class MessageCell: UITableViewCell {
 
     required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
 
-   //user chat settings and spacing
     private func setupViews() {
         bubbleView.translatesAutoresizingMaskIntoConstraints = false
         bubbleView.layer.cornerRadius = 18
@@ -48,29 +39,24 @@ final class MessageCell: UITableViewCell {
 
         leadingConstraint = bubbleView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16)
         trailingConstraint = bubbleView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16)
-//below is spacing
-        messageLabel.setContentHuggingPriority(.required, for: .horizontal)
-        messageLabel.setContentCompressionResistancePriority(.required, for: .horizontal)
         leadingConstraint.isActive = false
         trailingConstraint.isActive = false
 
         NSLayoutConstraint.activate([
             bubbleView.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 14),
-            bubbleView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -10),
-            
-            leadingConstraint,
-            trailingConstraint,
+            bubbleView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -22),
+
+            bubbleView.widthAnchor.constraint(lessThanOrEqualTo: contentView.widthAnchor, multiplier: 0.75),
 
             messageLabel.topAnchor.constraint(equalTo: bubbleView.topAnchor, constant: 8),
             messageLabel.leadingAnchor.constraint(equalTo: bubbleView.leadingAnchor, constant: 12),
             messageLabel.trailingAnchor.constraint(equalTo: bubbleView.trailingAnchor, constant: -12),
             messageLabel.bottomAnchor.constraint(equalTo: bubbleView.bottomAnchor, constant: -8),
 
+            timeLabel.topAnchor.constraint(equalTo: bubbleView.bottomAnchor, constant: 4),
             timeLabel.trailingAnchor.constraint(equalTo: bubbleView.trailingAnchor),
-            timeLabel.topAnchor.constraint(equalTo: bubbleView.bottomAnchor, constant: 2)
+            timeLabel.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -6)
         ])
-        leadingConstraint.isActive = false
-        trailingConstraint.isActive = false
     }
 
     func configure(with message: Message, currentUserId: String) {
@@ -82,20 +68,8 @@ final class MessageCell: UITableViewCell {
         let isIncoming = message.senderId != currentUserId
 
         if isIncoming {
-            leadingConstraint.isActive = true
-        } else {
-            trailingConstraint.isActive = true
-        }
-
-        let formatter = DateFormatter()
-        formatter.dateFormat = "h:mma"
-        timeLabel.text = formatter.string(from: message.timestamp).lowercased()
-
-        leadingConstraint.isActive = false
-        trailingConstraint.isActive = false
-
-        if isIncoming {
             bubbleView.backgroundColor = UIColor(red: 218/255, green: 245/255, blue: 189/255, alpha: 1)
+            bubbleView.layer.borderWidth = 0
             leadingConstraint.isActive = true
         } else {
             bubbleView.backgroundColor = .white
@@ -103,6 +77,9 @@ final class MessageCell: UITableViewCell {
             bubbleView.layer.borderWidth = 1
             trailingConstraint.isActive = true
         }
-    }
 
+        let formatter = DateFormatter()
+        formatter.dateFormat = "h:mma"
+        timeLabel.text = formatter.string(from: message.timestamp).lowercased()
+    }
 }
