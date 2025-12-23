@@ -208,6 +208,11 @@ final class ChatViewController: UIViewController, UITextFieldDelegate {
             equalTo: view.safeAreaLayoutGuide.bottomAnchor
         )
         inputBottomConstraint.isActive = true
+        attachButton.addTarget(
+            self,
+            action: #selector(didTapAttach),
+            for: .touchUpInside
+        )
 
 
         NSLayoutConstraint.activate([
@@ -221,6 +226,7 @@ final class ChatViewController: UIViewController, UITextFieldDelegate {
             attachButton.centerYAnchor.constraint(equalTo: inputContainer.centerYAnchor),
             attachButton.widthAnchor.constraint(equalToConstant: 24),
             attachButton.heightAnchor.constraint(equalToConstant: 24),
+            
 
             sendButton.trailingAnchor.constraint(equalTo: inputContainer.trailingAnchor, constant: -12),
             sendButton.centerYAnchor.constraint(equalTo: inputContainer.centerYAnchor),
@@ -340,4 +346,18 @@ extension ChatViewController: UITableViewDataSource, UITableViewDelegate {
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
         UITableView.automaticDimension
     }
+    @objc private func didTapAttach() {
+        let alert = UIAlertController(
+            title: "Attachments",
+            message: "Choose an option",
+            preferredStyle: .actionSheet
+        )
+
+        alert.addAction(UIAlertAction(title: "Photo", style: .default))
+        alert.addAction(UIAlertAction(title: "Camera", style: .default))
+        alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
+
+        present(alert, animated: true)
+    }
+
 }
