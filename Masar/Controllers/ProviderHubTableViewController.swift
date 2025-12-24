@@ -3,56 +3,69 @@ import UIKit
 class ProviderHubTableViewController: UITableViewController {
 
     // MARK: - Outlets
-    // اشبك هذه الثلاثة فقط (Drag & Drop)
     @IBOutlet weak var serviceCell: ActionItemCell!
     @IBOutlet weak var bookingCell: ActionItemCell!
     @IBOutlet weak var portfolioCell: ActionItemCell!
 
+    // لون التطبيق (البنفسجي)
+    let brandColor = UIColor(red: 98/255, green: 84/255, blue: 243/255, alpha: 1.0)
+
     override func viewDidLoad() {
-            super.viewDidLoad()
-            setupNavigationBar()
-            setupTableView()
-            setupCellsData()
-        }
-        
-        override func viewWillAppear(_ animated: Bool) {
-            super.viewWillAppear(animated)
-            setupNavigationBar()
-        }
-
-        func setupTableView() {
-            // خلفية رمادية عشان تبرز البطاقات البيضاء
-            tableView.backgroundColor = .systemGroupedBackground
-            // إزالة الخطوط الفاصلة
-            tableView.separatorStyle = .none
-            // مسافة من الأعلى
-            tableView.contentInset = UIEdgeInsets(top: 20, left: 0, bottom: 0, right: 0)
-            
-            // 🔥🔥 تكبير حجم الخلية (اجبارها تكون طويلة) 🔥🔥
-            // جرب هذا الرقم، إذا حسيتها كبيرة مرة خله 90
-            tableView.rowHeight = 90
-        }
-
-        func setupCellsData() {
-            serviceCell.configure(title: "Service")
-            bookingCell.configure(title: "Booking")
-            portfolioCell.configure(title: "Portfolio")
-        }
-
-        func setupNavigationBar() {
-            title = "Provider Hub"
-            navigationController?.navigationBar.prefersLargeTitles = true
-            
-            let appearance = UINavigationBarAppearance()
-            appearance.configureWithOpaqueBackground()
-            appearance.backgroundColor = UIColor(red: 98/255, green: 84/255, blue: 243/255, alpha: 1.0)
-            
-            appearance.titleTextAttributes = [.foregroundColor: UIColor.white]
-            appearance.largeTitleTextAttributes = [.foregroundColor: UIColor.white]
-
-            navigationController?.navigationBar.standardAppearance = appearance
-            navigationController?.navigationBar.scrollEdgeAppearance = appearance
-            navigationController?.navigationBar.compactAppearance = appearance
-            navigationController?.navigationBar.tintColor = .white
-        }
+        super.viewDidLoad()
+        setupNavigationBar()
+        setupTableView()
+        setupCellsData()
     }
+        
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        setupNavigationBar()
+    }
+
+    func setupTableView() {
+        // لون خلفية رمادي فاتح جداً ليبرز البطاقات البيضاء
+        tableView.backgroundColor = UIColor.systemGroupedBackground
+        tableView.separatorStyle = .none
+        
+        // مسافات من الأعلى والأسفل
+        tableView.contentInset = UIEdgeInsets(top: 24, left: 0, bottom: 24, right: 0)
+        
+        // ارتفاع الخلية المناسب للتصميم الجديد
+        tableView.rowHeight = 100
+    }
+
+    func setupCellsData() {
+        // ✅ الآن هذا الكود سيعمل بدون أخطاء حمراء
+        serviceCell.configure(title: "Services",
+                            iconName: "briefcase.fill",
+                            brandColor: brandColor)
+        
+        bookingCell.configure(title: "Bookings",
+                            iconName: "calendar.badge.clock",
+                            brandColor: brandColor)
+        
+        portfolioCell.configure(title: "Portfolio",
+                              iconName: "photo.on.rectangle.angled",
+                              brandColor: brandColor)
+    }
+
+    func setupNavigationBar() {
+        title = "Provider Hub"
+        navigationController?.navigationBar.prefersLargeTitles = true
+        
+        let appearance = UINavigationBarAppearance()
+        appearance.configureWithOpaqueBackground()
+        appearance.backgroundColor = brandColor
+        
+        appearance.titleTextAttributes = [.foregroundColor: UIColor.white]
+        appearance.largeTitleTextAttributes = [
+            .foregroundColor: UIColor.white,
+            .font: UIFont.systemFont(ofSize: 34, weight: .bold)
+        ]
+
+        navigationController?.navigationBar.standardAppearance = appearance
+        navigationController?.navigationBar.scrollEdgeAppearance = appearance
+        navigationController?.navigationBar.compactAppearance = appearance
+        navigationController?.navigationBar.tintColor = .white
+    }
+}

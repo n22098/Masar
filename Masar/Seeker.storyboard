@@ -683,7 +683,7 @@
                                                     <state key="normal" title="Button"/>
                                                     <buttonConfiguration key="configuration" style="gray" title="Booking"/>
                                                     <connections>
-                                                        <segue destination="BCU-24-YoP" kind="show" identifier="showBookingForm" id="q0C-BN-tfS"/>
+                                                        <segue destination="BCU-24-YoP" kind="show" identifier="showBooking" id="q0C-BN-tfS"/>
                                                     </connections>
                                                 </button>
                                             </subviews>
@@ -776,7 +776,6 @@
         <!--Booking -->
         <scene sceneID="oea-ex-iRK">
             <objects>
-                <placeholder placeholderIdentifier="IBFirstResponder" id="vZq-tT-oWk" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
                 <tableViewController id="BCU-24-YoP" customClass="ServiceDetailsBookingTableViewController" customModule="Masar" customModuleProvider="target" sceneMemberID="viewController">
                     <tableView key="view" clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="static" style="plain" separatorStyle="default" rowHeight="-1" estimatedRowHeight="-1" sectionHeaderHeight="-1" estimatedSectionHeaderHeight="-1" sectionFooterHeight="-1" estimatedSectionFooterHeight="-1" id="OjU-10-Ima">
                         <rect key="frame" x="0.0" y="0.0" width="393" height="852"/>
@@ -1079,6 +1078,7 @@
                         <outlet property="serviceNameLabel" destination="Qes-vi-GTT" id="x4v-ov-SPv"/>
                     </connections>
                 </tableViewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="vZq-tT-oWk" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
             <point key="canvasLocation" x="3048" y="-1182"/>
         </scene>

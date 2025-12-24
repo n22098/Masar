@@ -5,45 +5,8 @@ class ProviderServicesTableViewController: UITableViewController {
     // MARK: - Properties
     let brandColor = UIColor(red: 0.35, green: 0.34, blue: 0.91, alpha: 1.0)
     
-    // 👇 التصليح: الأسعار صارت أرقام (Double) بدون علامة تنصيص للكلام
-    var myServices: [ServiceModel] = [
-        ServiceModel(
-            name: "Website Starter",
-            price: 85.0,
-            description: "5 pages • Responsive design",
-            icon: "doc.text.fill"
-        ),
-        ServiceModel(
-            name: "Business Website",
-            price: 150.0,
-            description: "10 pages • Custom layout",
-            icon: "building.2.fill"
-        ),
-        ServiceModel(
-            name: "E-Commerce Store",
-            price: 250.0,
-            description: "Full store • Payment gateway",
-            icon: "cart.fill"
-        ),
-        ServiceModel(
-            name: "Mobile App Design",
-            price: 180.0,
-            description: "iOS & Android • UI/UX",
-            icon: "iphone"
-        ),
-        ServiceModel(
-            name: "SEO Optimization",
-            price: 120.0,
-            description: "Google ranking • Analytics",
-            icon: "chart.line.uptrend.xyaxis"
-        ),
-        ServiceModel(
-            name: "Social Media Management",
-            price: 95.0,
-            description: "Content creation • Posting",
-            icon: "person.3.fill"
-        )
-    ]
+    // 👇 التعديل 1: المصفوفة تبدأ فارغة لانتظار البيانات من Firebase
+    var myServices: [ServiceModel] = []
     
     var selectedServiceIndex: Int?
     
@@ -55,16 +18,40 @@ class ProviderServicesTableViewController: UITableViewController {
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-        if self.view.window != nil {
-            tableView.reloadData()
-        }
         setupNavigationBar()
+        
+        // 👇 التعديل 2: جلب البيانات من Firebase في كل مرة تظهر الشاشة
+        fetchServicesFromFirebase()
+    }
+    
+    // MARK: - Firebase Fetching
+    func fetchServicesFromFirebase() {
+        // إضافة مؤشر تحميل بسيط في العنوان (اختياري)
+        self.title = "Updating..."
+        
+        ServiceManager.shared.fetchAllServices { [weak self] services in
+            DispatchQueue.main.async {
+                self?.title = "Services"
+                self?.myServices = services
+                self?.tableView.reloadData()
+            }
+        }
     }
     
     // MARK: - Setup UI
     private func setupUI() {
         setupNavigationBar()
         setupTableView()
+        
+        // إضافة Refresh Control لسحب الشاشة وتحديث البيانات
+        let refreshControl = UIRefreshControl()
+        refreshControl.addTarget(self, action: #selector(handleRefresh), for: .valueChanged)
+        tableView.refreshControl = refreshControl
+    }
+    
+    @objc func handleRefresh() {
+        fetchServicesFromFirebase()
+        tableView.refreshControl?.endRefreshing()
     }
     
     private func setupNavigationBar() {
@@ -103,7 +90,6 @@ class ProviderServicesTableViewController: UITableViewController {
         tableView.estimatedRowHeight = 80
         tableView.contentInset = UIEdgeInsets(top: 16, left: 0, bottom: 16, right: 0)
         
-        // 👇 تأكد من وجود كلاس ServiceCell في نهاية الملف
         tableView.register(ServiceCell.self, forCellReuseIdentifier: "ServiceCell")
     }
     
@@ -148,21 +134,7 @@ class ProviderServicesTableViewController: UITableViewController {
     // MARK: - Delete & Navigation
     override func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
         if editingStyle == .delete {
-            let serviceName = myServices[indexPath.row].name
-            
-            let alert = UIAlertController(
-                title: "Delete Service",
-                message: "Are you sure you want to delete '\(serviceName)'?",
-                preferredStyle: .alert
-            )
-            
-            alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
-            alert.addAction(UIAlertAction(title: "Delete", style: .destructive) { [weak self] _ in
-                self?.myServices.remove(at: indexPath.row)
-                tableView.deleteRows(at: [indexPath], with: .fade)
-            })
-            
-            present(alert, animated: true)
+            deleteService(at: indexPath)
         }
     }
     
@@ -184,8 +156,13 @@ class ProviderServicesTableViewController: UITableViewController {
         return UISwipeActionsConfiguration(actions: [deleteAction, editAction])
     }
     
+    // 👇 التعديل 3: دالة الحذف المرتبطة بـ Firebase
     private func deleteService(at indexPath: IndexPath) {
-        let serviceName = myServices[indexPath.row].name
+        let service = myServices[indexPath.row]
+        let serviceName = service.name
+        
+        // يجب التأكد من وجود ID للحذف
+        guard let serviceId = service.id else { return }
         
         let alert = UIAlertController(
             title: "Delete Service",
@@ -195,16 +172,31 @@ class ProviderServicesTableViewController: UITableViewController {
         
         alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
         alert.addAction(UIAlertAction(title: "Delete", style: .destructive) { [weak self] _ in
-            self?.myServices.remove(at: indexPath.row)
-            self?.tableView.deleteRows(at: [indexPath], with: .fade)
+            
+            // الاتصال بـ Firebase للحذف
+            ServiceManager.shared.deleteService(serviceId: serviceId) { error in
+                if let error = error {
+                    print("Error deleting service: \(error.localizedDescription)")
+                    return
+                }
+                
+                // التحديث في الواجهة بعد نجاح الحذف
+                DispatchQueue.main.async {
+                    self?.myServices.remove(at: indexPath.row)
+                    self?.tableView.deleteRows(at: [indexPath], with: .fade)
+                }
+            }
         })
         
         present(alert, animated: true)
     }
     
+    // MARK: - Navigation / Segue (Save & Update)
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
         if segue.identifier == "editService" {
             if let destVC = segue.destination as? EditServiceTableViewController {
+                
+                // تمرير البيانات للشاشة التالية
                 if let indexPath = sender as? IndexPath {
                     let selectedService = myServices[indexPath.row]
                     destVC.serviceToEdit = selectedService
@@ -214,15 +206,30 @@ class ProviderServicesTableViewController: UITableViewController {
                     selectedServiceIndex = nil
                 }
                 
+                // 👇 التعديل 4: التعامل مع الحفظ (إضافة أو تحديث)
                 destVC.onSaveComplete = { [weak self] updatedService in
                     guard let self = self else { return }
                     
-                    if let index = self.selectedServiceIndex {
-                        self.myServices[index] = updatedService
-                        self.tableView.reloadRows(at: [IndexPath(row: index, section: 0)], with: .automatic)
+                    // إذا كان هناك ID، فهذا يعني تحديث
+                    if let _ = updatedService.id {
+                        ServiceManager.shared.updateService(updatedService) { error in
+                            if let error = error {
+                                print("Error updating: \(error)")
+                            } else {
+                                print("Successfully updated service")
+                                self.fetchServicesFromFirebase() // إعادة تحميل القائمة
+                            }
+                        }
                     } else {
-                        self.myServices.append(updatedService)
-                        self.tableView.reloadData()
+                        // إذا لم يكن هناك ID، فهذه إضافة جديدة
+                        ServiceManager.shared.addService(updatedService) { error in
+                            if let error = error {
+                                print("Error adding: \(error)")
+                            } else {
+                                print("Successfully added service")
+                                self.fetchServicesFromFirebase() // إعادة تحميل القائمة
+                            }
+                        }
                     }
                 }
             }
@@ -234,7 +241,8 @@ class ProviderServicesTableViewController: UITableViewController {
     }
 }
 
-// 👇👇 الكلاس المهم لعرض الخلية (كان ناقصاً) 👇👇
+// MARK: - Service Cell Class
+// (نفس الكلاس الخاص بك تماماً، لم يتغير)
 class ServiceCell: UITableViewCell {
     
     private let containerView: UIView = {
@@ -354,7 +362,6 @@ class ServiceCell: UITableViewCell {
     
     func configure(with service: ServiceModel, brandColor: UIColor) {
         nameLabel.text = service.name
-        // 👇 هنا الإصلاح: نستخدم formattedPrice التي أنشأناها في الموديل
         priceLabel.text = service.formattedPrice
         priceLabel.textColor = brandColor
         descriptionLabel.text = service.description

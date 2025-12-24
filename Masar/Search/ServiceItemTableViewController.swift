@@ -5,10 +5,14 @@ class ServiceItemTableViewController: UITableViewController {
     // MARK: - Properties
     var providerData: ServiceProviderModel?
     
+    // لون البراند الثابت
+    let brandColor = UIColor(red: 0.35, green: 0.34, blue: 0.91, alpha: 1.0)
+    
     var services: [ServiceModel] {
         if let realServices = providerData?.services, !realServices.isEmpty {
             return realServices
         }
+        // بيانات وهمية احتياطية في حال عدم وجود بيانات حقيقية
         return [
             ServiceModel(
                 name: "Website Starter",
@@ -152,18 +156,33 @@ class ServiceItemTableViewController: UITableViewController {
     private func setupUI() {
         title = providerData?.role ?? "Services"
         
+        // إعدادات النافيقيشن بار (تم تعديل الألوان للأبيض)
         let appearance = UINavigationBarAppearance()
         appearance.configureWithOpaqueBackground()
-        appearance.backgroundColor = UIColor(red: 0.35, green: 0.34, blue: 0.91, alpha: 1)
+        appearance.backgroundColor = brandColor
+        
+        // 1. العناوين العادية
         appearance.titleTextAttributes = [
             .foregroundColor: UIColor.white,
             .font: UIFont.systemFont(ofSize: 18, weight: .semibold)
         ]
         
+        // 2. 🔥 العناوين الكبيرة (Large Titles) - هنا الحل لمشكلة اللون الأسود
+        appearance.largeTitleTextAttributes = [
+            .foregroundColor: UIColor.white,
+            .font: UIFont.systemFont(ofSize: 34, weight: .bold)
+        ]
+        
+        appearance.shadowColor = .clear // إزالة الخط الفاصل
+        
+        // تطبيق الإعدادات
         navigationController?.navigationBar.standardAppearance = appearance
         navigationController?.navigationBar.scrollEdgeAppearance = appearance
         navigationController?.navigationBar.compactAppearance = appearance
+        
+        // لون أزرار العودة (Back Button)
         navigationController?.navigationBar.tintColor = .white
+        navigationController?.navigationBar.prefersLargeTitles = true
         
         let menuButton = UIBarButtonItem(
             image: UIImage(systemName: "ellipsis"),
