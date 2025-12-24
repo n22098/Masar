@@ -9,7 +9,7 @@ class CategoryManagementTVC: UITableViewController {
     
     // MARK: - Properties
     var categories = [Category]()
-    var allProviders: [ServiceProviderModel] = [] // Ensure this is passed from Search screen
+    var allProviders: [ServiceProviderModel] = [] // Passed from Search screen
     weak var delegate: CategoryManagerDelegate?
     
     override func viewDidLoad() {
@@ -22,23 +22,24 @@ class CategoryManagementTVC: UITableViewController {
         title = "Category Management"
         tableView.tableFooterView = UIView()
         
-        // Register the cell identifier to prevent crashes
+        // Register the cell identifier
         tableView.register(UITableViewCell.self, forCellReuseIdentifier: "CategoryCell")
         
         // Navigation Buttons
         navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .add, target: self, action: #selector(addCategoryTapped))
         navigationItem.leftBarButtonItem = UIBarButtonItem(title: "Done", style: .done, target: self, action: #selector(doneTapped))
         
-        // Settings for Edit Mode
-        tableView.setEditing(true, animated: false)
-        tableView.allowsSelectionDuringEditing = true
+        // Swipe-to-delete logic:
+        // We set editing to FALSE so the red buttons disappear.
+        // iOS will now reveal the 'Delete' button only when the user swipes.
+        tableView.setEditing(false, animated: false)
     }
     
     private func loadData() {
         categories = Category.loadCategories() ?? []
         if allProviders.isEmpty {
-                allProviders = SampleData.getTestProviders()
-            }
+            allProviders = SampleData.getTestProviders()
+        }
         tableView.reloadData()
     }
     
@@ -49,24 +50,57 @@ class CategoryManagementTVC: UITableViewController {
     }
     
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        // We use dequeueReusableCell which returns a cell
         let cell = tableView.dequeueReusableCell(withIdentifier: "CategoryCell", for: indexPath)
         
         let category = categories[indexPath.row]
         cell.textLabel?.text = category.name
         cell.textLabel?.textColor = .systemBlue
+        
+        // In swipe-to-delete mode, disclosure indicators look better
         cell.accessoryType = .disclosureIndicator
         
-        // EVERY path must return a cell. This line fixes your error.
         return cell
     }
     
+    // MARK: - Swipe to Delete & Reorder Logic
+    
+    // This enables the "Swipe" gesture
+    override func tableView(_ tableView: UITableView, canEditRowAt indexPath: IndexPath) -> Bool {
+        return true
+    }
+    
+    // This handles the actual deletion logic when the user taps the revealed "Delete" button
+    override func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
+        if editingStyle == .delete {
+            // 1. Remove from data source
+            categories.remove(at: indexPath.row)
+            
+            // 2. Persist the change
+            Category.saveCategories(categories)
+            
+            // 3. Update UI with animation (better than reloadData for swipes)
+            tableView.deleteRows(at: [indexPath], with: .fade)
+            
+            // 4. Notify delegate of change
+            delegate?.didUpdateCategories(categories)
+        }
+    }
+    
+    // Note: Reordering (moveRowAt) usually requires tableView.isEditing = true.
+    // Since we turned that off to allow swiping, these rows won't be draggable
+    // unless you add an "Edit" button to toggle the mode.
+    override func tableView(_ tableView: UITableView, moveRowAt sourceIndexPath: IndexPath, to destinationIndexPath: IndexPath) {
+        let moved = categories.remove(at: sourceIndexPath.row)
+        categories.insert(moved, at: destinationIndexPath.row)
+        Category.saveCategories(categories)
+    }
+
     // MARK: - Tap to See Providers
     
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         let selectedCategory = categories[indexPath.row]
         
-        // Filtering logic to find providers in this category
+        // Filtering logic
         let keyword = selectedCategory.name.replacingOccurrences(of: "ing", with: "")
         let matchingProviders = allProviders.filter { provider in
             provider.role.localizedCaseInsensitiveContains(keyword) ||
@@ -102,7 +136,6 @@ class CategoryManagementTVC: UITableViewController {
     
     @objc private func doneTapped() {
         delegate?.didUpdateCategories(categories)
-        // If presented modally, use dismiss. If pushed, use pop.
         if navigationController?.viewControllers.first == self {
             dismiss(animated: true)
         } else {
@@ -113,20 +146,5 @@ class CategoryManagementTVC: UITableViewController {
     private func saveAndRefresh() {
         Category.saveCategories(categories)
         tableView.reloadData()
-    }
-    
-    // MARK: - Edit Logic
-    
-    override func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
-        if editingStyle == .delete {
-            categories.remove(at: indexPath.row)
-            saveAndRefresh()
-        }
-    }
-    
-    override func tableView(_ tableView: UITableView, moveRowAt sourceIndexPath: IndexPath, to destinationIndexPath: IndexPath) {
-        let moved = categories.remove(at: sourceIndexPath.row)
-        categories.insert(moved, at: destinationIndexPath.row)
-        Category.saveCategories(categories)
     }
 }

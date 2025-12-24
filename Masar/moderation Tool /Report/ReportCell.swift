@@ -1,23 +1,18 @@
-//
-//  ReportCell.swift
-//  Masar
-//
-//  Created by BP-36-201-08 on 15/12/2025.
-//
-
 import UIKit
 
-class ReportCell: UITableViewCell {
-
+class ReportItemCell: UITableViewCell {
+    
+    // MARK: - IBOutlets
+    // These must be connected in your Storyboard!
+    @IBOutlet weak var idLabel: UILabel!
+    @IBOutlet weak var subjectLabel: UILabel!
+    @IBOutlet weak var statusLabel: UILabel!
+    
     override func awakeFromNib() {
         super.awakeFromNib()
-        // Initialization code
+        // Setup font styles to prevent overlapping and look professional
+        idLabel.font = .systemFont(ofSize: 12, weight: .bold)
+        subjectLabel.font = .systemFont(ofSize: 16, weight: .semibold)
+        statusLabel.font = .systemFont(ofSize: 14, weight: .medium)
     }
-
-    override func setSelected(_ selected: Bool, animated: Bool) {
-        super.setSelected(selected, animated: animated)
-
-        // Configure the view for the selected state
-    }
-
 }

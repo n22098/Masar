@@ -4,12 +4,15 @@ class ReportDetailsTVC: UITableViewController {
 
     // MARK: - IBOutlets
     // Connect these to the labels on the right side of your prototype cells
-    @IBOutlet weak var reportIDLabel: UILabel!
-    @IBOutlet weak var reporterLabel: UILabel!
-    @IBOutlet weak var emailLabel: UILabel!
-    @IBOutlet weak var subjectLabel: UILabel!
-    @IBOutlet weak var descriptionLabel: UILabel!
+    
+    
 
+    @IBOutlet weak var reportIDLabel: UILabel!
+    @IBOutlet weak var descriptionLabel: UILabel!
+    @IBOutlet weak var subjectLabel: UILabel!
+    @IBOutlet weak var emailLabel: UILabel!
+    @IBOutlet weak var reporterLabel: UILabel!
+    
     // MARK: - Properties
     // This could be a model object passed from the previous screen
     var reportData: [String: String]?

@@ -1,10 +1,11 @@
 import UIKit
 
+// The data model
+
 
 class ReportManagementTVC: UITableViewController {
 
-    // MARK: - Properties
-    // Mock data based on your Report Management design
+    // Mock data
     let reports = [
         ReportItem(reportID: "ID: #9821", subject: "Inappropriate Content", status: "Pending"),
         ReportItem(reportID: "ID: #9822", subject: "Spam Report", status: "Under Review"),
@@ -15,44 +16,41 @@ class ReportManagementTVC: UITableViewController {
         super.viewDidLoad()
         self.title = "Report Management"
         
-        // Cleanup the empty cells at the bottom
+        // AUTO LAYOUT FIX: These lines allow the cell to grow and fit the labels
+        tableView.rowHeight = UITableView.automaticDimension
+        tableView.estimatedRowHeight = 100
         tableView.tableFooterView = UIView()
     }
 
     // MARK: - Table View Data Source
-
-    override func numberOfSections(in tableView: UITableView) -> Int {
-        return 1
-    }
 
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return reports.count
     }
 
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        // Ensure "reportCell" matches the Identifier you set in Storyboard
-        let cell = tableView.dequeueReusableCell(withIdentifier: "showReportCell", for: indexPath)
+        // 'as? ReportItemCell' connects this code to your custom class
+        guard let cell = tableView.dequeueReusableCell(withIdentifier: "showReportCell", for: indexPath) as? ReportItemCell else {
+            return UITableViewCell()
+        }
         
         let report = reports[indexPath.row]
 
-        // Accessing the 3 labels using Tags (Set these in Storyboard: 1, 2, and 3)
-        if let idLabel = cell.viewWithTag(1) as? UILabel {
-            idLabel.text = report.reportID
-        }
+        // Set text safely (using '?' prevents the "found nil" crash)
+        cell.idLabel?.text = report.reportID
+        cell.subjectLabel?.text = report.subject
+        cell.statusLabel?.text = report.status
         
-        if let subjectLabel = cell.viewWithTag(2) as? UILabel {
-            subjectLabel.text = report.subject
-        }
-        
-        if let statusLabel = cell.viewWithTag(3) as? UILabel {
-            statusLabel.text = report.status
-            // Optional: Change color based on status
-            statusLabel.textColor = report.status == "Pending" ? .systemOrange : .systemGray
+        // Apply colors based on status
+        switch report.status {
+        case "Pending":
+            cell.statusLabel?.textColor = .systemOrange
+        case "Resolved":
+            cell.statusLabel?.textColor = .systemGreen
+        default:
+            cell.statusLabel?.textColor = .systemGray
         }
 
         return cell
     }
-
-
-    }
-
+}
