@@ -2,9 +2,9 @@ import UIKit
 import PhotosUI
 import UniformTypeIdentifiers
 import QuickLook
-import AVFoundation
 
 // MARK: - Models
+
 struct PortfolioSection {
     let title: String
     let content: String?
@@ -27,51 +27,60 @@ struct PortfolioMedia: Codable {
     let type: PortfolioMediaType
     let fileName: String
     let name: String
-    
+
     var url: URL? {
-        let documents = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first
+        let documents = FileManager.default.urls(
+            for: .documentDirectory,
+            in: .userDomainMask
+        ).first
         return documents?.appendingPathComponent(fileName)
     }
 }
 
+// MARK: - View Controller
+
 class ProviderPortfolioTableViewController: UITableViewController {
-    
-    // MARK: - Properties
-    let brandColor = UIColor(red: 0.35, green: 0.34, blue: 0.91, alpha: 1.0)
+
+    // MARK: Properties
+
+    let brandColor = UIColor(
+        red: 0.35,
+        green: 0.34,
+        blue: 0.91,
+        alpha: 1.0
+    )
+
     var providerData: ServiceProviderModel?
     var uploadedMedia: [PortfolioMedia] = []
-    
-    // NEW: Flag to determine if user can edit
+
+    /// Set to true when navigating from Seeker/Search
     var isReadOnlyMode: Bool = false
-    
+
     private var currentPreviewURL: URL?
-    
-    // UPDATED: Dynamic storage key based on provider ID
+
+    // MARK: Storage Key
+
     private var storageKey: String {
-        guard let provider = providerData else {
-            return "DefaultPortfolioStorage"
+        if let id = providerData?.id, !id.isEmpty {
+            return "Portfolio_\(id)"
         }
-        // Use provider's unique ID for more reliable storage
-        return "Portfolio_\(provider.id)"
+        return "DefaultPortfolioStorage"
     }
-    
-    // Dynamic sections based on mode and provider data
+
+    // MARK: Portfolio Sections
+
     private var portfolioSections: [PortfolioSection] {
         var sections: [PortfolioSection] = []
-        
-        // Use provider's actual data if available
+
         if let provider = providerData {
-            // About Me section with provider-specific content
-            let aboutContent = provider.aboutMe
             sections.append(
                 PortfolioSection(
                     title: "About me",
-                    content: aboutContent,
+                    content: provider.aboutMe,
                     type: .text
                 )
             )
-            
-            // Experience section
+
             sections.append(
                 PortfolioSection(
                     title: "Experience",
@@ -79,35 +88,33 @@ class ProviderPortfolioTableViewController: UITableViewController {
                     type: .text
                 )
             )
-            
-            // Skills section with provider's skills
-            let skillsContent = provider.skills.joined(separator: " • ")
+
             sections.append(
                 PortfolioSection(
                     title: "Skills",
-                    content: skillsContent,
+                    content: provider.skills.joined(separator: " • "),
                     type: .text
                 )
             )
         } else {
-            // Fallback content
             sections.append(
                 PortfolioSection(
                     title: "About me",
-                    content: "I'm a passionate developer with 5+ years of experience in web and mobile development. I specialize in creating beautiful and functional iOS applications.",
+                    content: "I'm a passionate developer with 5+ years of experience.",
                     type: .text
                 )
             )
+
             sections.append(
                 PortfolioSection(
                     title: "Skills",
-                    content: "Swift • iOS Development • UIKit • SwiftUI • Firebase • REST APIs • Git",
+                    content: "Swift • UIKit • SwiftUI",
                     type: .text
                 )
             )
         }
-        
-        // Only add upload button if NOT in read-only mode
+
+        // Only show upload buttons if not read-only
         if !isReadOnlyMode {
             sections.append(
                 PortfolioSection(
@@ -117,715 +124,592 @@ class ProviderPortfolioTableViewController: UITableViewController {
                 )
             )
         }
-        
+
         return sections
     }
-    
-    // MARK: - Lifecycle
+
+    // MARK: Lifecycle
+
     override func viewDidLoad() {
         super.viewDidLoad()
         setupUI()
         loadSavedMedia()
     }
-    
-    override func viewWillAppear(_ animated: Bool) {
-        super.viewWillAppear(animated)
-        setupNavigationBar()
-    }
-    
-    // MARK: - Persistence Logic
-    private func saveToMemory() {
-        if let encoded = try? JSONEncoder().encode(uploadedMedia) {
-            UserDefaults.standard.set(encoded, forKey: storageKey)
-        }
-    }
-    
+
+    // MARK: Persistence
+
     private func loadSavedMedia() {
         if let data = UserDefaults.standard.data(forKey: storageKey),
            let decoded = try? JSONDecoder().decode([PortfolioMedia].self, from: data) {
-            self.uploadedMedia = decoded
-            self.tableView.reloadData()
+            uploadedMedia = decoded
+        } else if let data = UserDefaults.standard.data(forKey: "DefaultPortfolioStorage"),
+                  let decoded = try? JSONDecoder().decode([PortfolioMedia].self, from: data) {
+            uploadedMedia = decoded
+        }
+
+        tableView.reloadData()
+    }
+
+    private func saveToMemory() {
+        if let encoded = try? JSONEncoder().encode(uploadedMedia) {
+            UserDefaults.standard.set(encoded, forKey: storageKey)
+            UserDefaults.standard.set(encoded, forKey: "DefaultPortfolioStorage")
         }
     }
-    
-    // MARK: - Setup UI
+
+    // MARK: UI Setup
+
     private func setupUI() {
-        // Set title based on provider
-        if let provider = providerData {
-            title = "\(provider.name)'s Portfolio"
-        } else {
-            title = "Portfolio"
-        }
-        
-        tableView.backgroundColor = UIColor(red: 248/255, green: 248/255, blue: 252/255, alpha: 1.0)
+        title = providerData != nil
+            ? "\(providerData!.name)'s Portfolio"
+            : "Portfolio"
+
+        tableView.backgroundColor = UIColor(
+            red: 248 / 255,
+            green: 248 / 255,
+            blue: 252 / 255,
+            alpha: 1.0
+        )
+
         tableView.separatorStyle = .none
-        tableView.contentInset = UIEdgeInsets(top: 16, left: 0, bottom: 20, right: 0)
-        tableView.rowHeight = UITableView.automaticDimension
-        tableView.estimatedRowHeight = 100
-        
-        tableView.register(PortfolioTextCell.self, forCellReuseIdentifier: "PortfolioTextCell")
-        tableView.register(PortfolioButtonsCell.self, forCellReuseIdentifier: "PortfolioButtonsCell")
-        tableView.register(PortfolioMediaCell.self, forCellReuseIdentifier: "PortfolioMediaCell")
+
+        tableView.register(
+            PortfolioTextCell.self,
+            forCellReuseIdentifier: "PortfolioTextCell"
+        )
+
+        tableView.register(
+            PortfolioButtonsCell.self,
+            forCellReuseIdentifier: "PortfolioButtonsCell"
+        )
+
+        tableView.register(
+            PortfolioMediaCell.self,
+            forCellReuseIdentifier: "PortfolioMediaCell"
+        )
     }
-    
-    private func setupNavigationBar() {
-        navigationController?.navigationBar.prefersLargeTitles = true
-        
-        let appearance = UINavigationBarAppearance()
-        appearance.configureWithOpaqueBackground()
-        appearance.backgroundColor = brandColor
-        appearance.titleTextAttributes = [.foregroundColor: UIColor.white]
-        appearance.largeTitleTextAttributes = [
-            .foregroundColor: UIColor.white,
-            .font: UIFont.systemFont(ofSize: 34, weight: .bold)
-        ]
-        appearance.shadowColor = .clear
-        
-        navigationController?.navigationBar.standardAppearance = appearance
-        navigationController?.navigationBar.scrollEdgeAppearance = appearance
-        navigationController?.navigationBar.compactAppearance = appearance
-        navigationController?.navigationBar.tintColor = .white
+
+    // MARK: Table View Data Source
+
+    override func tableView(
+        _ tableView: UITableView,
+        numberOfRowsInSection section: Int
+    ) -> Int {
+        portfolioSections.count + uploadedMedia.count
     }
-    
-    // MARK: - Table View Data Source
-    override func numberOfSections(in tableView: UITableView) -> Int {
-        return 1
-    }
-    
-    override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return portfolioSections.count + uploadedMedia.count
-    }
-    
-    override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+
+    override func tableView(
+        _ tableView: UITableView,
+        cellForRowAt indexPath: IndexPath
+    ) -> UITableViewCell {
+
         if indexPath.row < portfolioSections.count {
             let section = portfolioSections[indexPath.row]
-            
-            switch section.type {
-            case .text:
-                let cell = tableView.dequeueReusableCell(withIdentifier: "PortfolioTextCell", for: indexPath) as! PortfolioTextCell
-                cell.configure(title: section.title, content: section.content ?? "")
+
+            if section.type == .text {
+                let cell = tableView.dequeueReusableCell(
+                    withIdentifier: "PortfolioTextCell",
+                    for: indexPath
+                ) as! PortfolioTextCell
+
+                cell.configure(
+                    title: section.title,
+                    content: section.content ?? ""
+                )
+
                 return cell
-                
-            case .button:
-                let cell = tableView.dequeueReusableCell(withIdentifier: "PortfolioButtonsCell", for: indexPath) as! PortfolioButtonsCell
-                cell.configure(title: section.title)
-                cell.onImageTapped = { [weak self] in
-                    self?.pickImage()
-                }
-                cell.onDocumentTapped = { [weak self] in
-                    self?.pickDocument()
-                }
-                cell.onVideoTapped = { [weak self] in
-                    self?.pickVideo()
-                }
+            } else {
+                let cell = tableView.dequeueReusableCell(
+                    withIdentifier: "PortfolioButtonsCell",
+                    for: indexPath
+                ) as! PortfolioButtonsCell
+
+                cell.onImageTapped = { [weak self] in self?.pickImage() }
+                cell.onDocumentTapped = { [weak self] in self?.pickDocument() }
+                cell.onVideoTapped = { [weak self] in self?.pickVideo() }
+
                 return cell
             }
-        } else {
-            let mediaIndex = indexPath.row - portfolioSections.count
-            let media = uploadedMedia[mediaIndex]
-            
-            let cell = tableView.dequeueReusableCell(withIdentifier: "PortfolioMediaCell", for: indexPath) as! PortfolioMediaCell
-            cell.configure(with: media, brandColor: brandColor, isReadOnly: isReadOnlyMode)
-            cell.onDeleteTapped = { [weak self] in
-                self?.deleteMedia(at: mediaIndex)
-            }
-            return cell
         }
+
+        let mediaIndex = indexPath.row - portfolioSections.count
+        let media = uploadedMedia[mediaIndex]
+
+        let cell = tableView.dequeueReusableCell(
+            withIdentifier: "PortfolioMediaCell",
+            for: indexPath
+        ) as! PortfolioMediaCell
+
+        cell.configure(
+            with: media,
+            brandColor: brandColor,
+            isReadOnly: isReadOnlyMode
+        )
+
+        cell.onDeleteTapped = { [weak self] in
+            self?.deleteMedia(at: mediaIndex)
+        }
+
+        return cell
     }
-    
-    override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        tableView.deselectRow(at: indexPath, animated: true)
-        
+
+    override func tableView(
+        _ tableView: UITableView,
+        didSelectRowAt indexPath: IndexPath
+    ) {
         if indexPath.row >= portfolioSections.count {
-            let mediaIndex = indexPath.row - portfolioSections.count
-            let media = uploadedMedia[mediaIndex]
-            
-            self.currentPreviewURL = media.url
+            let media = uploadedMedia[indexPath.row - portfolioSections.count]
             previewMedia(media)
         }
     }
-    
-    // MARK: - Upload Logic
+
+    // MARK: Media Preview
+
+    private func previewMedia(_ media: PortfolioMedia) {
+        guard let url = media.url else { return }
+
+        currentPreviewURL = url
+
+        let previewController = QLPreviewController()
+        previewController.dataSource = self
+        present(previewController, animated: true)
+    }
+
+    // MARK: Media Pickers
+
     private func pickImage() {
         var config = PHPickerConfiguration()
         config.filter = .images
         config.selectionLimit = 1
-        
+
         let picker = PHPickerViewController(configuration: config)
         picker.delegate = self
         present(picker, animated: true)
     }
-    
+
     private func pickVideo() {
         var config = PHPickerConfiguration()
         config.filter = .videos
         config.selectionLimit = 1
-        
+
         let picker = PHPickerViewController(configuration: config)
         picker.delegate = self
         present(picker, animated: true)
     }
-    
+
     private func pickDocument() {
-        let types: [UTType] = [.pdf, .png, .jpeg, .heic, .plainText, .rtf, .data]
-        let picker = UIDocumentPickerViewController(forOpeningContentTypes: types)
+        let picker = UIDocumentPickerViewController(
+            forOpeningContentTypes: [.pdf, .plainText]
+        )
         picker.delegate = self
-        picker.allowsMultipleSelection = false
-        picker.shouldShowFileExtensions = true
         present(picker, animated: true)
     }
-    
-    private func saveFile(from url: URL, type: PortfolioMediaType) {
+
+    // MARK: Media Storage
+
+    func saveFile(from url: URL, type: PortfolioMediaType) {
         let fileName = "\(UUID().uuidString)_\(url.lastPathComponent)"
-        let documentsURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
+
+        let documentsURL = FileManager.default.urls(
+            for: .documentDirectory,
+            in: .userDomainMask
+        ).first!
+
         let destURL = documentsURL.appendingPathComponent(fileName)
-        
+
         do {
-            let accessed = url.startAccessingSecurityScopedResource()
-            
-            defer {
-                if accessed {
-                    url.stopAccessingSecurityScopedResource()
-                }
-            }
-            
-            if FileManager.default.fileExists(atPath: destURL.path) {
-                try FileManager.default.removeItem(at: destURL)
-            }
-            
             try FileManager.default.copyItem(at: url, to: destURL)
-            
+
             let media = PortfolioMedia(
                 id: UUID().uuidString,
                 type: type,
                 fileName: fileName,
                 name: url.lastPathComponent
             )
-            
+
             uploadedMedia.append(media)
             saveToMemory()
-            
-            DispatchQueue.main.async { [weak self] in
-                self?.tableView.reloadData()
-                self?.showSuccessMessage(message: "✅ File uploaded successfully!")
+
+            DispatchQueue.main.async {
+                self.tableView.reloadData()
             }
-            
         } catch {
-            print("Error saving file: \(error.localizedDescription)")
-            DispatchQueue.main.async { [weak self] in
-                self?.showErrorMessage(message: "Failed to upload file: \(error.localizedDescription)")
-            }
+            print("Error saving file")
         }
     }
-    
+
     private func deleteMedia(at index: Int) {
-        // Prevent deletion in read-only mode
-        guard !isReadOnlyMode else {
-            showErrorMessage(message: "Cannot delete files in view-only mode")
-            return
-        }
-        
         let media = uploadedMedia[index]
-        
-        let alert = UIAlertController(
-            title: "Delete File",
-            message: "Are you sure you want to delete '\(media.name)'?",
-            preferredStyle: .alert
-        )
-        
-        alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
-        alert.addAction(UIAlertAction(title: "Delete", style: .destructive) { [weak self] _ in
-            if let url = media.url {
-                try? FileManager.default.removeItem(at: url)
-            }
-            
-            self?.uploadedMedia.remove(at: index)
-            self?.saveToMemory()
-            self?.tableView.reloadData()
-            
-            self?.showSuccessMessage(message: "🗑️ File deleted")
-        })
-        
-        present(alert, animated: true)
-    }
-    
-    private func previewMedia(_ media: PortfolioMedia) {
-        guard let url = media.url, FileManager.default.fileExists(atPath: url.path) else {
-            showErrorMessage(message: "File not found")
-            return
+
+        if let url = media.url {
+            try? FileManager.default.removeItem(at: url)
         }
-        
-        let previewController = QLPreviewController()
-        previewController.dataSource = self
-        previewController.currentPreviewItemIndex = 0
-        navigationController?.pushViewController(previewController, animated: true)
-    }
-    
-    // MARK: - Helper Methods
-    private func showSuccessMessage(message: String) {
-        let alert = UIAlertController(title: nil, message: message, preferredStyle: .alert)
-        present(alert, animated: true)
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
-            alert.dismiss(animated: true)
-        }
-    }
-    
-    private func showErrorMessage(message: String) {
-        let alert = UIAlertController(title: "Error", message: message, preferredStyle: .alert)
-        alert.addAction(UIAlertAction(title: "OK", style: .default))
-        present(alert, animated: true)
+
+        uploadedMedia.remove(at: index)
+        saveToMemory()
+        tableView.reloadData()
     }
 }
 
-// MARK: - PHPickerViewControllerDelegate
-extension ProviderPortfolioTableViewController: PHPickerViewControllerDelegate {
-    func picker(_ picker: PHPickerViewController, didFinishPicking results: [PHPickerResult]) {
+// MARK: - Delegates
+
+extension ProviderPortfolioTableViewController:
+    PHPickerViewControllerDelegate,
+    UIDocumentPickerDelegate,
+    QLPreviewControllerDataSource {
+
+    func picker(
+        _ picker: PHPickerViewController,
+        didFinishPicking results: [PHPickerResult]
+    ) {
         picker.dismiss(animated: true)
-        
+
         guard let result = results.first else { return }
-        
-        if result.itemProvider.hasItemConformingToTypeIdentifier(UTType.image.identifier) {
-            result.itemProvider.loadFileRepresentation(forTypeIdentifier: UTType.image.identifier) { [weak self] url, error in
-                if let error = error {
-                    print("Error loading image: \(error)")
-                    DispatchQueue.main.async {
-                        self?.showErrorMessage(message: "Failed to load image")
-                    }
-                    return
-                }
-                guard let url = url else { return }
-                
-                let tempURL = FileManager.default.temporaryDirectory.appendingPathComponent(url.lastPathComponent)
-                do {
-                    if FileManager.default.fileExists(atPath: tempURL.path) {
-                        try FileManager.default.removeItem(at: tempURL)
-                    }
-                    try FileManager.default.copyItem(at: url, to: tempURL)
-                    
-                    DispatchQueue.main.async {
-                        self?.saveFile(from: tempURL, type: .image)
-                    }
-                } catch {
-                    print("Error copying file: \(error)")
-                }
-            }
-        } else if result.itemProvider.hasItemConformingToTypeIdentifier(UTType.movie.identifier) {
-            result.itemProvider.loadFileRepresentation(forTypeIdentifier: UTType.movie.identifier) { [weak self] url, error in
-                if let error = error {
-                    print("Error loading video: \(error)")
-                    DispatchQueue.main.async {
-                        self?.showErrorMessage(message: "Failed to load video")
-                    }
-                    return
-                }
-                guard let url = url else { return }
-                
-                let tempURL = FileManager.default.temporaryDirectory.appendingPathComponent(url.lastPathComponent)
-                do {
-                    if FileManager.default.fileExists(atPath: tempURL.path) {
-                        try FileManager.default.removeItem(at: tempURL)
-                    }
-                    try FileManager.default.copyItem(at: url, to: tempURL)
-                    
-                    DispatchQueue.main.async {
-                        self?.saveFile(from: tempURL, type: .video)
-                    }
-                } catch {
-                    print("Error copying file: \(error)")
+
+        // Determine if it's a video or image
+        let isVideo = result.itemProvider.hasItemConformingToTypeIdentifier(UTType.movie.identifier)
+        let typeIdentifier = isVideo ? UTType.movie.identifier : UTType.item.identifier
+        let mediaType: PortfolioMediaType = isVideo ? .video : .image
+
+        result.itemProvider.loadFileRepresentation(
+            forTypeIdentifier: typeIdentifier
+        ) { url, _ in
+            if let url = url {
+                let tempURL = FileManager.default.temporaryDirectory
+                    .appendingPathComponent(url.lastPathComponent)
+
+                try? FileManager.default.copyItem(at: url, to: tempURL)
+
+                DispatchQueue.main.async {
+                    self.saveFile(from: tempURL, type: mediaType)
                 }
             }
         }
     }
-}
 
-// MARK: - UIDocumentPickerDelegate
-extension ProviderPortfolioTableViewController: UIDocumentPickerDelegate {
-    func documentPicker(_ controller: UIDocumentPickerViewController, didPickDocumentsAt urls: [URL]) {
-        guard let url = urls.first else { return }
-        saveFile(from: url, type: .document)
+    func documentPicker(
+        _ controller: UIDocumentPickerViewController,
+        didPickDocumentsAt urls: [URL]
+    ) {
+        if let url = urls.first {
+            saveFile(from: url, type: .document)
+        }
+    }
+
+    func numberOfPreviewItems(
+        in controller: QLPreviewController
+    ) -> Int {
+        1
+    }
+
+    func previewController(
+        _ controller: QLPreviewController,
+        previewItemAt index: Int
+    ) -> QLPreviewItem {
+        (currentPreviewURL as NSURL?) ?? NSURL()
     }
 }
 
-// MARK: - QLPreviewControllerDataSource
-extension ProviderPortfolioTableViewController: QLPreviewControllerDataSource {
-    func numberOfPreviewItems(in controller: QLPreviewController) -> Int {
-        return 1
-    }
-    
-    func previewController(_ controller: QLPreviewController, previewItemAt index: Int) -> QLPreviewItem {
-        return (currentPreviewURL as NSURL?) ?? NSURL()
-    }
-}
-
-// MARK: - Custom Cells
+// MARK: - Cells
 
 class PortfolioTextCell: UITableViewCell {
-    private let containerView: UIView = {
-        let view = UIView()
-        view.backgroundColor = .white
-        view.layer.cornerRadius = 16
-        view.layer.shadowColor = UIColor.black.cgColor
-        view.layer.shadowOpacity = 0.05
-        view.layer.shadowOffset = CGSize(width: 0, height: 2)
-        view.layer.shadowRadius = 8
-        view.translatesAutoresizingMaskIntoConstraints = false
-        return view
-    }()
-    
-    private let titleLabel: UILabel = {
-        let label = UILabel()
-        label.font = UIFont.systemFont(ofSize: 20, weight: .bold)
-        label.textColor = .black
-        label.translatesAutoresizingMaskIntoConstraints = false
-        return label
-    }()
-    
-    private let contentLabel: UILabel = {
-        let label = UILabel()
-        label.font = UIFont.systemFont(ofSize: 16)
-        label.textColor = UIColor.darkGray
-        label.numberOfLines = 0
-        label.translatesAutoresizingMaskIntoConstraints = false
-        return label
-    }()
-    
-    override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
+
+    private let container = UIView()
+    private let titleLbl = UILabel()
+    private let contentLbl = UILabel()
+
+    override init(
+        style: UITableViewCell.CellStyle,
+        reuseIdentifier: String?
+    ) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
-        setupUI()
+        setup()
     }
-    
-    required init?(coder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
-    }
-    
-    private func setupUI() {
+
+    required init?(coder: NSCoder) { fatalError() }
+
+    private func setup() {
         backgroundColor = .clear
         selectionStyle = .none
-        
-        contentView.addSubview(containerView)
-        containerView.addSubview(titleLabel)
-        containerView.addSubview(contentLabel)
-        
+
+        container.backgroundColor = .white
+        container.layer.cornerRadius = 16
+        container.translatesAutoresizingMaskIntoConstraints = false
+
+        contentView.addSubview(container)
+
+        titleLbl.font = .boldSystemFont(ofSize: 18)
+        contentLbl.numberOfLines = 0
+
+        let stack = UIStackView(arrangedSubviews: [titleLbl, contentLbl])
+        stack.axis = .vertical
+        stack.spacing = 8
+        stack.translatesAutoresizingMaskIntoConstraints = false
+
+        container.addSubview(stack)
+
         NSLayoutConstraint.activate([
-            containerView.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 8),
-            containerView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
-            containerView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
-            containerView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -8),
-            
-            titleLabel.topAnchor.constraint(equalTo: containerView.topAnchor, constant: 20),
-            titleLabel.leadingAnchor.constraint(equalTo: containerView.leadingAnchor, constant: 20),
-            titleLabel.trailingAnchor.constraint(equalTo: containerView.trailingAnchor, constant: -20),
-            
-            contentLabel.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 12),
-            contentLabel.leadingAnchor.constraint(equalTo: containerView.leadingAnchor, constant: 20),
-            contentLabel.trailingAnchor.constraint(equalTo: containerView.trailingAnchor, constant: -20),
-            contentLabel.bottomAnchor.constraint(equalTo: containerView.bottomAnchor, constant: -20)
+            container.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 8),
+            container.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
+            container.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
+            container.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -8),
+
+            stack.topAnchor.constraint(equalTo: container.topAnchor, constant: 16),
+            stack.leadingAnchor.constraint(equalTo: container.leadingAnchor, constant: 16),
+            stack.trailingAnchor.constraint(equalTo: container.trailingAnchor, constant: -16),
+            stack.bottomAnchor.constraint(equalTo: container.bottomAnchor, constant: -16)
         ])
     }
-    
+
     func configure(title: String, content: String) {
-        titleLabel.text = title
-        contentLabel.text = content
+        titleLbl.text = title
+        contentLbl.text = content
     }
 }
 
 class PortfolioButtonsCell: UITableViewCell {
+
     var onImageTapped: (() -> Void)?
     var onDocumentTapped: (() -> Void)?
     var onVideoTapped: (() -> Void)?
-    
-    private let containerView: UIView = {
-        let view = UIView()
-        view.backgroundColor = .white
-        view.layer.cornerRadius = 16
-        view.layer.shadowColor = UIColor.black.cgColor
-        view.layer.shadowOpacity = 0.08
-        view.layer.shadowOffset = CGSize(width: 0, height: 2)
-        view.layer.shadowRadius = 8
-        view.translatesAutoresizingMaskIntoConstraints = false
-        return view
-    }()
-    
-    private let titleLabel: UILabel = {
-        let label = UILabel()
-        label.font = UIFont.systemFont(ofSize: 16, weight: .medium)
-        label.textColor = .gray
-        label.translatesAutoresizingMaskIntoConstraints = false
-        return label
-    }()
-    
-    private let stackView: UIStackView = {
+
+    private let container = UIView()
+
+    override init(
+        style: UITableViewCell.CellStyle,
+        reuseIdentifier: String?
+    ) {
+        super.init(style: style, reuseIdentifier: reuseIdentifier)
+        setup()
+    }
+
+    required init?(coder: NSCoder) { fatalError() }
+
+    private func setup() {
+        backgroundColor = .clear
+        selectionStyle = .none
+
+        container.backgroundColor = .white
+        container.layer.cornerRadius = 16
+        container.translatesAutoresizingMaskIntoConstraints = false
+
+        contentView.addSubview(container)
+
+        let titleLabel = UILabel()
+        titleLabel.text = "Upload Portfolio"
+        titleLabel.font = .boldSystemFont(ofSize: 18)
+        titleLabel.textColor = .black
+        titleLabel.translatesAutoresizingMaskIntoConstraints = false
+        
+        container.addSubview(titleLabel)
+        
         let stack = UIStackView()
         stack.axis = .horizontal
         stack.distribution = .fillEqually
-        stack.spacing = 16
+        stack.spacing = 12
         stack.translatesAutoresizingMaskIntoConstraints = false
-        return stack
-    }()
-    
-    private lazy var imageButton: UIButton = {
-        let button = createUploadButton(icon: "📷", title: "Images")
-        button.addTarget(self, action: #selector(imageTapped), for: .touchUpInside)
-        return button
-    }()
-    
-    private lazy var documentButton: UIButton = {
-        let button = createUploadButton(icon: "📄", title: "Docs")
-        button.addTarget(self, action: #selector(documentTapped), for: .touchUpInside)
-        return button
-    }()
-    
-    private lazy var videoButton: UIButton = {
-        let button = createUploadButton(icon: "🎥", title: "Videos")
-        button.addTarget(self, action: #selector(videoTapped), for: .touchUpInside)
-        return button
-    }()
-    
-    override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
-        super.init(style: style, reuseIdentifier: reuseIdentifier)
-        setupUI()
-    }
-    
-    required init?(coder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
-    }
-    
-    private func setupUI() {
-        backgroundColor = .clear
-        selectionStyle = .none
-        
-        contentView.addSubview(containerView)
-        containerView.addSubview(titleLabel)
-        containerView.addSubview(stackView)
-        
-        stackView.addArrangedSubview(imageButton)
-        stackView.addArrangedSubview(documentButton)
-        stackView.addArrangedSubview(videoButton)
-        
+
+        container.addSubview(stack)
+
+        let b1 = createBtn(t: "Images", i: "photo.fill")
+        let b2 = createBtn(t: "Docs", i: "doc.fill")
+        let b3 = createBtn(t: "Videos", i: "video.fill")
+
+        b1.addTarget(self, action: #selector(img), for: .touchUpInside)
+        b2.addTarget(self, action: #selector(doc), for: .touchUpInside)
+        b3.addTarget(self, action: #selector(vid), for: .touchUpInside)
+
+        [b1, b2, b3].forEach { stack.addArrangedSubview($0) }
+
         NSLayoutConstraint.activate([
-            containerView.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 8),
-            containerView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
-            containerView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
-            containerView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -8),
+            container.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 8),
+            container.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
+            container.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
+            container.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -8),
+
+            titleLabel.topAnchor.constraint(equalTo: container.topAnchor, constant: 16),
+            titleLabel.leadingAnchor.constraint(equalTo: container.leadingAnchor, constant: 16),
+            titleLabel.trailingAnchor.constraint(equalTo: container.trailingAnchor, constant: -16),
             
-            titleLabel.topAnchor.constraint(equalTo: containerView.topAnchor, constant: 16),
-            titleLabel.leadingAnchor.constraint(equalTo: containerView.leadingAnchor, constant: 16),
-            titleLabel.trailingAnchor.constraint(equalTo: containerView.trailingAnchor, constant: -16),
-            
-            stackView.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 16),
-            stackView.leadingAnchor.constraint(equalTo: containerView.leadingAnchor, constant: 16),
-            stackView.trailingAnchor.constraint(equalTo: containerView.trailingAnchor, constant: -16),
-            stackView.bottomAnchor.constraint(equalTo: containerView.bottomAnchor, constant: -16),
-            stackView.heightAnchor.constraint(equalToConstant: 90)
+            stack.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 16),
+            stack.leadingAnchor.constraint(equalTo: container.leadingAnchor, constant: 16),
+            stack.trailingAnchor.constraint(equalTo: container.trailingAnchor, constant: -16),
+            stack.bottomAnchor.constraint(equalTo: container.bottomAnchor, constant: -20),
+            stack.heightAnchor.constraint(equalToConstant: 70)
         ])
     }
-    
-    private func createUploadButton(icon: String, title: String) -> UIButton {
-        let button = UIButton(type: .system)
-        button.backgroundColor = UIColor.white
-        button.layer.cornerRadius = 12
-        button.layer.borderWidth = 1.5
-        button.layer.borderColor = UIColor(red: 0.90, green: 0.90, blue: 0.92, alpha: 1.0).cgColor
-        button.translatesAutoresizingMaskIntoConstraints = false
+
+    private func createBtn(t: String, i: String) -> UIButton {
+        let b = UIButton(type: .system)
         
-        let iconContainer = UIView()
-        iconContainer.backgroundColor = UIColor(red: 0.35, green: 0.34, blue: 0.91, alpha: 0.15)
-        iconContainer.layer.cornerRadius = 20
-        iconContainer.translatesAutoresizingMaskIntoConstraints = false
+        // Create vertical stack for icon and text
+        let iconView = UIImageView(image: UIImage(systemName: i))
+        iconView.contentMode = .scaleAspectFit
+        iconView.tintColor = UIColor(red: 0.35, green: 0.34, blue: 0.91, alpha: 1.0)
+        iconView.translatesAutoresizingMaskIntoConstraints = false
         
-        let iconImageView = UIImageView()
-        iconImageView.contentMode = .scaleAspectFit
-        iconImageView.tintColor = UIColor(red: 0.35, green: 0.34, blue: 0.91, alpha: 1.0)
-        iconImageView.translatesAutoresizingMaskIntoConstraints = false
+        let label = UILabel()
+        label.text = t
+        label.font = .systemFont(ofSize: 13, weight: .regular)
+        label.textColor = UIColor(red: 0.35, green: 0.34, blue: 0.91, alpha: 1.0)
+        label.textAlignment = .center
+        label.translatesAutoresizingMaskIntoConstraints = false
         
-        if title == "Images" {
-            iconImageView.image = UIImage(systemName: "photo.fill")
-        } else if title == "Docs" {
-            iconImageView.image = UIImage(systemName: "doc.text.fill")
-        } else if title == "Videos" {
-            iconImageView.image = UIImage(systemName: "video.fill")
-        }
+        let stack = UIStackView(arrangedSubviews: [iconView, label])
+        stack.axis = .vertical
+        stack.spacing = 6
+        stack.alignment = .center
+        stack.isUserInteractionEnabled = false
+        stack.translatesAutoresizingMaskIntoConstraints = false
         
-        let titleLabel = UILabel()
-        titleLabel.text = title
-        titleLabel.font = UIFont.systemFont(ofSize: 13, weight: .medium)
-        titleLabel.textColor = UIColor(red: 0.20, green: 0.20, blue: 0.25, alpha: 1.0)
-        titleLabel.textAlignment = .center
-        titleLabel.translatesAutoresizingMaskIntoConstraints = false
-        
-        iconContainer.addSubview(iconImageView)
-        button.addSubview(iconContainer)
-        button.addSubview(titleLabel)
+        b.addSubview(stack)
         
         NSLayoutConstraint.activate([
-            iconContainer.centerXAnchor.constraint(equalTo: button.centerXAnchor),
-            iconContainer.topAnchor.constraint(equalTo: button.topAnchor, constant: 14),
-            iconContainer.widthAnchor.constraint(equalToConstant: 40),
-            iconContainer.heightAnchor.constraint(equalToConstant: 40),
+            iconView.heightAnchor.constraint(equalToConstant: 28),
+            iconView.widthAnchor.constraint(equalToConstant: 28),
             
-            iconImageView.centerXAnchor.constraint(equalTo: iconContainer.centerXAnchor),
-            iconImageView.centerYAnchor.constraint(equalTo: iconContainer.centerYAnchor),
-            iconImageView.widthAnchor.constraint(equalToConstant: 22),
-            iconImageView.heightAnchor.constraint(equalToConstant: 22),
-            
-            titleLabel.centerXAnchor.constraint(equalTo: button.centerXAnchor),
-            titleLabel.topAnchor.constraint(equalTo: iconContainer.bottomAnchor, constant: 8),
-            titleLabel.bottomAnchor.constraint(lessThanOrEqualTo: button.bottomAnchor, constant: -10)
+            stack.centerXAnchor.constraint(equalTo: b.centerXAnchor),
+            stack.centerYAnchor.constraint(equalTo: b.centerYAnchor)
         ])
         
-        return button
+        b.backgroundColor = UIColor(red: 0.35, green: 0.34, blue: 0.91, alpha: 0.1)
+        b.layer.borderWidth = 0
+        b.layer.cornerRadius = 12
+        
+        return b
     }
-    
-    func configure(title: String) {
-        titleLabel.text = title
-    }
-    
-    @objc private func imageTapped() {
-        onImageTapped?()
-    }
-    
-    @objc private func documentTapped() {
-        onDocumentTapped?()
-    }
-    
-    @objc private func videoTapped() {
-        onVideoTapped?()
-    }
+
+    @objc func img() { onImageTapped?() }
+    @objc func doc() { onDocumentTapped?() }
+    @objc func vid() { onVideoTapped?() }
 }
 
 class PortfolioMediaCell: UITableViewCell {
+
     var onDeleteTapped: (() -> Void)?
-    
-    private let containerView: UIView = {
-        let view = UIView()
-        view.backgroundColor = .white
-        view.layer.cornerRadius = 16
-        view.layer.shadowColor = UIColor.black.cgColor
-        view.layer.shadowOpacity = 0.05
-        view.layer.shadowOffset = CGSize(width: 0, height: 2)
-        view.layer.shadowRadius = 8
-        view.translatesAutoresizingMaskIntoConstraints = false
-        return view
-    }()
-    
-    private let iconImageView: UIImageView = {
-        let iv = UIImageView()
-        iv.contentMode = .scaleAspectFit
-        iv.translatesAutoresizingMaskIntoConstraints = false
-        return iv
-    }()
-    
-    private let iconBackgroundView: UIView = {
-        let view = UIView()
-        view.layer.cornerRadius = 12
-        view.translatesAutoresizingMaskIntoConstraints = false
-        return view
-    }()
-    
-    private let nameLabel: UILabel = {
-        let label = UILabel()
-        label.font = UIFont.systemFont(ofSize: 16, weight: .medium)
-        label.textColor = .black
-        label.translatesAutoresizingMaskIntoConstraints = false
-        return label
-    }()
-    
-    private let typeLabel: UILabel = {
-        let label = UILabel()
-        label.font = UIFont.systemFont(ofSize: 14)
-        label.textColor = .gray
-        label.translatesAutoresizingMaskIntoConstraints = false
-        return label
-    }()
-    
-    private let deleteButton: UIButton = {
-        let button = UIButton(type: .system)
-        button.setImage(UIImage(systemName: "trash"), for: .normal)
-        button.tintColor = .systemRed
-        button.translatesAutoresizingMaskIntoConstraints = false
-        return button
-    }()
-    
-    override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
+
+    private let container = UIView()
+    private let iconView = UIImageView()
+    private let nameLbl = UILabel()
+    private let typeLbl = UILabel()
+    private let delBtn = UIButton(type: .system)
+
+    override init(
+        style: UITableViewCell.CellStyle,
+        reuseIdentifier: String?
+    ) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
-        setupUI()
+        setup()
     }
-    
-    required init?(coder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
-    }
-    
-    private func setupUI() {
+
+    required init?(coder: NSCoder) { fatalError() }
+
+    private func setup() {
         backgroundColor = .clear
         selectionStyle = .none
+
+        container.backgroundColor = .white
+        container.layer.cornerRadius = 16
+        container.layer.shadowColor = UIColor.black.cgColor
+        container.layer.shadowOffset = CGSize(width: 0, height: 2)
+        container.layer.shadowRadius = 4
+        container.layer.shadowOpacity = 0.06
+        container.translatesAutoresizingMaskIntoConstraints = false
+
+        contentView.addSubview(container)
+
+        // Icon background
+        let iconBackground = UIView()
+        iconBackground.backgroundColor = UIColor(red: 0.35, green: 0.34, blue: 0.91, alpha: 0.1)
+        iconBackground.layer.cornerRadius = 10
+        iconBackground.translatesAutoresizingMaskIntoConstraints = false
         
-        contentView.addSubview(containerView)
-        containerView.addSubview(iconBackgroundView)
-        iconBackgroundView.addSubview(iconImageView)
-        containerView.addSubview(nameLabel)
-        containerView.addSubview(typeLabel)
-        containerView.addSubview(deleteButton)
+        iconView.contentMode = .scaleAspectFit
+        iconView.tintColor = UIColor(red: 0.35, green: 0.34, blue: 0.91, alpha: 1.0)
+        iconView.translatesAutoresizingMaskIntoConstraints = false
         
-        deleteButton.addTarget(self, action: #selector(deleteTapped), for: .touchUpInside)
-        
+        iconBackground.addSubview(iconView)
+        container.addSubview(iconBackground)
+
+        // Name label
+        nameLbl.font = .systemFont(ofSize: 15, weight: .medium)
+        nameLbl.textColor = .black
+        nameLbl.translatesAutoresizingMaskIntoConstraints = false
+
+        // Type label
+        typeLbl.font = .systemFont(ofSize: 13, weight: .regular)
+        typeLbl.textColor = .systemGray
+        typeLbl.translatesAutoresizingMaskIntoConstraints = false
+
+        let textStack = UIStackView(arrangedSubviews: [nameLbl, typeLbl])
+        textStack.axis = .vertical
+        textStack.spacing = 2
+        textStack.translatesAutoresizingMaskIntoConstraints = false
+
+        container.addSubview(textStack)
+
+        // Delete button
+        delBtn.setImage(UIImage(systemName: "trash.fill"), for: .normal)
+        delBtn.tintColor = .systemRed
+        delBtn.backgroundColor = UIColor.systemRed.withAlphaComponent(0.1)
+        delBtn.layer.cornerRadius = 18
+        delBtn.translatesAutoresizingMaskIntoConstraints = false
+        delBtn.addTarget(self, action: #selector(del), for: .touchUpInside)
+
+        container.addSubview(delBtn)
+
         NSLayoutConstraint.activate([
-            containerView.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 8),
-            containerView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
-            containerView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
-            containerView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -8),
+            container.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 6),
+            container.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
+            container.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
+            container.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -6),
+            container.heightAnchor.constraint(equalToConstant: 72),
+
+            iconBackground.leadingAnchor.constraint(equalTo: container.leadingAnchor, constant: 12),
+            iconBackground.centerYAnchor.constraint(equalTo: container.centerYAnchor),
+            iconBackground.widthAnchor.constraint(equalToConstant: 48),
+            iconBackground.heightAnchor.constraint(equalToConstant: 48),
             
-            iconBackgroundView.leadingAnchor.constraint(equalTo: containerView.leadingAnchor, constant: 16),
-            iconBackgroundView.centerYAnchor.constraint(equalTo: containerView.centerYAnchor),
-            iconBackgroundView.widthAnchor.constraint(equalToConstant: 48),
-            iconBackgroundView.heightAnchor.constraint(equalToConstant: 48),
-            
-            iconImageView.centerXAnchor.constraint(equalTo: iconBackgroundView.centerXAnchor),
-            iconImageView.centerYAnchor.constraint(equalTo: iconBackgroundView.centerYAnchor),
-            iconImageView.widthAnchor.constraint(equalToConstant: 24),
-            iconImageView.heightAnchor.constraint(equalToConstant: 24),
-            
-            nameLabel.leadingAnchor.constraint(equalTo: iconBackgroundView.trailingAnchor, constant: 16),
-            nameLabel.topAnchor.constraint(equalTo: containerView.topAnchor, constant: 16),
-            nameLabel.trailingAnchor.constraint(equalTo: deleteButton.leadingAnchor, constant: -12),
-            
-            typeLabel.leadingAnchor.constraint(equalTo: nameLabel.leadingAnchor),
-            typeLabel.topAnchor.constraint(equalTo: nameLabel.bottomAnchor, constant: 4),
-            typeLabel.trailingAnchor.constraint(equalTo: nameLabel.trailingAnchor),
-            typeLabel.bottomAnchor.constraint(lessThanOrEqualTo: containerView.bottomAnchor, constant: -16),
-            
-            deleteButton.trailingAnchor.constraint(equalTo: containerView.trailingAnchor, constant: -16),
-            deleteButton.centerYAnchor.constraint(equalTo: containerView.centerYAnchor),
-            deleteButton.widthAnchor.constraint(equalToConstant: 40),
-            deleteButton.heightAnchor.constraint(equalToConstant: 40)
+            iconView.centerXAnchor.constraint(equalTo: iconBackground.centerXAnchor),
+            iconView.centerYAnchor.constraint(equalTo: iconBackground.centerYAnchor),
+            iconView.widthAnchor.constraint(equalToConstant: 24),
+            iconView.heightAnchor.constraint(equalToConstant: 24),
+
+            textStack.leadingAnchor.constraint(equalTo: iconBackground.trailingAnchor, constant: 12),
+            textStack.centerYAnchor.constraint(equalTo: container.centerYAnchor),
+            textStack.trailingAnchor.constraint(equalTo: delBtn.leadingAnchor, constant: -12),
+
+            delBtn.trailingAnchor.constraint(equalTo: container.trailingAnchor, constant: -12),
+            delBtn.centerYAnchor.constraint(equalTo: container.centerYAnchor),
+            delBtn.widthAnchor.constraint(equalToConstant: 36),
+            delBtn.heightAnchor.constraint(equalToConstant: 36)
         ])
     }
-    
-    func configure(with media: PortfolioMedia, brandColor: UIColor, isReadOnly: Bool = false) {
-        nameLabel.text = media.name
+
+    func configure(
+        with m: PortfolioMedia,
+        brandColor: UIColor,
+        isReadOnly: Bool
+    ) {
+        nameLbl.text = m.name
+        delBtn.isHidden = isReadOnly
         
-        // Hide or show delete button based on mode
-        deleteButton.isHidden = isReadOnly
-        
-        switch media.type {
+        // Set icon and type based on media type
+        switch m.type {
         case .image:
-            iconImageView.image = UIImage(systemName: "photo")
-            typeLabel.text = "Image"
-            iconBackgroundView.backgroundColor = UIColor.systemBlue.withAlphaComponent(0.15)
-            iconImageView.tintColor = .systemBlue
+            iconView.image = UIImage(systemName: "photo.fill")
+            typeLbl.text = "Image"
         case .document:
-            iconImageView.image = UIImage(systemName: "doc.fill")
-            typeLabel.text = "Document"
-            iconBackgroundView.backgroundColor = UIColor.systemOrange.withAlphaComponent(0.15)
-            iconImageView.tintColor = .systemOrange
+            iconView.image = UIImage(systemName: "doc.fill")
+            typeLbl.text = "Document"
         case .video:
-            iconImageView.image = UIImage(systemName: "video.fill")
-            typeLabel.text = "Video"
-            iconBackgroundView.backgroundColor = UIColor.systemPurple.withAlphaComponent(0.15)
-            iconImageView.tintColor = .systemPurple
+            iconView.image = UIImage(systemName: "video.fill")
+            typeLbl.text = "Video"
         }
     }
-    
-    @objc private func deleteTapped() {
+
+    @objc func del() {
         onDeleteTapped?()
     }
 }
+
