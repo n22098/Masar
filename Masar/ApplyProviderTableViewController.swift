@@ -15,7 +15,6 @@ class ApplyProviderTableViewController: UITableViewController, UIDocumentPickerD
     @IBOutlet weak var skillLevelMenu: UIButton!
     @IBOutlet weak var registerBtn: UIBarButtonItem!
     
-    // Upload Labels from your storyboard
     @IBOutlet weak var idUpload: UILabel!
     @IBOutlet weak var workPortfolioUpload: UILabel!
     @IBOutlet weak var certificateUpload: UILabel!
@@ -23,18 +22,19 @@ class ApplyProviderTableViewController: UITableViewController, UIDocumentPickerD
     // MARK: - Properties
     var userName: String?, userEmail: String?, userPhone: String?
     private var idCardURL: URL?, portfolioURL: URL?, certificateURL: URL?
-    private var currentUploadType: Int = 0 // 0: ID, 1: Portfolio, 2: Cert
+    private var currentUploadType: Int = 0
 
     override func viewDidLoad() {
         super.viewDidLoad()
         setupUI()
         setupMenus()
         setupLabelTaps()
+        addDoneButtonToKeyboard()
     }
 
     private func setupUI() {
-        title = "Data"
-        registerBtn.title = "submit"
+        title = "Provider Application"
+        registerBtn.title = "Submit"
         registerBtn.isEnabled = false
         
         nameLabel.text = userName
@@ -42,19 +42,54 @@ class ApplyProviderTableViewController: UITableViewController, UIDocumentPickerD
         phoneLabel.text = userPhone
         
         tellUsTxt.delegate = self
+        tellUsTxt.layer.cornerRadius = 8
+        tellUsTxt.layer.borderWidth = 0.5
+        tellUsTxt.layer.borderColor = UIColor.systemGray4.cgColor
         
-        // Configure labels for FULL NAME display in one line
         [idUpload, workPortfolioUpload, certificateUpload].forEach { label in
             label?.text = "Upload"
             label?.textColor = .systemBlue
             label?.isUserInteractionEnabled = true
-            
-            // Fix: This ensures the full name shows in one line without "..."
             label?.numberOfLines = 1
             label?.adjustsFontSizeToFitWidth = true
-            label?.minimumScaleFactor = 0.5 // Allows font to shrink to 50% to fit the name
-            label?.lineBreakMode = .byClipping // Removes the "..."
+            label?.minimumScaleFactor = 0.5
+            label?.lineBreakMode = .byClipping
         }
+    }
+
+    // MARK: - Keyboard Animation Helpers
+    
+    private func addDoneButtonToKeyboard() {
+        // Removed toolbar - keyboard will dismiss with tap outside or return key
+    }
+
+    @objc func dismissKeyboard() {
+        view.endEditing(true)
+    }
+
+    // Scroll to the row being edited for a smooth animation
+    func textViewDidBeginEditing(_ textView: UITextView) {
+        // Find the actual index path of the cell containing the text view
+        if let cell = textView.superview?.superview as? UITableViewCell,
+           let indexPath = tableView.indexPath(for: cell) {
+            tableView.scrollToRow(at: indexPath, at: .middle, animated: true)
+        }
+        
+        UIView.animate(withDuration: 0.3) {
+            textView.layer.borderColor = UIColor.systemBlue.cgColor
+            textView.layer.borderWidth = 1.0
+        }
+    }
+
+    func textViewDidEndEditing(_ textView: UITextView) {
+        UIView.animate(withDuration: 0.3) {
+            textView.layer.borderColor = UIColor.systemGray4.cgColor
+            textView.layer.borderWidth = 0.5
+        }
+    }
+
+    func textViewDidChange(_ textView: UITextView) {
+        validateForm()
     }
 
     // MARK: - Tap Gestures
@@ -131,16 +166,18 @@ class ApplyProviderTableViewController: UITableViewController, UIDocumentPickerD
     }
 
     private func updateLabelSuccess(_ label: UILabel?, fileName: String) {
-        // Displays the checkmark and the full filename
         label?.text = "✓ \(fileName)"
         label?.textColor = .systemGreen
     }
 
     // MARK: - Submit & Firebase
     @IBAction func registerTapped(_ sender: UIBarButtonItem) {
-        guard let uid = Auth.auth().currentUser?.uid else { return }
-        sender.isEnabled = false
+        guard let uid = Auth.auth().currentUser?.uid else {
+            self.showAlert("User not authenticated.")
+            return
+        }
         
+        sender.isEnabled = false
         let storageRef = Storage.storage().reference().child("providers/\(uid)")
         let group = DispatchGroup()
         var uploadedURLs: [String: String] = [:]
@@ -166,33 +203,69 @@ class ApplyProviderTableViewController: UITableViewController, UIDocumentPickerD
 
     private func saveToFirestore(uid: String, urls: [String: String]) {
         let data: [String: Any] = [
+            "name": userName ?? "",
+            "email": userEmail ?? "",
+            "phone": userPhone ?? "",
             "role": "provider",
-            "category": categoryMenu.title(for: .normal) ?? "",
+            "category": categoryMenu.title(for: .normal) ?? "General",
             "bio": tellUsTxt.text ?? "",
             "idCardURL": urls["idCard"] ?? "",
             "portfolioURL": urls["portfolio"] ?? "",
             "certificateURL": urls["certificate"] ?? "",
+            "status": "pending",
             "timestamp": FieldValue.serverTimestamp()
         ]
 
-        Firestore.firestore().collection("users").document(uid).setData(data, merge: true) { _ in
-            self.navigationController?.popToRootViewController(animated: true)
+        Firestore.firestore().collection("users").document(uid).setData(data, merge: true) { error in
+            if let error = error {
+                self.showAlert("Error saving data: \(error.localizedDescription)")
+                self.registerBtn.isEnabled = true
+            } else {
+                self.showSuccessAndRedirect()
+            }
         }
+    }
+
+    func showSuccessAndRedirect() {
+        let alert = UIAlertController(title: "Success!", message: "Your provider application has been submitted successfully.", preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: "OK", style: .default) { _ in
+            self.navigationController?.popToRootViewController(animated: true)
+        })
+        present(alert, animated: true)
     }
 
     // MARK: - Helper Methods
     private func setupMenus() {
-        let categories = ["Electrician", "Plumber", "Carpenter", "Painter"]
+        // Category Menu
+        let categories = ["Electrician", "Plumber", "Carpenter", "Painter", "Mechanic"]
         categoryMenu.menu = UIMenu(children: categories.map { name in
-            UIAction(title: name) { _ in self.categoryMenu.setTitle(name, for: .normal); self.validateForm() }
+            UIAction(title: name) { _ in
+                self.categoryMenu.setTitle(name, for: .normal)
+                self.validateForm()
+            }
         })
         categoryMenu.showsMenuAsPrimaryAction = true
+        
+        // Skills Level Menu
+        let skillLevels = ["Beginner", "Intermediate", "Advanced", "Expert"]
+        skillLevelMenu.menu = UIMenu(children: skillLevels.map { level in
+            UIAction(title: level) { _ in
+                self.skillLevelMenu.setTitle(level, for: .normal)
+                self.validateForm()
+            }
+        })
+        skillLevelMenu.showsMenuAsPrimaryAction = true
     }
-
-    func textViewDidChange(_ textView: UITextView) { validateForm() }
 
     private func validateForm() {
         let hasBio = !tellUsTxt.text.trimmingCharacters(in: .whitespaces).isEmpty
-        registerBtn.isEnabled = hasBio && idCardURL != nil
+        let hasID = idCardURL != nil
+        registerBtn.isEnabled = hasBio && hasID
+    }
+
+    func showAlert(_ message: String) {
+        let alert = UIAlertController(title: "Alert", message: message, preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: "OK", style: .default))
+        present(alert, animated: true)
     }
 }

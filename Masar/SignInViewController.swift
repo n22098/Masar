@@ -16,6 +16,9 @@ class SignInViewController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        // Setup the eye icon for the password field
+        setupPasswordToggle(for: passwordTextField)
     }
 
     @IBAction func SignInBtn(_ sender: UIButton) {
@@ -34,6 +37,44 @@ class SignInViewController: UIViewController {
             signInWithEmail(email: input, password: password)
         } else {
             signInWithUsername(username: input, password: password)
+        }
+    }
+
+    // MARK: - Password Visibility Logic
+    
+    private func setupPasswordToggle(for textField: UITextField) {
+        let button = UIButton(type: .custom)
+        
+        // Using SF Symbols for the eye
+        let eyeImage = UIImage(systemName: "eye.slash")
+        let eyeOpenImage = UIImage(systemName: "eye")
+        
+        button.setImage(eyeImage, for: .normal)
+        button.setImage(eyeOpenImage, for: .selected)
+        button.tintColor = .systemGray
+        
+        // Frame and Padding inside the text field
+        button.frame = CGRect(x: 0, y: 0, width: 30, height: 30)
+        button.contentEdgeInsets = UIEdgeInsets(top: 0, left: 0, bottom: 0, right: 10)
+        
+        button.addTarget(self, action: #selector(togglePasswordVisibility(_:)), for: .touchUpInside)
+        
+        textField.rightView = button
+        textField.rightViewMode = .always
+        textField.isSecureTextEntry = true // Hidden by default
+    }
+
+    @objc private func togglePasswordVisibility(_ sender: UIButton) {
+        sender.isSelected.toggle()
+        
+        if let textField = sender.superview as? UITextField {
+            textField.isSecureTextEntry.toggle()
+            
+            // Fix to prevent cursor jumping or font reset
+            if let text = textField.text {
+                textField.text = nil
+                textField.text = text
+            }
         }
     }
 

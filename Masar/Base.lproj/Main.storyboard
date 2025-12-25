@@ -34,7 +34,7 @@
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" spacing="40" translatesAutoresizingMaskIntoConstraints="NO" id="8Hs-pa-5H2">
-                                <rect key="frame" x="71" y="181.99999999999997" width="250" height="511.33333333333326"/>
+                                <rect key="frame" x="71" y="182" width="250" height="473"/>
                                 <subviews>
                                     <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="Logo" translatesAutoresizingMaskIntoConstraints="NO" id="AUS-Pk-hO9">
                                         <rect key="frame" x="0.0" y="0.0" width="250" height="120"/>
@@ -75,20 +75,15 @@
                                         </subviews>
                                     </stackView>
                                     <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" distribution="fillEqually" translatesAutoresizingMaskIntoConstraints="NO" id="Yf3-OE-O5u">
-                                        <rect key="frame" x="0.0" y="434.66666666666663" width="250" height="76.666666666666686"/>
+                                        <rect key="frame" x="0.0" y="434.66666666666663" width="250" height="38.333333333333314"/>
                                         <subviews>
                                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="G0V-Ww-00i">
                                                 <rect key="frame" x="0.0" y="0.0" width="250" height="38.333333333333336"/>
                                                 <state key="normal" title="Button"/>
-                                                <buttonConfiguration key="configuration" style="plain" title="Register As a Seeker"/>
+                                                <buttonConfiguration key="configuration" style="plain" title="Register"/>
                                                 <connections>
                                                     <segue destination="kFI-yE-roE" kind="show" id="TUa-e0-7rD"/>
                                                 </connections>
-                                            </button>
-                                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="SSG-ZQ-rnl">
-                                                <rect key="frame" x="0.0" y="38.333333333333371" width="250" height="38.333333333333343"/>
-                                                <state key="normal" title="Button"/>
-                                                <buttonConfiguration key="configuration" style="plain" title="Be A Provider"/>
                                             </button>
                                         </subviews>
                                     </stackView>
@@ -754,8 +749,8 @@
                                             <rect key="frame" x="0.0" y="0.0" width="393" height="148"/>
                                             <autoresizingMask key="autoresizingMask"/>
                                             <subviews>
-                                                <textView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" fixedFrame="YES" text="sdffsd.,fmsdlxkmnxz,cmnxz,cmnzx,cmncxz,mnxc,zmxnc,xzmn,zxmnc,zxmnc,xzmnxz,mnc,xzmncx,zmnc,xzmnc,xmznz,xmnxz,mnc,mzn,mxnz" textAlignment="natural" translatesAutoresizingMaskIntoConstraints="NO" id="X72-mG-0BY">
-                                                    <rect key="frame" x="76" y="10" width="240" height="128"/>
+                                                <textView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" fixedFrame="YES" textAlignment="natural" translatesAutoresizingMaskIntoConstraints="NO" id="X72-mG-0BY">
+                                                    <rect key="frame" x="20" y="10" width="353" height="128"/>
                                                     <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                                     <color key="backgroundColor" systemColor="systemBackgroundColor"/>
                                                     <color key="textColor" systemColor="labelColor"/>
