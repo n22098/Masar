@@ -2,6 +2,8 @@ import UIKit
 
 class AdminDashboardViewController: UIViewController {
 
+    private let scrollView = UIScrollView()
+    private let contentView = UIView()
     private let mainStack = UIStackView()
 
     override func viewDidLoad() {
@@ -11,33 +13,21 @@ class AdminDashboardViewController: UIViewController {
 
     private func setupMainLayout() {
         view.backgroundColor = UIColor(white: 0.98, alpha: 1.0)
-
-        // 1. Header
-        let header = UIView()
-        header.backgroundColor = UIColor(red: 0.12, green: 0.17, blue: 0.27, alpha: 1.0)
-        header.translatesAutoresizingMaskIntoConstraints = false
-        view.addSubview(header)
-
-        let titleLabel = UILabel()
-        titleLabel.text = "Admin Dashboard"
-        titleLabel.textColor = .white
-        titleLabel.font = .systemFont(ofSize: 20, weight: .bold)
-        titleLabel.translatesAutoresizingMaskIntoConstraints = false
-        header.addSubview(titleLabel)
-
-        let bellIcon = UIImageView(image: UIImage(systemName: "bell.fill"))
-        bellIcon.tintColor = .white
-        bellIcon.contentMode = .scaleAspectFit
-        bellIcon.translatesAutoresizingMaskIntoConstraints = false
-        header.addSubview(bellIcon)
-
+        
+        // 1. ScrollView Setup
+        scrollView.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(scrollView)
+        
+        contentView.translatesAutoresizingMaskIntoConstraints = false
+        scrollView.addSubview(contentView)
+        
         // 2. Main Body Stack
         mainStack.axis = .vertical
         mainStack.spacing = 25
         mainStack.translatesAutoresizingMaskIntoConstraints = false
-        view.addSubview(mainStack)
+        contentView.addSubview(mainStack)
 
-        // 3. Updated 2x2 Grid Labels
+        // 3. Grid Rows
         let topRow = createHorizontalStack(
             left: createCard(title: "Total\nUsers", value: "2,300+"),
             right: createCard(title: "Total\nCategory", value: "540")
@@ -58,7 +48,6 @@ class AdminDashboardViewController: UIViewController {
         chartView.heightAnchor.constraint(equalToConstant: 320).isActive = true
         chartView.backgroundColor = .clear
         
-        // Data for the donut chart
         chartView.segments = [
             ChartSegment(color: .systemOrange, value: 0.40, name: "Electronics"),
             ChartSegment(color: .systemRed, value: 0.10, name: "Fashion"),
@@ -67,39 +56,41 @@ class AdminDashboardViewController: UIViewController {
             ChartSegment(color: .systemGreen, value: 0.10, name: "Others")
         ]
 
+        // Add everything to stack
         mainStack.addArrangedSubview(topRow)
         mainStack.addArrangedSubview(bottomRow)
         mainStack.addArrangedSubview(chartTitle)
         mainStack.addArrangedSubview(chartView)
 
-        // Constraints
+        // 5. Constraints (Pinned to Top Safe Area)
         NSLayoutConstraint.activate([
-            header.topAnchor.constraint(equalTo: view.topAnchor),
-            header.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            header.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            header.heightAnchor.constraint(equalToConstant: 120),
+            scrollView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
+            scrollView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            scrollView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            scrollView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
 
-            titleLabel.bottomAnchor.constraint(equalTo: header.bottomAnchor, constant: -15),
-            titleLabel.centerXAnchor.constraint(equalTo: header.centerXAnchor),
-            
-            bellIcon.centerYAnchor.constraint(equalTo: titleLabel.centerYAnchor),
-            bellIcon.trailingAnchor.constraint(equalTo: header.trailingAnchor, constant: -25),
-            bellIcon.widthAnchor.constraint(equalToConstant: 22),
+            contentView.topAnchor.constraint(equalTo: scrollView.topAnchor),
+            contentView.leadingAnchor.constraint(equalTo: scrollView.leadingAnchor),
+            contentView.trailingAnchor.constraint(equalTo: scrollView.trailingAnchor),
+            contentView.bottomAnchor.constraint(equalTo: scrollView.bottomAnchor),
+            contentView.widthAnchor.constraint(equalTo: scrollView.widthAnchor),
 
-            mainStack.topAnchor.constraint(equalTo: header.bottomAnchor, constant: 20),
-            mainStack.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
-            mainStack.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20)
+            // Main stack now starts immediately at the top of the content view
+            mainStack.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 20),
+            mainStack.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 20),
+            mainStack.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -20),
+            mainStack.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -20)
         ])
     }
 
     private func createCard(title: String, value: String) -> UIView {
         let card = UIView()
         card.backgroundColor = .white
-        card.layer.cornerRadius = 16
+        card.layer.cornerRadius = 20
         card.layer.shadowColor = UIColor.black.cgColor
-        card.layer.shadowOpacity = 0.08
-        card.layer.shadowOffset = CGSize(width: 0, height: 6)
-        card.layer.shadowRadius = 10
+        card.layer.shadowOpacity = 0.06
+        card.layer.shadowOffset = CGSize(width: 0, height: 4)
+        card.layer.shadowRadius = 12
         
         let tLabel = UILabel()
         tLabel.text = title
@@ -109,18 +100,18 @@ class AdminDashboardViewController: UIViewController {
         
         let vLabel = UILabel()
         vLabel.text = value
-        vLabel.font = .systemFont(ofSize: 26, weight: .bold)
+        vLabel.font = .systemFont(ofSize: 24, weight: .bold)
         
         let stack = UIStackView(arrangedSubviews: [tLabel, vLabel])
         stack.axis = .vertical
-        stack.spacing = 8
+        stack.spacing = 6
         stack.translatesAutoresizingMaskIntoConstraints = false
         card.addSubview(stack)
         
         NSLayoutConstraint.activate([
             stack.topAnchor.constraint(equalTo: card.topAnchor, constant: 20),
-            stack.leadingAnchor.constraint(equalTo: card.leadingAnchor, constant: 18),
-            stack.trailingAnchor.constraint(equalTo: card.trailingAnchor, constant: -10),
+            stack.leadingAnchor.constraint(equalTo: card.leadingAnchor, constant: 16),
+            stack.trailingAnchor.constraint(equalTo: card.trailingAnchor, constant: -16),
             stack.bottomAnchor.constraint(equalTo: card.bottomAnchor, constant: -20)
         ])
         return card
@@ -130,12 +121,12 @@ class AdminDashboardViewController: UIViewController {
         let stack = UIStackView(arrangedSubviews: [left, right])
         stack.axis = .horizontal
         stack.distribution = .fillEqually
-        stack.spacing = 18
+        stack.spacing = 16
         return stack
     }
 }
 
-// MARK: - Donut Chart Component with Callouts
+// MARK: - Donut Chart Component
 struct ChartSegment {
     let color: UIColor
     let value: CGFloat
@@ -148,37 +139,34 @@ class DonutChart: UIView {
     override func draw(_ rect: CGRect) {
         guard !segments.isEmpty else { return }
         let center = CGPoint(x: rect.midX, y: rect.midY)
-        let radius: CGFloat = 75
+        let radius: CGFloat = 70
         var startAngle: CGFloat = -.pi / 2
         
         for segment in segments {
             let endAngle = startAngle + (2 * .pi * segment.value)
             
-            // Draw segment
             let path = UIBezierPath(arcCenter: center, radius: radius, startAngle: startAngle, endAngle: endAngle, clockwise: true)
             segment.color.setStroke()
-            path.lineWidth = 45
+            path.lineWidth = 40
             path.stroke()
             
-            // Draw Callout Line
             let midAngle = startAngle + (endAngle - startAngle) / 2
-            let lineStart = CGPoint(x: center.x + (radius + 28) * cos(midAngle), y: center.y + (radius + 28) * sin(midAngle))
-            let lineEnd = CGPoint(x: center.x + (radius + 55) * cos(midAngle), y: center.y + (radius + 55) * sin(midAngle))
+            let lineStart = CGPoint(x: center.x + (radius + 25) * cos(midAngle), y: center.y + (radius + 25) * sin(midAngle))
+            let lineEnd = CGPoint(x: center.x + (radius + 50) * cos(midAngle), y: center.y + (radius + 50) * sin(midAngle))
             
             let linePath = UIBezierPath()
             linePath.move(to: lineStart)
             linePath.addLine(to: lineEnd)
-            UIColor.lightGray.withAlphaComponent(0.6).setStroke()
-            linePath.lineWidth = 1.2
+            UIColor.lightGray.withAlphaComponent(0.4).setStroke()
+            linePath.lineWidth = 1.0
             linePath.stroke()
             
-            // Draw Label text
             let labelText = "\(segment.name)\n\(Int(segment.value * 100))%"
             let paragraphStyle = NSMutableParagraphStyle()
             paragraphStyle.alignment = cos(midAngle) > 0 ? .left : .right
             
             let attrs: [NSAttributedString.Key: Any] = [
-                .font: UIFont.systemFont(ofSize: 11, weight: .medium),
+                .font: UIFont.systemFont(ofSize: 10, weight: .medium),
                 .foregroundColor: UIColor.darkGray,
                 .paragraphStyle: paragraphStyle
             ]
@@ -188,7 +176,6 @@ class DonutChart: UIView {
             let yPos = lineEnd.y - (size.height / 2)
             
             labelText.draw(at: CGPoint(x: xPos, y: yPos), withAttributes: attrs)
-            
             startAngle = endAngle
         }
     }

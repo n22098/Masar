@@ -1,60 +1,63 @@
 import UIKit
 
-// Define a simple structure for your data
+// تعريف البيانات (تأكد أن هذا هو التعريف الوحيد في المشروع)
 struct VerificationItem {
-    let title: String
-    let subtitle: String
+    let providerName: String
+    let providerCategory: String
 }
 
 class VerificationVC: UITableViewController {
 
-    // 1. Create your data array
     let data = [
-        VerificationItem(title: "Identity Check", subtitle: "Verify your national ID"),
-        VerificationItem(title: "Phone Number", subtitle: "Confirm your mobile +973 XXXX"),
-        VerificationItem(title: "Email Address", subtitle: "Verify your work email")
+        VerificationItem(providerName: "Ahmed Mohamed", providerCategory: "Plumbing Specialist"),
+        VerificationItem(providerName: "Sara Khalid", providerCategory: "Graphic Designer"),
+        VerificationItem(providerName: "John Doe", providerCategory: "Electrical Engineer")
     ]
 
     override func viewDidLoad() {
         super.viewDidLoad()
         self.title = "Verification"
         
-        // This removes empty cell lines at the bottom
+        // الحل الأساسي: تسجيل الخلية برمجياً يضمن أنها لن تكون nil أبداً
+        tableView.register(UITableViewCell.self, forCellReuseIdentifier: "showVerificationCell")
+        
         tableView.tableFooterView = UIView()
     }
 
-    // MARK: - Table view data source
-
-    override func numberOfSections(in tableView: UITableView) -> Int {
-        return 1 // We only need one section
-    }
-
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return data.count // Returns the number of items in our array
+        return data.count
     }
 
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        // Use the identifier "cell" that you set in Storyboard
-        let cell = tableView.dequeueReusableCell(withIdentifier: "showVerificationCell", for: indexPath)
+        
+        // 1. محاولة استخراج الخلية المسجلة
+        var cell = tableView.dequeueReusableCell(withIdentifier: "showVerificationCell")
+        
+        // 2. التأكد من أن الخلية بنمط Subtitle (هذا يمنع الـ Crash)
+        if cell == nil || cell?.detailTextLabel == nil {
+            cell = UITableViewCell(style: .subtitle, reuseIdentifier: "showVerificationCell")
+        }
 
         let item = data[indexPath.row]
 
-        // 2. Access labels using the Tags we set (1 and 2)
-        if let titleLabel = cell.viewWithTag(1) as? UILabel {
-            titleLabel.text = item.title
-        }
+        // 3. تعبئة البيانات
+        cell?.textLabel?.text = item.providerName
+        cell?.textLabel?.font = .systemFont(ofSize: 18, weight: .bold)
         
-        if let subtitleLabel = cell.viewWithTag(2) as? UILabel {
-            subtitleLabel.text = item.subtitle
-        }
+        cell?.detailTextLabel?.text = item.providerCategory
+        cell?.detailTextLabel?.textColor = .secondaryLabel
+        
+        cell?.accessoryType = .disclosureIndicator
 
-        return cell
+        // 4. إرجاع الخلية (مستحيل تكون nil الآن)
+        return cell!
     }
-    
-    // Optional: Handle what happens when a user taps a row
+
+    // الانتقال للصفحة التالية عند الضغط
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        let selectedItem = data[indexPath.row]
-        print("Selected: \(selectedItem.title)")
         tableView.deselectRow(at: indexPath, animated: true)
+        
+        // تأكد أنك وضعت هذا الاسم في الـ Identifier الخاص بالـ Segue في الـ Storyboard
+        performSegue(withIdentifier: "showProviderRequest", sender: indexPath)
     }
 }

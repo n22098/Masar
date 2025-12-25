@@ -2,50 +2,57 @@ import UIKit
 
 class ReportItemCell: UITableViewCell {
     
-    // MARK: - IBOutlets
     @IBOutlet weak var idLabel: UILabel!
     @IBOutlet weak var subjectLabel: UILabel!
-    @IBOutlet weak var statusLabel: UILabel!
+    @IBOutlet weak var reporterLabel: UILabel!
     
-    // MARK: - Properties
-    static let identifier = "ReportItemCell"
-    
-    // MARK: - Lifecycle
+    private var stackView: UIStackView?
+
     override func awakeFromNib() {
         super.awakeFromNib()
-        configureAppearance()
+        setupStackView()
     }
-    
-    override func prepareForReuse() {
-        super.prepareForReuse()
-        idLabel?.text = nil
-        subjectLabel?.text = nil
-        statusLabel?.text = nil
+
+    private func setupStackView() {
+        // 1. إزالة أي قيود قديمة من Storyboard لتجنب التداخل
+        [idLabel, subjectLabel, reporterLabel].forEach {
+            $0?.translatesAutoresizingMaskIntoConstraints = false
+            $0?.removeFromSuperview() // سنعيد إضافتهم داخل الـ Stack
+        }
+        
+        // 2. إنشاء الـ Stack View بتنسيق عمودي مرتب
+        stackView = UIStackView(arrangedSubviews: [idLabel, subjectLabel, reporterLabel].compactMap { $0 })
+        stackView?.axis = .vertical
+        stackView?.spacing = 6
+        stackView?.alignment = .leading
+        stackView?.distribution = .fill
+        stackView?.translatesAutoresizingMaskIntoConstraints = false
+        
+        if let stack = stackView {
+            contentView.addSubview(stack)
+            
+            // 3. ضبط القيود لضمان ظهور النصوص الثلاثة وتمدد الخلية
+            NSLayoutConstraint.activate([
+                stack.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 12),
+                stack.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 20),
+                stack.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -20),
+                stack.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -12)
+            ])
+        }
     }
-    
-    // MARK: - Configuration
-    private func configureAppearance() {
-        // Cell styling
-        selectionStyle = .default
-        accessoryType = .disclosureIndicator
-        
-        // ID Label styling
-        idLabel?.font = UIFont.systemFont(ofSize: 14, weight: .medium)
-        idLabel?.textColor = .systemGray
-        
-        // Subject Label styling
-        subjectLabel?.font = UIFont.systemFont(ofSize: 16, weight: .regular)
-        subjectLabel?.textColor = .label
-        subjectLabel?.numberOfLines = 2
-        
-        // Status Label styling
-        statusLabel?.font = UIFont.systemFont(ofSize: 14, weight: .semibold)
-    }
-    
+
     func configure(with report: ReportItem) {
+        // تنسيق النصوص كما في الصورة الاحترافية
         idLabel?.text = report.reportID
+        idLabel?.font = .systemFont(ofSize: 13, weight: .bold)
+        idLabel?.textColor = .lightGray
+        
         subjectLabel?.text = report.subject
-        statusLabel?.text = report.status.rawValue
-        statusLabel?.textColor = report.status.color
+        subjectLabel?.font = .systemFont(ofSize: 17, weight: .semibold)
+        subjectLabel?.textColor = .label
+        
+        reporterLabel?.text = "Reporter: \(report.reporter)"
+        reporterLabel?.font = .systemFont(ofSize: 14, weight: .medium)
+        reporterLabel?.textColor = .systemBlue
     }
 }

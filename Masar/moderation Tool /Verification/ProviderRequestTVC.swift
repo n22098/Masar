@@ -7,13 +7,12 @@ import QuickLook
 class ProviderRequestTVC: UITableViewController {
 
     // MARK: - IBOutlets
-    @IBOutlet weak var statusLabel: UILabel!
-    @IBOutlet weak var providerNameLabel: UILabel!
-    @IBOutlet weak var emailLabel: UILabel!
-    @IBOutlet weak var phoneLabel: UILabel!
-    @IBOutlet weak var categoryLabel: UILabel!
-    @IBOutlet weak var skillsLevelLabel: UILabel!
-
+        @IBOutlet weak var providerNameLabel: UILabel!
+        @IBOutlet weak var emailLabel: UILabel!
+        @IBOutlet weak var phoneLabel: UILabel!
+        @IBOutlet weak var categoryLabel: UILabel!
+        @IBOutlet weak var skillsLevelLabel: UILabel!
+        @IBOutlet weak var statusLabel: UILabel! // <--- أضف هذا السطر وقم بربطه في الـ Storyboard
     // MARK: - Properties
     var documentURLs: [URL] = []
     
