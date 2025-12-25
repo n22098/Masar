@@ -61,14 +61,12 @@ class ServiceInformationTableViewController: UITableViewController {
         return stack
     }()
     
-    // MARK: - Service Card (تصميم جديد)
+    // MARK: - Service Card
     private let serviceCardView: UIView = {
         let view = UIView()
         view.backgroundColor = .white
-        // ✅ زوايا دائرية أكبر
         view.layer.cornerRadius = 24
         view.layer.cornerCurve = .continuous
-        // ✅ ظل أنعم واحترافي
         view.layer.shadowColor = UIColor.black.cgColor
         view.layer.shadowOpacity = 0.08
         view.layer.shadowOffset = CGSize(width: 0, height: 8)
@@ -103,12 +101,12 @@ class ServiceInformationTableViewController: UITableViewController {
         return label
     }()
     
+    // اجعل هذا المتغير متاحاً للكلاس لكي نستخدمه عند الانتقال
     private let serviceDetailsLabel: UILabel = {
         let label = UILabel()
         label.font = UIFont.systemFont(ofSize: 15, weight: .regular)
         label.textColor = .darkGray
         label.numberOfLines = 0
-        // تباعد أسطر للقراءة المريحة
         let style = NSMutableParagraphStyle()
         style.lineSpacing = 4
         label.attributedText = NSAttributedString(string: "Details", attributes: [.paragraphStyle: style])
@@ -137,13 +135,12 @@ class ServiceInformationTableViewController: UITableViewController {
         populateData()
     }
     
-    // MARK: - Setup
+    // MARK: - Setup UI
     private func setupUI() {
         let appearance = UINavigationBarAppearance()
         appearance.configureWithOpaqueBackground()
         appearance.backgroundColor = brandColor
         
-        // ✅ تعديل: جعل العناوين بيضاء
         appearance.titleTextAttributes = [
             .foregroundColor: UIColor.white,
             .font: UIFont.systemFont(ofSize: 18, weight: .semibold)
@@ -160,7 +157,6 @@ class ServiceInformationTableViewController: UITableViewController {
         navigationController?.navigationBar.tintColor = .white
         navigationController?.navigationBar.prefersLargeTitles = true
         
-        // Set title based on category
         if providerData?.role.contains("Designer") == true || providerData?.role.contains("Creator") == true {
             title = "Digital Services"
         } else if providerData?.role.contains("Teacher") == true {
@@ -230,45 +226,37 @@ class ServiceInformationTableViewController: UITableViewController {
         serviceCardView.addSubview(serviceDetailsLabel)
         serviceCardView.addSubview(requestButton)
         
-        // ✅ زيادة مساحة الفوتر لتستوعب البطاقة العائمة بشكل جميل
         containerView.frame = CGRect(x: 0, y: 0, width: view.frame.width, height: 340)
         tableView.tableFooterView = containerView
         
         NSLayoutConstraint.activate([
-            // مسافات البطاقة (هوامش)
             serviceCardView.topAnchor.constraint(equalTo: containerView.topAnchor, constant: 12),
             serviceCardView.leadingAnchor.constraint(equalTo: containerView.leadingAnchor, constant: 20),
             serviceCardView.trailingAnchor.constraint(equalTo: containerView.trailingAnchor, constant: -20),
             serviceCardView.bottomAnchor.constraint(equalTo: containerView.bottomAnchor, constant: -20),
             
-            // الأيقونة
             serviceIconView.topAnchor.constraint(equalTo: serviceCardView.topAnchor, constant: 24),
             serviceIconView.leadingAnchor.constraint(equalTo: serviceCardView.leadingAnchor, constant: 24),
             serviceIconView.widthAnchor.constraint(equalToConstant: 36),
             serviceIconView.heightAnchor.constraint(equalToConstant: 36),
             
-            // الاسم
             serviceNameLabel.centerYAnchor.constraint(equalTo: serviceIconView.centerYAnchor, constant: -4),
             serviceNameLabel.leadingAnchor.constraint(equalTo: serviceIconView.trailingAnchor, constant: 14),
             serviceNameLabel.trailingAnchor.constraint(equalTo: serviceCardView.trailingAnchor, constant: -24),
             
-            // السعر
             servicePriceLabel.topAnchor.constraint(equalTo: serviceIconView.bottomAnchor, constant: 16),
             servicePriceLabel.leadingAnchor.constraint(equalTo: serviceCardView.leadingAnchor, constant: 24),
             servicePriceLabel.trailingAnchor.constraint(equalTo: serviceCardView.trailingAnchor, constant: -24),
             
-            // التفاصيل
             serviceDetailsLabel.topAnchor.constraint(equalTo: servicePriceLabel.bottomAnchor, constant: 18),
             serviceDetailsLabel.leadingAnchor.constraint(equalTo: serviceCardView.leadingAnchor, constant: 24),
             serviceDetailsLabel.trailingAnchor.constraint(equalTo: serviceCardView.trailingAnchor, constant: -24),
             
-            // زر الحجز (في الأسفل)
             requestButton.bottomAnchor.constraint(equalTo: serviceCardView.bottomAnchor, constant: -20),
             requestButton.leadingAnchor.constraint(equalTo: serviceCardView.leadingAnchor, constant: 24),
             requestButton.trailingAnchor.constraint(equalTo: serviceCardView.trailingAnchor, constant: -24),
             requestButton.heightAnchor.constraint(equalToConstant: 54),
             
-            // ربط النص بزر الحجز لضمان تمدد البطاقة
             serviceDetailsLabel.bottomAnchor.constraint(lessThanOrEqualTo: requestButton.topAnchor, constant: -20)
         ])
     }
@@ -329,7 +317,7 @@ class ServiceInformationTableViewController: UITableViewController {
         serviceNameLabel.text = receivedServiceName ?? "Service Package"
         servicePriceLabel.text = receivedServicePrice ?? "BHD 0.000"
         
-        if let details = receivedServiceDetails {
+        if let details = receivedServiceDetails, !details.isEmpty {
             let lines = details.components(separatedBy: ".")
                 .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
                 .filter { !$0.isEmpty }
@@ -341,6 +329,7 @@ class ServiceInformationTableViewController: UITableViewController {
                 serviceDetailsLabel.text = details
             }
         } else {
+            // Default text logic if empty
             serviceDetailsLabel.text = "Complete service package with professional delivery"
         }
     }
@@ -356,12 +345,19 @@ class ServiceInformationTableViewController: UITableViewController {
         performSegue(withIdentifier: "showBooking", sender: nil)
     }
     
+    // ✅ MARK: - Navigation Fix Here
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
         if segue.identifier == "showBooking" {
             if let destVC = segue.destination as? ServiceDetailsBookingTableViewController {
+                
+                // Pass Data
                 destVC.receivedServiceName = self.receivedServiceName
                 destVC.receivedServicePrice = self.receivedServicePrice
-                destVC.receivedServiceDetails = self.receivedServiceDetails
+                
+                // ✅ Fix: Pass the visible text from the Label, not the variable
+                // This ensures whatever the user sees is what gets passed
+                destVC.receivedServiceDetails = self.serviceDetailsLabel.text
+                
                 destVC.providerData = self.providerData
             }
         }
