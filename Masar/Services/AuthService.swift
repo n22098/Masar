@@ -11,23 +11,24 @@ final class AuthService {
     static let shared = AuthService()
     private init() {}
 
-    var currentUserId: String? {
-        Auth.auth().currentUser?.uid
+    var currentUserId: String {
+        UserDefaults.standard.string(forKey: "userId") ?? ""
     }
 
+//same user ID
     func signInIfNeeded(completion: @escaping () -> Void) {
-        if Auth.auth().currentUser != nil {
+        if let savedId = UserDefaults.standard.string(forKey: "userId") {
             completion()
             return
         }
 
-        Auth.auth().signInAnonymously { _, error in
-            if let error = error {
-                print("Auth error:", error)
-                return
+        Auth.auth().signInAnonymously { result, error in
+            if let user = result?.user {
+                UserDefaults.standard.set(user.uid, forKey: "userId")
+                completion()
             }
-            completion()
         }
     }
+
 }
 
