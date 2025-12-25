@@ -6,16 +6,16 @@ class ServiceDetailsBookingTableViewController: UITableViewController {
     @IBOutlet weak var datePicker: UIDatePicker!
     @IBOutlet weak var serviceNameLabel: UILabel!
     @IBOutlet weak var priceLabel: UILabel!
-    @IBOutlet weak var locationLabel: UILabel!
     @IBOutlet weak var confirmButton: UIButton!
     
     // MARK: - Data Variables
     var receivedServiceName: String?
     var receivedServicePrice: String?
-    var receivedLocation: String?
-    var providerData: ServiceProviderModel? // نحتاج بيانات الموفر لحفظ اسمه
+    var providerData: ServiceProviderModel?
     var receivedServiceDetails: String?
-    let brandColor = UIColor(red: 0.35, green: 0.34, blue: 0.91, alpha: 1.0)
+    
+    // Brand Color
+    let brandColor = UIColor(red: 98/255, green: 84/255, blue: 243/255, alpha: 1.0)
 
     // MARK: - Lifecycle
     override func viewDidLoad() {
@@ -27,146 +27,151 @@ class ServiceDetailsBookingTableViewController: UITableViewController {
 
     // MARK: - Setup UI
     func setupUI() {
-        confirmButton?.layer.cornerRadius = 12
-        confirmButton?.backgroundColor = brandColor
-        confirmButton?.setTitleColor(.white, for: .normal)
-        confirmButton?.titleLabel?.font = UIFont.systemFont(ofSize: 16, weight: .semibold)
+        // 1. Setup Bottom Button
+        if let btn = confirmButton {
+            btn.layer.cornerRadius = 12
+            btn.backgroundColor = brandColor
+            btn.setTitle("Book Now", for: .normal)
+            btn.setTitleColor(.white, for: .normal)
+            btn.titleLabel?.font = UIFont.systemFont(ofSize: 17, weight: .bold)
+        }
         
-        tableView.backgroundColor = UIColor(red: 248/255, green: 248/255, blue: 252/255, alpha: 1.0)
-        tableView.separatorStyle = .none
+        // 2. Setup Date Picker (Align Left)
+        if let picker = datePicker {
+            picker.preferredDatePickerStyle = .compact
+            picker.tintColor = brandColor
+            picker.contentHorizontalAlignment = .leading
+        }
         
-        datePicker?.preferredDatePickerStyle = .compact
-        datePicker?.minimumDate = Date()
-        datePicker?.tintColor = brandColor
+        // 3. Table Style
+        tableView.backgroundColor = UIColor(red: 242/255, green: 242/255, blue: 247/255, alpha: 1.0)
     }
     
+    // ✅ MARK: - Navigation Bar Setup - Changed Cancel to Book
     func setupNavigationBar() {
-        title = "Booking"
-        navigationItem.largeTitleDisplayMode = .never
-        
-        let appearance = UINavigationBarAppearance()
-        appearance.configureWithOpaqueBackground()
-        appearance.backgroundColor = brandColor
-        appearance.titleTextAttributes = [
-            .foregroundColor: UIColor.white,
-            .font: UIFont.systemFont(ofSize: 18, weight: .semibold)
-        ]
-        
-        navigationController?.navigationBar.standardAppearance = appearance
-        navigationController?.navigationBar.scrollEdgeAppearance = appearance
-        navigationController?.navigationBar.compactAppearance = appearance
-        navigationController?.navigationBar.tintColor = .white
-        
-        // Add Book button on right
-        let bookButton = UIBarButtonItem(
-            title: "Book",
-            style: .done,
-            target: self,
-            action: #selector(bookButtonPressed)
-        )
+        // Create Book button on the right
+        let bookButton = UIBarButtonItem(title: "Book", style: .plain, target: self, action: #selector(topBookTapped))
         bookButton.tintColor = .white
         navigationItem.rightBarButtonItem = bookButton
     }
-
+    
+    // ✅ Top Book button action - shows confirmation dialog
+    @objc func topBookTapped() {
+        showBookingConfirmation()
+    }
+    
     func fillData() {
         serviceNameLabel?.text = receivedServiceName ?? "Unknown Service"
-        priceLabel?.text = receivedServicePrice ?? "BHD 0.000"
-        locationLabel?.text = receivedLocation ?? "Online"
+        
+        // Setup Price
+        if let price = receivedServicePrice {
+            let cleanPrice = price.replacingOccurrences(of: "BHD ", with: "")
+            priceLabel?.text = cleanPrice
+        } else {
+            priceLabel?.text = "0"
+        }
     }
 
-    // MARK: - Book Action
+    // MARK: - Book Action (Connected to Bottom Button)
     @IBAction func bookButtonPressed(_ sender: Any) {
         let generator = UIImpactFeedbackGenerator(style: .medium)
         generator.impactOccurred()
         
+        showBookingConfirmation()
+    }
+    
+    // ✅ Show Confirmation Dialog (same for both buttons)
+    func showBookingConfirmation() {
         let confirmAlert = UIAlertController(
             title: "Confirm Booking",
-            message: "Are you sure you want to proceed with this booking?",
+            message: "Are you sure you want to proceed with the booking?",
             preferredStyle: .alert
         )
 
+        // Cancel button
         confirmAlert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
-
-        confirmAlert.addAction(UIAlertAction(title: "Confirm", style: .default) { [weak self] _ in
-            self?.saveBookingToFirebase() // 🔥 استدعاء دالة الحفظ
-        })
-
+        
+        // Book button (bold)
+        let bookAction = UIAlertAction(title: "Book", style: .default) { [weak self] _ in
+            self?.saveBookingToFirebase()
+        }
+        confirmAlert.addAction(bookAction)
+        
+        // Make "Book" button bold
+        confirmAlert.preferredAction = bookAction
+        
         present(confirmAlert, animated: true)
     }
     
-    // MARK: - Firebase Logic 📡
-        func saveBookingToFirebase() {
-            // 1. تحضير البيانات الأساسية
-            let serviceName = receivedServiceName ?? "Unknown Service"
-            
-            // تنظيف السعر وتحويله لرقم
-            let priceString = receivedServicePrice?.replacingOccurrences(of: "BHD ", with: "") ?? "0"
-            let price = Double(priceString) ?? 0.0
-            
-            let date = datePicker.date
-            let providerName = providerData?.name ?? "Unknown Provider"
-            
-            // 2. جلب بيانات المستخدم الحالي (Seeker)
-            // إذا لم يسجل الدخول، نستخدم بيانات افتراضية
-            let currentUser = UserManager.shared.currentUser
-            let seekerName = currentUser?.name ?? "Guest User"
-            let seekerEmail = currentUser?.email ?? "no-email@example.com"
-            let seekerPhone = currentUser?.phone ?? "No Phone"
-            
-            // 3. إنشاء كائن الحجز (بالشكل الجديد المطابق للموديل)
-            let newBooking = BookingModel(
-                seekerName: seekerName,
-                serviceName: serviceName,
-                date: date,
-                status: .upcoming,        // ✅ تصحيح: استخدام Enum (.upcoming) بدلاً من النص
-                providerName: providerName,
-                email: seekerEmail,       // ✅ إضافة الإيميل
-                phoneNumber: seekerPhone, // ✅ إضافة الهاتف
-                price: price,
-                instructions: "No special instructions", // ✅ خانة التعليمات (يمكنك ربطها بحقل نصي لاحقاً)
-                descriptionText: "Booking made via App"  // ✅ خانة الوصف
-            )
-            // ❌ ملاحظة: تم حذف 'location' لأنك حذفته من الموديل
-            
-            // 4. إرسال للفايربيس
-            ServiceManager.shared.saveBooking(booking: newBooking) { [weak self] success in
-                DispatchQueue.main.async {
-                    if success {
-                        self?.showSuccessAlert()
-                    } else {
-                        let errorAlert = UIAlertController(title: "Error", message: "Failed to save booking. Please try again.", preferredStyle: .alert)
-                        errorAlert.addAction(UIAlertAction(title: "OK", style: .default))
-                        self?.present(errorAlert, animated: true)
-                    }
+    // MARK: - Firebase Logic
+    func saveBookingToFirebase() {
+        let serviceName = receivedServiceName ?? "Unknown Service"
+        let priceString = receivedServicePrice?.replacingOccurrences(of: "BHD ", with: "") ?? "0"
+        let price = Double(priceString) ?? 0.0
+        let date = datePicker.date
+        let providerName = providerData?.name ?? "Unknown Provider"
+        
+        let currentUser = UserManager.shared.currentUser
+        let seekerName = currentUser?.name ?? "Guest User"
+        let seekerEmail = currentUser?.email ?? "no-email@example.com"
+        let seekerPhone = currentUser?.phone ?? "No Phone"
+        
+        // Create Booking Object
+        let newBooking = BookingModel(
+            seekerName: seekerName,
+            serviceName: serviceName,
+            date: date,
+            status: .upcoming,
+            providerName: providerName,
+            email: seekerEmail,
+            phoneNumber: seekerPhone,
+            price: price,
+            instructions: "No instructions",
+            descriptionText: "Booking made via App"
+        )
+        
+        // Save
+        ServiceManager.shared.saveBooking(booking: newBooking) { [weak self] success in
+            DispatchQueue.main.async {
+                if success {
+                    self?.showSuccessAlert(booking: newBooking)
+                } else {
+                    let alert = UIAlertController(title: "Error", message: "Failed to save.", preferredStyle: .alert)
+                    alert.addAction(UIAlertAction(title: "OK", style: .default))
+                    self?.present(alert, animated: true)
                 }
             }
         }
+    }
 
-    // MARK: - Success Logic
-    func showSuccessAlert() {
+    // ✅ MARK: - Success Alert with Date and Details
+    func showSuccessAlert(booking: BookingModel) {
+        // Format the date
         let dateFormatter = DateFormatter()
-        dateFormatter.dateStyle = .long
-        dateFormatter.timeStyle = .short
-        let dateString = dateFormatter.string(from: datePicker?.date ?? Date())
-
+        dateFormatter.dateFormat = "dd MMM yyyy"
+        let formattedDate = dateFormatter.string(from: booking.date)
+        
+        // Create detailed message
+        let message = """
+        Successfully booked!
+        
+        Service: \(booking.serviceName)
+        Date: \(formattedDate)
+        Price: \(booking.priceString)
+        
+        Your booking has been confirmed.
+        """
+        
         let successAlert = UIAlertController(
-            title: "🎉 Booking Confirmed!",
-            message: "Your booking for '\(receivedServiceName ?? "Service")' has been confirmed.\n\nDate: \(dateString)\nLocation: \(receivedLocation ?? "TBD")",
+            title: "Booking Confirmed ✓",
+            message: message,
             preferredStyle: .alert
         )
 
         successAlert.addAction(UIAlertAction(title: "Done", style: .default) { [weak self] _ in
-            let generator = UINotificationFeedbackGenerator()
-            generator.notificationOccurred(.success)
-            
             self?.navigationController?.popToRootViewController(animated: true)
         })
 
         present(successAlert, animated: true)
-    }
-    
-    // MARK: - Table View Delegate
-    override func tableView(_ tableView: UITableView, willDisplay cell: UITableViewCell, forRowAt indexPath: IndexPath) {
-        cell.backgroundColor = .clear
     }
 }

@@ -11,9 +11,8 @@ class EditServiceTableViewController: UITableViewController {
     @IBOutlet weak var serviceNameTextField: UITextField!
     @IBOutlet weak var priceTextField: UITextField!
     @IBOutlet weak var descriptionTextView: UITextView!
-    @IBOutlet weak var instructionsTextView: UITextView!
+    // Removed instructionsTextView and expiryDatePicker
     @IBOutlet weak var packageItemsLabel: UILabel!
-    @IBOutlet weak var expiryDatePicker: UIDatePicker!
     
     let brandColor = UIColor(red: 98/255, green: 84/255, blue: 243/255, alpha: 1.0)
     
@@ -58,14 +57,6 @@ class EditServiceTableViewController: UITableViewController {
         styleTextField(serviceNameTextField, placeholder: "Service Name")
         styleTextField(priceTextField, placeholder: "eg. 25")
         priceTextField?.keyboardType = .decimalPad
-        
-        if let datePicker = expiryDatePicker {
-            datePicker.minimumDate = Date()
-            datePicker.datePickerMode = .date
-            if #available(iOS 13.4, *) {
-                datePicker.preferredDatePickerStyle = .compact
-            }
-        }
     }
         
     func setupNavigationBar() {
@@ -103,14 +94,6 @@ class EditServiceTableViewController: UITableViewController {
             descView.textContainerInset = UIEdgeInsets(top: 8, left: 4, bottom: 8, right: 4)
             styleTextView(descView)
         }
-        
-        if let instView = instructionsTextView {
-            instView.layer.borderColor = borderColor
-            instView.layer.borderWidth = 1
-            instView.layer.cornerRadius = 8
-            instView.textContainerInset = UIEdgeInsets(top: 8, left: 4, bottom: 8, right: 4)
-            styleTextView(instView)
-        }
     }
         
     func styleTextField(_ textField: UITextField?, placeholder: String) {
@@ -142,11 +125,10 @@ class EditServiceTableViewController: UITableViewController {
         selectedSubServices = service.addOns ?? []
         serviceNameTextField?.text = service.name
         
-        // عرض السعر كرقم بدون BHD
+        // Show price without BHD
         priceTextField?.text = String(format: "%.0f", service.price)
         
         descriptionTextView?.text = service.description
-        instructionsTextView?.text = "Instructions for this service"
         
         if selectedSubServices.isEmpty {
             packageItemsLabel?.text = "Select add-ons (Optional)"
@@ -177,7 +159,7 @@ class EditServiceTableViewController: UITableViewController {
             return
         }
         
-        // التأكد من أن السعر رقم صحيح
+        // Ensure price is numeric
         guard let priceText = priceTextField?.text,
               !priceText.isEmpty,
               let priceValue = Double(priceText) else {
@@ -191,14 +173,14 @@ class EditServiceTableViewController: UITableViewController {
         }
         
         if var service = serviceToEdit {
-            // تحديث خدمة موجودة
+            // Update existing service
             service.name = name
             service.price = priceValue
             service.description = description
             service.addOns = selectedSubServices
             onSaveComplete?(service)
         } else {
-            // إنشاء خدمة جديدة
+            // Create new service
             let newService = ServiceModel(
                 name: name,
                 price: priceValue,
@@ -216,14 +198,14 @@ class EditServiceTableViewController: UITableViewController {
     // MARK: - Helper Methods
     func hasUnsavedChanges() -> Bool {
         guard let service = serviceToEdit else {
-            // خدمة جديدة - تحقق إذا في أي بيانات
+            // New Service - check if any data entered
             let hasName = !(serviceNameTextField?.text?.isEmpty ?? true)
             let hasPrice = !(priceTextField?.text?.isEmpty ?? true)
             let hasDesc = !(descriptionTextView?.text?.isEmpty ?? true)
             return hasName || hasPrice || hasDesc
         }
         
-        // خدمة موجودة - تحقق من التغييرات
+        // Existing Service - check for changes
         let nameChanged = serviceNameTextField?.text != service.name
         let priceChanged = priceTextField?.text != String(format: "%.0f", service.price)
         let descChanged = descriptionTextView?.text != service.description

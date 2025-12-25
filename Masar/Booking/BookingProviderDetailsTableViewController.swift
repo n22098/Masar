@@ -9,7 +9,6 @@ class BookingProviderDetailsTableViewController: UITableViewController {
     @IBOutlet weak var dateLabel: UILabel!
     @IBOutlet weak var serviceNameLabel: UILabel!
     @IBOutlet weak var priceLabel: UILabel!
-    @IBOutlet weak var instructionsLabel: UILabel!
     @IBOutlet weak var descriptionLabel: UILabel!
     
     @IBOutlet weak var cancelButton: UIButton!
@@ -43,7 +42,6 @@ class BookingProviderDetailsTableViewController: UITableViewController {
         priceLabel?.text = data.priceString
         serviceNameLabel?.text = data.serviceName
         priceLabel?.textColor = brandColor
-        instructionsLabel?.text = data.instructions
         descriptionLabel?.text = data.descriptionText
         
         switch data.status {

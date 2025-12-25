@@ -361,7 +361,6 @@ class ServiceInformationTableViewController: UITableViewController {
             if let destVC = segue.destination as? ServiceDetailsBookingTableViewController {
                 destVC.receivedServiceName = self.receivedServiceName
                 destVC.receivedServicePrice = self.receivedServicePrice
-                destVC.receivedLocation = "Online"
                 destVC.receivedServiceDetails = self.receivedServiceDetails
                 destVC.providerData = self.providerData
             }

@@ -2,14 +2,13 @@ import UIKit
 
 class Bookinghistoryapp: UITableViewController {
 
-    @IBOutlet weak var dateLabel: UILabel!
-    @IBOutlet weak var statusLabel: UILabel!
-    @IBOutlet weak var serviceNameLabel: UILabel!
-    @IBOutlet weak var itemIncludesLabel: UILabel!
-    @IBOutlet weak var priceLabel: UILabel!
-    @IBOutlet weak var skillsLabel: UILabel!
-    @IBOutlet weak var descriptionLabel: UILabel!
-    @IBOutlet weak var cancelButton: UIBarButtonItem!
+    // ✅ Changed from ! to ? to prevent crashes
+    @IBOutlet weak var dateLabel: UILabel?
+    @IBOutlet weak var statusLabel: UILabel?
+    @IBOutlet weak var serviceNameLabel: UILabel?
+    @IBOutlet weak var priceLabel: UILabel?
+    @IBOutlet weak var descriptionLabel: UILabel?
+    @IBOutlet weak var cancelButton: UIBarButtonItem?
 
     var bookingData: BookingModel?
     var onStatusChanged: ((BookingStatus) -> Void)?
@@ -21,26 +20,21 @@ class Bookinghistoryapp: UITableViewController {
     
     func setupData() {
         if let booking = bookingData {
-            dateLabel.text = booking.dateString
-            priceLabel.text = booking.priceString
+            dateLabel?.text = booking.dateString
+            priceLabel?.text = booking.priceString
             
-            statusLabel.text = booking.status.rawValue
-            serviceNameLabel.text = booking.serviceName
-            skillsLabel.text = booking.instructions
-            descriptionLabel.text = booking.descriptionText
-            itemIncludesLabel.text = "Source File, High Res, 3 Revisions"
-            
+            statusLabel?.text = booking.status.rawValue
+            serviceNameLabel?.text = booking.serviceName
+            descriptionLabel?.text = booking.descriptionText
             updateUIState(status: booking.status)
             
         } else {
             // Dummy Data
-            dateLabel.text = "23 Dec 2025"
-            statusLabel.text = "Upcoming"
-            serviceNameLabel.text = "Website Starter"
-            priceLabel.text = "85.000 BHD"
-            skillsLabel.text = "Swift, UI/UX"
-            descriptionLabel.text = "Full app development."
-            itemIncludesLabel.text = "Source Code, Design System"
+            dateLabel?.text = "23 Dec 2025"
+            statusLabel?.text = "Upcoming"
+            serviceNameLabel?.text = "Website Starter"
+            priceLabel?.text = "85.000 BHD"
+            descriptionLabel?.text = "Full app development."
             cancelButton?.isEnabled = true
         }
     }
@@ -48,13 +42,13 @@ class Bookinghistoryapp: UITableViewController {
     func updateUIState(status: BookingStatus) {
         switch status {
         case .upcoming:
-            statusLabel.textColor = .orange
+            statusLabel?.textColor = .orange
             cancelButton?.isEnabled = true
         case .completed:
-            statusLabel.textColor = .green
+            statusLabel?.textColor = .green
             cancelButton?.isEnabled = false
         case .canceled:
-            statusLabel.textColor = .red
+            statusLabel?.textColor = .red
             cancelButton?.isEnabled = false
         }
     }
@@ -67,9 +61,9 @@ class Bookinghistoryapp: UITableViewController {
             guard let self = self, let booking = self.bookingData, let bookingId = booking.id else { return }
             
             // Update UI immediately
-            self.statusLabel.text = "Canceled"
-            self.statusLabel.textColor = .red
-            self.cancelButton.isEnabled = false
+            self.statusLabel?.text = "Canceled"
+            self.statusLabel?.textColor = .red
+            self.cancelButton?.isEnabled = false
             self.bookingData?.status = .canceled
             
             // Update Firebase
@@ -91,9 +85,9 @@ class Bookinghistoryapp: UITableViewController {
                         self.present(errorAlert, animated: true)
                         
                         // Revert UI changes
-                        self.statusLabel.text = "Upcoming"
-                        self.statusLabel.textColor = .orange
-                        self.cancelButton.isEnabled = true
+                        self.statusLabel?.text = "Upcoming"
+                        self.statusLabel?.textColor = .orange
+                        self.cancelButton?.isEnabled = true
                         self.bookingData?.status = .upcoming
                     }
                 }
