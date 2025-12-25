@@ -1,22 +1,21 @@
 import UIKit
 import QuickLook
 
-// MARK: - Data Model
-
 
 class ProviderRequestTVC: UITableViewController {
-
+    
     // MARK: - IBOutlets
-        @IBOutlet weak var providerNameLabel: UILabel!
-        @IBOutlet weak var emailLabel: UILabel!
-        @IBOutlet weak var phoneLabel: UILabel!
-        @IBOutlet weak var categoryLabel: UILabel!
-        @IBOutlet weak var skillsLevelLabel: UILabel!
-        @IBOutlet weak var statusLabel: UILabel! // <--- أضف هذا السطر وقم بربطه في الـ Storyboard
+    @IBOutlet weak var providerNameLabel: UILabel!
+    @IBOutlet weak var emailLabel: UILabel!
+    @IBOutlet weak var phoneLabel: UILabel!
+    @IBOutlet weak var categoryLabel: UILabel!
+    @IBOutlet weak var skillsLevelLabel: UILabel!
+    @IBOutlet weak var statusLabel: UILabel!
+    
     // MARK: - Properties
     var documentURLs: [URL] = []
     
-    // Sample Data Instance
+    // بيانات تجريبية
     var sampleRequest = ProviderRequest(
         name: "Jane Doe",
         email: "jane.doe@example.com",
@@ -25,81 +24,125 @@ class ProviderRequestTVC: UITableViewController {
         skillLevel: "Expert / 5+ Years",
         status: "Pending Review"
     )
-
+    
+    // MARK: - Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
         setupUI()
         setupMockDocuments()
     }
-
+    
     private func setupUI() {
-        // Optional chaining (?) prevents crashes if Storyboard outlets are disconnected
+        // إعداد النصوص من البيانات
         providerNameLabel?.text = sampleRequest.name
         emailLabel?.text = sampleRequest.email
         phoneLabel?.text = sampleRequest.phone
         categoryLabel?.text = sampleRequest.category
         skillsLevelLabel?.text = sampleRequest.skillLevel
-        statusLabel?.text = sampleRequest.status
-        statusLabel?.textColor = .systemOrange
+        
+        // تحديث لون وحالة النص
+        updateStatusUI(status: sampleRequest.status)
+        
+        // إعداد الجدول
+        tableView.tableFooterView = UIView()
     }
-
+    
+    // دالة مساعدة لتحديث لون الحالة
+    private func updateStatusUI(status: String) {
+        statusLabel?.text = status
+        
+        switch status {
+        case "Approved":
+            statusLabel?.textColor = .systemGreen
+        case "Rejected":
+            statusLabel?.textColor = .systemRed
+        default:
+            statusLabel?.textColor = .systemOrange
+        }
+    }
+    
     private func setupMockDocuments() {
-        // Names of PDF files you should add to your Xcode project
+        // أسماء ملفات PDF في المشروع
         let fileNames = ["id_sample", "certificate_sample", "portfolio_sample"]
         
         documentURLs = fileNames.compactMap { name in
             Bundle.main.url(forResource: name, withExtension: "pdf")
         }
         
-        // Fallback: uses 'sample.pdf' if specific files aren't found
+        // استخدام ملف احتياطي في حال عدم وجود الملفات المحددة
         if documentURLs.isEmpty {
             if let fallback = Bundle.main.url(forResource: "sample", withExtension: "pdf") {
                 documentURLs = [fallback, fallback, fallback]
             }
         }
     }
-
-    // MARK: - IBActions (Approve/Reject)
+    
+    // MARK: - IBActions (Approve / Reject Logic)
+    
     @IBAction func approveTapped(_ sender: UIButton) {
-        statusLabel?.text = "Approved"
-        statusLabel?.textColor = .systemGreen
+        // إظهار رسالة تأكيد القبول
+        showAlert(title: "Confirm Approval",
+                  message: "Are you sure you want to approve this provider?",
+                  actionTitle: "Approve",
+                  actionStyle: .default) { [weak self] in
+            // ✅ الآن هذا السطر سيعمل لأن status أصبحت var
+            self?.sampleRequest.status = "Approved"
+            self?.updateStatusUI(status: "Approved")
+        }
     }
-
+    
     @IBAction func rejectTapped(_ sender: UIButton) {
-        statusLabel?.text = "Rejected"
-        statusLabel?.textColor = .systemRed
+        // إظهار رسالة تأكيد الرفض
+        showAlert(title: "Confirm Rejection",
+                  message: "Are you sure you want to reject this provider?",
+                  actionTitle: "Reject",
+                  actionStyle: .destructive) { [weak self] in
+            // ✅ الآن هذا السطر سيعمل لأن status أصبحت var
+            self?.sampleRequest.status = "Rejected"
+            self?.updateStatusUI(status: "Rejected")
+        }
     }
-
+    
+    // MARK: - Helper Alert Function
+    private func showAlert(title: String, message: String, actionTitle: String, actionStyle: UIAlertAction.Style, completion: @escaping () -> Void) {
+        
+        let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
+        
+        // زر الإلغاء
+        alert.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: nil))
+        
+        // زر التأكيد
+        alert.addAction(UIAlertAction(title: actionTitle, style: actionStyle, handler: { _ in
+            completion()
+        }))
+        
+        present(alert, animated: true, completion: nil)
+    }
+    
     // MARK: - Document View Actions
-    // Connect these to the "View" buttons in your Storyboard
     
     @IBAction func viewIDCardTapped(_ sender: UIButton) {
         showPreview(for: 0)
     }
-
+    
     @IBAction func viewCertificateTapped(_ sender: UIButton) {
         showPreview(for: 1)
     }
-
+    
     @IBAction func viewPortfolioTapped(_ sender: UIButton) {
         showPreview(for: 2)
     }
-
+    
     // MARK: - Table View Delegate
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
-
-        // Logic for tapping the row itself (Section 3)
-        if indexPath.section == 3 {
-            if indexPath.row < documentURLs.count {
-                showPreview(for: indexPath.row)
-            }
-        }
     }
-
+    
     private func showPreview(for index: Int) {
         guard index < documentURLs.count else {
-            print("Error: Document at index \(index) not found.")
+            let alert = UIAlertController(title: "No Document", message: "This document is not available for preview.", preferredStyle: .alert)
+            alert.addAction(UIAlertAction(title: "OK", style: .default))
+            present(alert, animated: true)
             return
         }
         

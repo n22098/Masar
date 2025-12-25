@@ -3,269 +3,280 @@ import UIKit
 class SeekerDetailsTVC: UITableViewController {
 
     // MARK: - Outlets
-    @IBOutlet weak var profileImageView: UIImageView?
-    @IBOutlet weak var headerUserNameLabel: UILabel?
-    @IBOutlet weak var headerRoleLabel: UILabel?
-    @IBOutlet weak var headerStatusLabel: UILabel?
-    
+    // اربط هذه الحقول فقط من الستوري بورد
     @IBOutlet weak var fullNameTextField: UITextField?
     @IBOutlet weak var emailTextField: UITextField?
     @IBOutlet weak var phoneTextField: UITextField?
     @IBOutlet weak var usernameTextField: UITextField?
     
+    // سنستخدم هذا فقط لإخفائه، وسنبني زراً جديداً بالكود لضمان شكله
     @IBOutlet weak var statusMenuButton: UIButton?
-
+    
     // MARK: - Properties
     var seeker: Seeker?
     var isNewSeeker: Bool = false
     private var currentStatus: String = "Active"
+    
+    // العناصر البرمجية (لبناء الهيدر المثالي)
+    private let headerView = UIView()
+    private let proProfileImage = UIImageView()
+    private let proNameLabel = UILabel()
+    private let proRoleLabel = UILabel()
+    private let proStatusButton = UIButton(type: .system)
+    
+    // ألوان المشروع
+    let brandColor = UIColor(red: 98/255, green: 84/255, blue: 243/255, alpha: 1.0)
+    let bgColor = UIColor(red: 248/255, green: 249/255, blue: 253/255, alpha: 1.0)
 
     // MARK: - Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        print("🚀 SeekerDetailsTVC viewDidLoad called")
-        
-        // Testing fallback - load sample data if no seeker provided
+        // بيانات وهمية للتجربة
         if seeker == nil && !isNewSeeker {
-            print("⚠️ No seeker provided, loading sample data...")
-            seeker = SampleData.seekers.first(where: { $0.fullName == "John Doe" })
-            if let seeker = seeker {
-                print("✅ Sample seeker loaded: \(seeker.fullName)")
-            } else {
-                print("❌ Failed to load sample seeker")
+            seeker = SampleData.seekers.first
+        }
+        
+        setupMainDesign()      // إعداد الصفحة
+        setupProHeader()       // بناء الهيدر بالكود
+        setupTextFieldsStyle() // تجميل الحقول
+        loadData()             // تعبئة البيانات
+        
+        // 👇 هذا هو الحل لمشكلة الزر
+        setupSaveButtonProgrammatically()
+    }
+    
+    // MARK: - 1. زر الحفظ (الحل المضمون)
+    private func setupSaveButtonProgrammatically() {
+        // ننشئ الزر بالكود لنتأكد أنه مربوط
+        let saveBtn = UIBarButtonItem(title: "Save", style: .done, target: self, action: #selector(saveButtonTapped))
+        saveBtn.tintColor = .white
+        
+        // نضعه في النافيجيشن بار
+        self.navigationItem.rightBarButtonItem = saveBtn
+    }
+    
+    @objc private func saveButtonTapped() {
+        print("🟢 Save button pressed!") // للتأكد في الكونسول
+        
+        // التحقق من البيانات
+        guard let name = fullNameTextField?.text, !name.isEmpty else {
+            let alert = UIAlertController(title: "Missing Info", message: "Please enter the full name.", preferredStyle: .alert)
+            alert.addAction(UIAlertAction(title: "OK", style: .default))
+            present(alert, animated: true)
+            return
+        }
+        
+        // حفظ البيانات
+        if isNewSeeker {
+            let new = Seeker(fullName: name, email: emailTextField?.text ?? "", phone: phoneTextField?.text ?? "", username: usernameTextField?.text ?? "", status: currentStatus, imageName: "profile1", roleType: "Seeker")
+            SampleData.seekers.append(new)
+        } else {
+            if let index = SampleData.seekers.firstIndex(where: { $0.fullName == seeker?.fullName }) {
+                SampleData.seekers[index].fullName = name
+                SampleData.seekers[index].email = emailTextField?.text ?? ""
+                SampleData.seekers[index].phone = phoneTextField?.text ?? ""
+                SampleData.seekers[index].status = currentStatus
             }
         }
         
-        setupUI()
-        setupStatusMenu()
-        loadSeekerData()
+        // ✅ إظهار رسالة النجاح
+        let successAlert = UIAlertController(title: "Success", message: "Seeker details have been saved successfully!", preferredStyle: .alert)
+        successAlert.addAction(UIAlertAction(title: "OK", style: .default) { [weak self] _ in
+            // العودة للصفحة السابقة بعد الضغط على OK
+            self?.navigationController?.popViewController(animated: true)
+        })
+        present(successAlert, animated: true)
+    }
+
+    // MARK: - 2. إعداد التصميم (لإصلاح الشكل المكسور)
+    private func setupMainDesign() {
+        title = isNewSeeker ? "New Seeker" : "Profile Details"
+        
+        let appearance = UINavigationBarAppearance()
+        appearance.configureWithOpaqueBackground()
+        appearance.backgroundColor = brandColor
+        appearance.titleTextAttributes = [.foregroundColor: UIColor.white]
+        appearance.largeTitleTextAttributes = [.foregroundColor: UIColor.white]
+        appearance.shadowColor = .clear
+        
+        navigationController?.navigationBar.standardAppearance = appearance
+        navigationController?.navigationBar.scrollEdgeAppearance = appearance
+        navigationController?.navigationBar.tintColor = .white
+        
+        tableView.backgroundColor = bgColor
+        tableView.separatorStyle = .none
+        
+        statusMenuButton?.isHidden = true // إخفاء الزر القديم
+    }
+
+    // MARK: - 3. بناء الهيدر بالكود
+    private func setupProHeader() {
+        let headerHeight: CGFloat = 280
+        headerView.frame = CGRect(x: 0, y: 0, width: tableView.bounds.width, height: headerHeight)
+        headerView.backgroundColor = bgColor
+        
+        // خلفية بنفسجية
+        let purpleBackground = UIView()
+        purpleBackground.backgroundColor = brandColor
+        purpleBackground.layer.cornerRadius = 30
+        purpleBackground.layer.maskedCorners = [.layerMinXMaxYCorner, .layerMaxXMaxYCorner]
+        purpleBackground.translatesAutoresizingMaskIntoConstraints = false
+        headerView.addSubview(purpleBackground)
+        
+        // الصورة
+        proProfileImage.translatesAutoresizingMaskIntoConstraints = false
+        proProfileImage.contentMode = .scaleAspectFill
+        proProfileImage.layer.cornerRadius = 55
+        proProfileImage.layer.borderWidth = 5
+        proProfileImage.layer.borderColor = bgColor.cgColor
+        proProfileImage.clipsToBounds = true
+        proProfileImage.backgroundColor = .white
+        headerView.addSubview(proProfileImage)
+        
+        // الاسم
+        proNameLabel.translatesAutoresizingMaskIntoConstraints = false
+        proNameLabel.font = .systemFont(ofSize: 22, weight: .bold)
+        proNameLabel.textColor = .black
+        proNameLabel.textAlignment = .center
+        headerView.addSubview(proNameLabel)
+        
+        proRoleLabel.translatesAutoresizingMaskIntoConstraints = false
+        proRoleLabel.font = .systemFont(ofSize: 15, weight: .medium)
+        proRoleLabel.textColor = .gray
+        proRoleLabel.textAlignment = .center
+        headerView.addSubview(proRoleLabel)
+        
+        // زر الحالة الجديد
+        proStatusButton.translatesAutoresizingMaskIntoConstraints = false
+        var config = UIButton.Configuration.filled()
+        config.cornerStyle = .capsule
+        config.contentInsets = NSDirectionalEdgeInsets(top: 8, leading: 20, bottom: 8, trailing: 20)
+        proStatusButton.configuration = config
+        proStatusButton.showsMenuAsPrimaryAction = true
+        
+        let actions = [
+            UIAction(title: "Active", image: UIImage(systemName: "checkmark.circle.fill")) { [weak self] _ in self?.updateStatusUI("Active", .systemGreen) },
+            UIAction(title: "Suspend", image: UIImage(systemName: "pause.circle.fill")) { [weak self] _ in self?.updateStatusUI("Suspend", .systemOrange) },
+            UIAction(title: "Ban", image: UIImage(systemName: "xmark.circle.fill")) { [weak self] _ in self?.updateStatusUI("Ban", .systemRed) }
+        ]
+        proStatusButton.menu = UIMenu(children: actions)
+        headerView.addSubview(proStatusButton)
+        
+        // القيود
+        NSLayoutConstraint.activate([
+            purpleBackground.topAnchor.constraint(equalTo: headerView.topAnchor),
+            purpleBackground.leadingAnchor.constraint(equalTo: headerView.leadingAnchor),
+            purpleBackground.trailingAnchor.constraint(equalTo: headerView.trailingAnchor),
+            purpleBackground.heightAnchor.constraint(equalToConstant: 100),
+            
+            proProfileImage.centerXAnchor.constraint(equalTo: headerView.centerXAnchor),
+            proProfileImage.centerYAnchor.constraint(equalTo: purpleBackground.bottomAnchor),
+            proProfileImage.widthAnchor.constraint(equalToConstant: 110),
+            proProfileImage.heightAnchor.constraint(equalToConstant: 110),
+            
+            proNameLabel.topAnchor.constraint(equalTo: proProfileImage.bottomAnchor, constant: 12),
+            proNameLabel.centerXAnchor.constraint(equalTo: headerView.centerXAnchor),
+            
+            proRoleLabel.topAnchor.constraint(equalTo: proNameLabel.bottomAnchor, constant: 4),
+            proRoleLabel.centerXAnchor.constraint(equalTo: headerView.centerXAnchor),
+            
+            proStatusButton.topAnchor.constraint(equalTo: proRoleLabel.bottomAnchor, constant: 16),
+            proStatusButton.centerXAnchor.constraint(equalTo: headerView.centerXAnchor),
+            proStatusButton.heightAnchor.constraint(equalToConstant: 40)
+        ])
+        
+        tableView.tableHeaderView = headerView
     }
     
-    override func viewDidAppear(_ animated: Bool) {
-        super.viewDidAppear(animated)
-        print("👁️ View appeared - checking text field values:")
-        print("  Full Name field: '\(fullNameTextField?.text ?? "")'")
-        print("  Email field: '\(emailTextField?.text ?? "")'")
-        print("  Phone field: '\(phoneTextField?.text ?? "")'")
-        print("  Username field: '\(usernameTextField?.text ?? "")'")
-    }
-
-    // MARK: - Setup Methods
-    private func setupUI() {
-        print("🎨 Setting up UI...")
+    // MARK: - 4. تجميل الحقول
+    private func setupTextFieldsStyle() {
+        let fields = [fullNameTextField, emailTextField, phoneTextField, usernameTextField]
+        let icons = ["person", "envelope", "phone", "at"]
+        let placeholders = ["Full Name", "Email Address", "Phone Number", "Username"]
         
-        // Setup profile image
-        if let profileImageView = profileImageView {
-            profileImageView.layer.cornerRadius = profileImageView.frame.width / 2
-            profileImageView.clipsToBounds = true
-            print("  Profile image view configured")
+        for (index, tf) in fields.enumerated() {
+            guard let tf = tf else { continue }
+            
+            tf.borderStyle = .none
+            tf.backgroundColor = .white
+            tf.layer.cornerRadius = 12
+            tf.layer.borderWidth = 1
+            tf.layer.borderColor = UIColor.systemGray5.cgColor
+            tf.layer.shadowColor = UIColor.black.cgColor
+            tf.layer.shadowOpacity = 0.03
+            tf.layer.shadowOffset = CGSize(width: 0, height: 2)
+            tf.layer.shadowRadius = 4
+            
+            let iconContainer = UIView(frame: CGRect(x: 0, y: 0, width: 44, height: 50))
+            let iconView = UIImageView(frame: CGRect(x: 14, y: 15, width: 20, height: 20))
+            iconView.image = UIImage(systemName: icons[index])
+            iconView.tintColor = .systemGray2
+            iconView.contentMode = .scaleAspectFit
+            iconContainer.addSubview(iconView)
+            
+            tf.leftView = iconContainer
+            tf.leftViewMode = .always
+            tf.textColor = .black
+            tf.attributedPlaceholder = NSAttributedString(string: placeholders[index], attributes: [.foregroundColor: UIColor.lightGray])
+            
+            tf.translatesAutoresizingMaskIntoConstraints = false
+            if let heightConstraint = tf.constraints.first(where: { $0.firstAttribute == .height }) {
+                heightConstraint.constant = 50
+            } else {
+                tf.heightAnchor.constraint(equalToConstant: 50).isActive = true
+            }
+        }
+    }
+    
+    // MARK: - 5. تعبئة البيانات
+    private func loadData() {
+        guard let seeker = seeker else { return }
+        
+        proNameLabel.text = seeker.fullName
+        proRoleLabel.text = seeker.roleType
+        
+        if let img = UIImage(named: seeker.imageName) {
+            proProfileImage.image = img
         } else {
-            print("  ⚠️ Profile image view is nil")
+            proProfileImage.image = UIImage(systemName: "person.circle.fill")
+            proProfileImage.tintColor = .systemGray4
         }
-        
-        // Set title
-        self.title = isNewSeeker ? "Add New Seeker" : "Seeker Details"
-        print("  Title set to: \(self.title ?? "")")
-    }
-
-    private func setupStatusMenu() {
-        print("📋 Setting up status menu...")
-        
-        guard let statusMenuButton = statusMenuButton else {
-            print("  ⚠️ Status menu button is nil")
-            return
-        }
-        
-        let activeAction = UIAction(title: "Active", image: UIImage(systemName: "checkmark.circle")) { [weak self] _ in
-            self?.updateStatus(to: "Active", color: .systemBlue)
-        }
-        
-        let suspendAction = UIAction(title: "Suspend", image: UIImage(systemName: "pause.circle")) { [weak self] _ in
-            self?.updateStatus(to: "Suspend", color: .systemOrange)
-        }
-        
-        let banAction = UIAction(title: "Ban", image: UIImage(systemName: "xmark.circle")) { [weak self] _ in
-            self?.updateStatus(to: "Ban", color: .systemRed)
-        }
-        
-        statusMenuButton.menu = UIMenu(children: [activeAction, suspendAction, banAction])
-        statusMenuButton.showsMenuAsPrimaryAction = true
-        print("  ✅ Status menu configured with 3 actions")
-    }
-
-    private func loadSeekerData() {
-        print("\n📂 Loading seeker data...")
-        
-        guard let seeker = seeker else {
-            print("❌ No seeker data available")
-            return
-        }
-        
-        print("✅ Seeker object exists: \(seeker.fullName)")
-        
-        // Debug outlet connections
-        print("\n🔌 Checking Outlet Connections:")
-        print("  - profileImageView: \(profileImageView != nil ? "✓ Connected" : "✗ NOT CONNECTED")")
-        print("  - headerUserNameLabel: \(headerUserNameLabel != nil ? "✓ Connected" : "✗ NOT CONNECTED")")
-        print("  - headerRoleLabel: \(headerRoleLabel != nil ? "✓ Connected" : "✗ NOT CONNECTED")")
-        print("  - headerStatusLabel: \(headerStatusLabel != nil ? "✓ Connected" : "✗ NOT CONNECTED")")
-        print("  - fullNameTextField: \(fullNameTextField != nil ? "✓ Connected" : "✗ NOT CONNECTED")")
-        print("  - emailTextField: \(emailTextField != nil ? "✓ Connected" : "✗ NOT CONNECTED")")
-        print("  - phoneTextField: \(phoneTextField != nil ? "✓ Connected" : "✗ NOT CONNECTED")")
-        print("  - usernameTextField: \(usernameTextField != nil ? "✓ Connected" : "✗ NOT CONNECTED")")
-        print("  - statusMenuButton: \(statusMenuButton != nil ? "✓ Connected" : "✗ NOT CONNECTED")")
-        
-        // Update Header Labels
-        print("\n📝 Updating header labels...")
-        headerUserNameLabel?.text = seeker.fullName
-        print("  - Header username set to: '\(seeker.fullName)'")
-        
-        headerRoleLabel?.text = seeker.roleType
-        print("  - Header role set to: '\(seeker.roleType)'")
-        
-        headerStatusLabel?.text = seeker.status
-        print("  - Header status set to: '\(seeker.status)'")
-        
-        // Update Text Fields
-        print("\n✍️ Updating text fields...")
         
         fullNameTextField?.text = seeker.fullName
-        print("  - Full Name: '\(seeker.fullName)' → field value: '\(fullNameTextField?.text ?? "")'")
-        
         emailTextField?.text = seeker.email
-        print("  - Email: '\(seeker.email)' → field value: '\(emailTextField?.text ?? "")'")
-        
         phoneTextField?.text = seeker.phone
-        print("  - Phone: '\(seeker.phone)' → field value: '\(phoneTextField?.text ?? "")'")
-        
         usernameTextField?.text = seeker.username
-        print("  - Username: '\(seeker.username)' → field value: '\(usernameTextField?.text ?? "")'")
         
-        // Update profile image - imageName is non-optional String
-        let imageName = seeker.imageName
-        if !imageName.isEmpty, let image = UIImage(named: imageName) {
-            profileImageView?.image = image
-            print("  - Profile image loaded: '\(imageName)'")
-        } else {
-            profileImageView?.image = UIImage(systemName: "person.circle.fill")
-            print("  - Using default profile image (imageName: '\(imageName)')")
+        let color: UIColor
+        switch seeker.status {
+        case "Active": color = .systemGreen
+        case "Suspend": color = .systemOrange
+        case "Ban": color = .systemRed
+        default: color = .systemGray
         }
-        
-        // Update status
-        let statusColor: UIColor = {
-            switch seeker.status {
-            case "Active": return .systemBlue
-            case "Suspend": return .systemOrange
-            case "Ban": return .systemRed
-            default: return .systemGray
-            }
-        }()
-        
-        updateStatus(to: seeker.status, color: statusColor)
-        
-        print("\n✅ Data loading complete\n")
+        updateStatusUI(seeker.status, color)
     }
-
-    private func updateStatus(to status: String, color: UIColor) {
-        print("🔄 Updating status to: '\(status)' with color: \(color)")
-        
+    
+    private func updateStatusUI(_ status: String, _ color: UIColor) {
         currentStatus = status
-        statusMenuButton?.setTitle(status, for: .normal)
-        statusMenuButton?.setTitleColor(color, for: .normal)
-        headerStatusLabel?.text = status
-        headerStatusLabel?.textColor = color
-        
-        // Update seeker object
         seeker?.status = status
+        proStatusButton.configuration?.title = status
+        proStatusButton.configuration?.baseBackgroundColor = color.withAlphaComponent(0.1)
+        proStatusButton.configuration?.baseForegroundColor = color
     }
     
-    // MARK: - Actions
-    @IBAction func saveButtonTapped(_ sender: UIBarButtonItem) {
-        print("\n💾 Save button tapped")
-        saveSeekerData()
+    // تباعد الخلايا
+    override func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
+        return 70
     }
     
-    private func saveSeekerData() {
-        print("Saving seeker data...")
-        
-        // Get text field values with empty string as default
-        let fullName = fullNameTextField?.text ?? ""
-        let email = emailTextField?.text ?? ""
-        let phone = phoneTextField?.text ?? ""
-        let username = usernameTextField?.text ?? ""
-        
-        // Validate inputs
-        guard !fullName.isEmpty else {
-            showAlert(title: "Error", message: "Full name is required")
-            return
-        }
-        
-        guard !email.isEmpty else {
-            showAlert(title: "Error", message: "Email is required")
-            return
-        }
-        
-        guard !phone.isEmpty else {
-            showAlert(title: "Error", message: "Phone is required")
-            return
-        }
-        
-        guard !username.isEmpty else {
-            showAlert(title: "Error", message: "Username is required")
-            return
-        }
-        
-        // Update or create seeker
-        if isNewSeeker {
-            let newSeeker = Seeker(
-                fullName: fullName,
-                email: email,
-                phone: phone,
-                username: username,
-                status: currentStatus,
-                imageName: "profile1",  // Use default image name instead of nil
-                roleType: "Seeker"
-            )
-            SampleData.seekers.append(newSeeker)
-            print("✅ New seeker created: \(fullName)")
-            print("📊 Total seekers now: \(SampleData.seekers.count)")
-        } else {
-            // Find and update the existing seeker in the array
-            if let index = SampleData.seekers.firstIndex(where: { $0.fullName == seeker?.fullName }) {
-                SampleData.seekers[index].fullName = fullName
-                SampleData.seekers[index].email = email
-                SampleData.seekers[index].phone = phone
-                SampleData.seekers[index].username = username
-                SampleData.seekers[index].status = currentStatus
-                
-                // Also update the local reference
-                seeker?.fullName = fullName
-                seeker?.email = email
-                seeker?.phone = phone
-                seeker?.username = username
-                seeker?.status = currentStatus
-                
-                print("✅ Seeker updated at index \(index): \(fullName)")
-            }
-        }
-        
-        showAlert(title: "Success", message: "Seeker saved successfully") {
-            self.navigationController?.popViewController(animated: true)
-        }
+    override func tableView(_ tableView: UITableView, willDisplay cell: UITableViewCell, forRowAt indexPath: IndexPath) {
+        cell.backgroundColor = .clear
     }
     
-    // MARK: - Helper Methods
-    private func showAlert(title: String, message: String, completion: (() -> Void)? = nil) {
-        let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
-        alert.addAction(UIAlertAction(title: "OK", style: .default) { _ in
-            completion?()
-        })
-        present(alert, animated: true)
-    }
-    
-    // MARK: - TableView Delegate
-    override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        tableView.deselectRow(at: indexPath, animated: true)
+    // إخفاء الكيبورد
+    override func scrollViewWillBeginDragging(_ scrollView: UIScrollView) {
+        view.endEditing(true)
     }
 }

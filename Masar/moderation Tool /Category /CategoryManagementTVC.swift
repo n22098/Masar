@@ -5,34 +5,133 @@ protocol CategoryManagerDelegate: AnyObject {
     func didUpdateCategories(_ categories: [Category])
 }
 
+// MARK: - 1. كلاس الخلية المخصصة (تصميم البطاقة)
+class CategoryCardCell: UITableViewCell {
+    
+    private let containerView = UIView()
+    private let titleLabel = UILabel()
+    private let chevronImageView = UIImageView()
+    
+    override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
+        super.init(style: style, reuseIdentifier: reuseIdentifier)
+        setupUI()
+    }
+    
+    required init?(coder: NSCoder) {
+        super.init(coder: coder)
+        setupUI()
+    }
+    
+    private func setupUI() {
+        backgroundColor = .clear
+        selectionStyle = .none
+        
+        // إعداد البطاقة
+        containerView.backgroundColor = .white
+        containerView.layer.cornerRadius = 12
+        containerView.layer.shadowColor = UIColor.black.cgColor
+        containerView.layer.shadowOpacity = 0.05
+        containerView.layer.shadowOffset = CGSize(width: 0, height: 2)
+        containerView.layer.shadowRadius = 4
+        containerView.translatesAutoresizingMaskIntoConstraints = false
+        
+        contentView.addSubview(containerView)
+        
+        // إعداد النص
+        titleLabel.font = .systemFont(ofSize: 16, weight: .semibold)
+        titleLabel.textColor = .black // لون أسود واضح
+        titleLabel.translatesAutoresizingMaskIntoConstraints = false
+        
+        // إعداد السهم
+        let config = UIImage.SymbolConfiguration(weight: .semibold)
+        chevronImageView.image = UIImage(systemName: "chevron.right", withConfiguration: config)
+        chevronImageView.tintColor = UIColor.lightGray.withAlphaComponent(0.6)
+        chevronImageView.contentMode = .scaleAspectFit
+        chevronImageView.translatesAutoresizingMaskIntoConstraints = false
+        
+        containerView.addSubview(titleLabel)
+        containerView.addSubview(chevronImageView)
+        
+        // القيود (Constraints)
+        NSLayoutConstraint.activate([
+            // البطاقة
+            containerView.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 6),
+            containerView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
+            containerView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
+            containerView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -6),
+            containerView.heightAnchor.constraint(greaterThanOrEqualToConstant: 55),
+            
+            // النص
+            titleLabel.centerYAnchor.constraint(equalTo: containerView.centerYAnchor),
+            titleLabel.leadingAnchor.constraint(equalTo: containerView.leadingAnchor, constant: 16),
+            
+            // السهم
+            chevronImageView.centerYAnchor.constraint(equalTo: containerView.centerYAnchor),
+            chevronImageView.trailingAnchor.constraint(equalTo: containerView.trailingAnchor, constant: -16),
+            chevronImageView.widthAnchor.constraint(equalToConstant: 8),
+            chevronImageView.heightAnchor.constraint(equalToConstant: 14)
+        ])
+    }
+    
+    func configure(name: String) {
+        titleLabel.text = name
+    }
+    
+    // أنيميشن الضغط
+    override func setHighlighted(_ highlighted: Bool, animated: Bool) {
+        super.setHighlighted(highlighted, animated: animated)
+        UIView.animate(withDuration: 0.2) {
+            self.containerView.transform = highlighted ? CGAffineTransform(scaleX: 0.98, y: 0.98) : .identity
+        }
+    }
+}
+
+// MARK: - 2. الكنترولر الرئيسي
 class CategoryManagementTVC: UITableViewController {
     
     // MARK: - Properties
     var categories = [Category]()
-    var allProviders: [ServiceProviderModel] = [] // Passed from Search screen
+    var allProviders: [ServiceProviderModel] = []
     weak var delegate: CategoryManagerDelegate?
+    
+    // لون البراند الموحد
+    let brandColor = UIColor(red: 98/255, green: 84/255, blue: 243/255, alpha: 1.0)
     
     override func viewDidLoad() {
         super.viewDidLoad()
         setupUI()
         loadData()
+        
+        // تسجيل الخلية الجديدة
+        tableView.register(CategoryCardCell.self, forCellReuseIdentifier: "CategoryCardCell")
     }
     
     private func setupUI() {
-        title = "Category Management"
-        tableView.tableFooterView = UIView()
+        self.title = "Category Management"
         
-        // Register the cell identifier
-        tableView.register(UITableViewCell.self, forCellReuseIdentifier: "CategoryCell")
+        // 1. إعداد النافيجيشن بار (بنفسجي + نص أبيض)
+        let appearance = UINavigationBarAppearance()
+        appearance.configureWithOpaqueBackground()
+        appearance.backgroundColor = brandColor
+        appearance.titleTextAttributes = [.foregroundColor: UIColor.white]
+        appearance.largeTitleTextAttributes = [.foregroundColor: UIColor.white]
+        appearance.shadowColor = .clear
         
-        // Navigation Buttons
+        navigationController?.navigationBar.standardAppearance = appearance
+        navigationController?.navigationBar.scrollEdgeAppearance = appearance
+        navigationController?.navigationBar.tintColor = .white // أزرار بيضاء
+        navigationController?.navigationBar.prefersLargeTitles = true
+        
+        // 2. زر الإضافة (أبيض)
         navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .add, target: self, action: #selector(addCategoryTapped))
-        navigationItem.leftBarButtonItem = UIBarButtonItem(title: "Done", style: .done, target: self, action: #selector(doneTapped))
+        navigationItem.rightBarButtonItem?.tintColor = .white
         
-        // Swipe-to-delete logic:
-        // We set editing to FALSE so the red buttons disappear.
-        // iOS will now reveal the 'Delete' button only when the user swipes.
-        tableView.setEditing(false, animated: false)
+        // ❌ تم حذف زر "Done" لكي يظهر زر "Back" الأصلي من الستوري بورد
+        
+        // 3. تصميم الجدول (خلفية رمادية + بدون خطوط)
+        tableView.backgroundColor = UIColor(red: 248/255, green: 248/255, blue: 252/255, alpha: 1.0)
+        tableView.separatorStyle = .none
+        tableView.tableFooterView = UIView()
     }
     
     private func loadData() {
@@ -50,57 +149,42 @@ class CategoryManagementTVC: UITableViewController {
     }
     
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(withIdentifier: "CategoryCell", for: indexPath)
+        guard let cell = tableView.dequeueReusableCell(withIdentifier: "CategoryCardCell", for: indexPath) as? CategoryCardCell else {
+            return UITableViewCell()
+        }
         
         let category = categories[indexPath.row]
-        cell.textLabel?.text = category.name
-        cell.textLabel?.textColor = .systemBlue
-        
-        // In swipe-to-delete mode, disclosure indicators look better
-        cell.accessoryType = .disclosureIndicator
+        cell.configure(name: category.name)
         
         return cell
     }
     
-    // MARK: - Swipe to Delete & Reorder Logic
+    // MARK: - Swipe to Delete
     
-    // This enables the "Swipe" gesture
     override func tableView(_ tableView: UITableView, canEditRowAt indexPath: IndexPath) -> Bool {
         return true
     }
     
-    // This handles the actual deletion logic when the user taps the revealed "Delete" button
     override func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
         if editingStyle == .delete {
-            // 1. Remove from data source
             categories.remove(at: indexPath.row)
-            
-            // 2. Persist the change
             Category.saveCategories(categories)
-            
-            // 3. Update UI with animation (better than reloadData for swipes)
             tableView.deleteRows(at: [indexPath], with: .fade)
-            
-            // 4. Notify delegate of change
             delegate?.didUpdateCategories(categories)
         }
     }
     
-    // Note: Reordering (moveRowAt) usually requires tableView.isEditing = true.
-    // Since we turned that off to allow swiping, these rows won't be draggable
-    // unless you add an "Edit" button to toggle the mode.
-    override func tableView(_ tableView: UITableView, moveRowAt sourceIndexPath: IndexPath, to destinationIndexPath: IndexPath) {
-        let moved = categories.remove(at: sourceIndexPath.row)
-        categories.insert(moved, at: destinationIndexPath.row)
-        Category.saveCategories(categories)
-    }
-
-    // MARK: - Tap to See Providers
+    // MARK: - Tap Action
     
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        // تأخير بسيط للأنيميشن
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+            tableView.deselectRow(at: indexPath, animated: true)
+        }
+        
         let selectedCategory = categories[indexPath.row]
         
-        // Filtering logic
+        // Filtering logic (Simple keyword match)
         let keyword = selectedCategory.name.replacingOccurrences(of: "ing", with: "")
         let matchingProviders = allProviders.filter { provider in
             provider.role.localizedCaseInsensitiveContains(keyword) ||
@@ -108,7 +192,6 @@ class CategoryManagementTVC: UITableViewController {
         }
         
         showProviderList(for: selectedCategory.name, providers: matchingProviders)
-        tableView.deselectRow(at: indexPath, animated: true)
     }
     
     private func showProviderList(for categoryName: String, providers: [ServiceProviderModel]) {
@@ -132,15 +215,6 @@ class CategoryManagementTVC: UITableViewController {
         })
         alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
         present(alert, animated: true)
-    }
-    
-    @objc private func doneTapped() {
-        delegate?.didUpdateCategories(categories)
-        if navigationController?.viewControllers.first == self {
-            dismiss(animated: true)
-        } else {
-            navigationController?.popViewController(animated: true)
-        }
     }
     
     private func saveAndRefresh() {

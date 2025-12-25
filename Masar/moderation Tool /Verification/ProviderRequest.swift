@@ -13,5 +13,5 @@ struct ProviderRequest {
     let phone: String
     let category: String
     let skillLevel: String
-    let status: String
+    var status: String
 }
