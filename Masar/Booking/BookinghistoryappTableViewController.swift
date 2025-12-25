@@ -12,6 +12,7 @@ class Bookinghistoryapp: UITableViewController {
     @IBOutlet weak var cancelButton: UIBarButtonItem!
 
     var bookingData: BookingModel?
+    var onStatusChanged: ((BookingStatus) -> Void)?
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -20,7 +21,6 @@ class Bookinghistoryapp: UITableViewController {
     
     func setupData() {
         if let booking = bookingData {
-            // 🔥🔥 التصليح هنا: استخدام dateString و priceString
             dateLabel.text = booking.dateString
             priceLabel.text = booking.priceString
             
@@ -64,10 +64,40 @@ class Bookinghistoryapp: UITableViewController {
         
         alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
         alert.addAction(UIAlertAction(title: "Yes", style: .destructive) { [weak self] _ in
-            self?.statusLabel.text = "Canceled"
-            self?.statusLabel.textColor = .red
-            self?.cancelButton.isEnabled = false
-            self?.bookingData?.status = .canceled
+            guard let self = self, let booking = self.bookingData, let bookingId = booking.id else { return }
+            
+            // Update UI immediately
+            self.statusLabel.text = "Canceled"
+            self.statusLabel.textColor = .red
+            self.cancelButton.isEnabled = false
+            self.bookingData?.status = .canceled
+            
+            // Update Firebase
+            ServiceManager.shared.updateBookingStatus(bookingId: bookingId, newStatus: .canceled) { success in
+                DispatchQueue.main.async {
+                    if success {
+                        print("✅ Booking canceled successfully")
+                        // Notify the list view about the status change
+                        self.onStatusChanged?(.canceled)
+                    } else {
+                        print("❌ Failed to cancel booking")
+                        // Show error alert
+                        let errorAlert = UIAlertController(
+                            title: "Error",
+                            message: "Failed to cancel booking. Please try again.",
+                            preferredStyle: .alert
+                        )
+                        errorAlert.addAction(UIAlertAction(title: "OK", style: .default))
+                        self.present(errorAlert, animated: true)
+                        
+                        // Revert UI changes
+                        self.statusLabel.text = "Upcoming"
+                        self.statusLabel.textColor = .orange
+                        self.cancelButton.isEnabled = true
+                        self.bookingData?.status = .upcoming
+                    }
+                }
+            }
         })
         
         present(alert, animated: true)

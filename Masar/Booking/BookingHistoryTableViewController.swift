@@ -128,11 +128,25 @@ class BookingHistoryTableViewController: UITableViewController {
         if let destVC = segue.destination as? Bookinghistoryapp,
            let booking = sender as? BookingModel {
             destVC.bookingData = booking
+            
+            // Setup callback to handle status changes
+            destVC.onStatusChanged = { [weak self] newStatus in
+                guard let self = self else { return }
+                
+                // Update the booking in allBookings array
+                if let index = self.allBookings.firstIndex(where: { $0.id == booking.id }) {
+                    self.allBookings[index].status = newStatus
+                }
+                
+                // Refresh the filtered list and reload table
+                self.filterBookings()
+                self.tableView.reloadData()
+            }
         }
     }
 }
 
-// MARK: - ModernBookingHistoryCell Fix
+// MARK: - ModernBookingHistoryCell
 class ModernBookingHistoryCell: UITableViewCell {
 
     private let containerView: UIView = {
@@ -235,15 +249,11 @@ class ModernBookingHistoryCell: UITableViewCell {
         ])
     }
 
-    // 🔥🔥 هنا التصليح: استخدام dateString و priceString
     func configure(with booking: BookingModel) {
         serviceNameLabel.text = booking.serviceName
         providerNameLabel.text = booking.providerName
-        
-        // استخدام المتغيرات المساعدة التي أنشأناها في الموديل
         dateLabel.text = "📅 \(booking.dateString)"
         priceLabel.text = booking.priceString
-        
         statusLabel.text = "  \(booking.status.rawValue)  "
 
         switch booking.status {
