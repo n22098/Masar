@@ -42,6 +42,17 @@ final class UserService {
                 completion(user)
             }
     }
+    func updateUsername(_ username: String) {
+        guard let uid = Auth.auth().currentUser?.uid else { return }
+
+        Firestore.firestore()
+            .collection("users")
+            .document(uid)
+            .updateData([
+                "username": username
+            ])
+    }
+
 
     func updateProfile(name: String, username: String, avatarEmoji: String) {
         guard !currentUserId.isEmpty else { return }

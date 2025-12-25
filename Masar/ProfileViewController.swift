@@ -81,12 +81,15 @@ final class ProfileViewController: UIViewController {
         profileImageView.backgroundColor = .secondarySystemBackground
         profileImageView.isUserInteractionEnabled = true
 
-        let tap = UITapGestureRecognizer(target: self, action: #selector(changeProfileImage))
-        profileImageView.addGestureRecognizer(tap)
+        let imageTap = UITapGestureRecognizer(target: self, action: #selector(changeProfileImage))
+        profileImageView.addGestureRecognizer(imageTap)
 
         nameLabel.font = .systemFont(ofSize: 18, weight: .semibold)
         usernameLabel.font = .systemFont(ofSize: 14)
         usernameLabel.textColor = .secondaryLabel
+        usernameLabel.isUserInteractionEnabled = true
+        let tap = UITapGestureRecognizer(target: self, action: #selector(editUsername))
+        usernameLabel.addGestureRecognizer(tap)
 
         [profileImageView, nameLabel, usernameLabel].forEach {
             $0.translatesAutoresizingMaskIntoConstraints = false
@@ -131,8 +134,10 @@ final class ProfileViewController: UIViewController {
 
     // MARK: - Data
     private func loadUser() {
+        
         UserService.shared.fetchCurrentUser { [weak self] user in
             guard let self = self, let user = user else { return }
+            print("Loaded username:", user.username)
 
             DispatchQueue.main.async {
                 self.nameLabel.text = user.name
@@ -145,6 +150,7 @@ final class ProfileViewController: UIViewController {
                         guard let data = data else { return }
                         DispatchQueue.main.async {
                             self.profileImageView.image = UIImage(data: data)
+
                         }
                     }.resume()
                 } else {
@@ -163,6 +169,51 @@ final class ProfileViewController: UIViewController {
         picker.sourceType = .photoLibrary
         present(picker, animated: true)
     }
+    @objc private func editUsername() {
+        let alert = UIAlertController(
+            title: "Change Username",
+            message: "Enter a new username",
+            preferredStyle: .alert
+        )
+
+        alert.addTextField { textField in
+            textField.placeholder = "Username"
+            textField.autocapitalizationType = .none
+            textField.text = self.usernameLabel.text?.replacingOccurrences(of: "@", with: "")
+        }
+
+        alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
+
+        alert.addAction(UIAlertAction(title: "Save", style: .default) { _ in
+            guard let newUsername = alert.textFields?.first?.text,
+                  !newUsername.isEmpty else { return }
+
+            self.updateUsername(newUsername)
+        })
+
+        present(alert, animated: true)
+    }
+
+    private func updateUsername(_ newUsername: String) {
+        guard let uid = Auth.auth().currentUser?.uid else { return }
+
+        Firestore.firestore()
+            .collection("users")
+            .document(uid)
+            .updateData([
+                "username": newUsername
+            ]) { error in
+                if let error = error {
+                    print("Failed to update username:", error)
+                    return
+                }
+
+                DispatchQueue.main.async {
+                    self.usernameLabel.text = "@\(newUsername)"
+                }
+            }
+    }
+
 
     private func showLogoutAlert() {
         let alert = UIAlertController(title: "Logout?", message: nil, preferredStyle: .alert)

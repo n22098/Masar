@@ -18,27 +18,32 @@ final class AuthService {
 
 //same user ID
     func signInIfNeeded(completion: @escaping () -> Void) {
-        if let savedId = UserDefaults.standard.string(forKey: "userId") {
+        if let uid = Auth.auth().currentUser?.uid {
+            // User already signed in — do NOT overwrite data
             completion()
-            Firestore.firestore()
-                .collection("users")
-                .document(Auth.auth().currentUser!.uid)
-                .setData([
-                    "name": "New User",
-                    "username": "new_user",
-                    "avatarEmoji": "👤"
-                ], merge: true)
-
             return
         }
 
         Auth.auth().signInAnonymously { result, error in
-            if let user = result?.user {
-                UserDefaults.standard.set(user.uid, forKey: "userId")
+            guard let user = result?.user else { return }
+
+            let uid = user.uid
+            let userRef = Firestore.firestore().collection("users").document(uid)
+
+            userRef.getDocument { snapshot, _ in
+                if snapshot?.exists == false {
+                    // Create user ONLY if it does not exist
+                    userRef.setData([
+                        "name": "New User",
+                        "username": "new_user",
+                        "profileImageUrl": ""
+                    ])
+                }
                 completion()
             }
         }
     }
+
 
 }
 

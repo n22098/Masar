@@ -110,6 +110,9 @@ final class PersonalInfoViewController: UIViewController {
             username: usernameField.text ?? "",
             avatarEmoji: "👤"
         )
+        UserService.shared.updateUsername(usernameField.text ?? "")
+            navigationController?.popViewController(animated: true)
+
 
         navigationController?.popViewController(animated: true)
     }
