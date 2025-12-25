@@ -42,6 +42,7 @@ final class MessageCell: UITableViewCell {
         messageImageView.contentMode = .scaleAspectFit
         messageImageView.clipsToBounds = true
         messageImageView.isHidden = true
+        messageImageView.heightAnchor.constraint(equalToConstant: 200).isActive = true
 
         // Text
         messageLabel.translatesAutoresizingMaskIntoConstraints = false
@@ -53,13 +54,17 @@ final class MessageCell: UITableViewCell {
         stack.axis = .vertical
         stack.spacing = 6
         stack.translatesAutoresizingMaskIntoConstraints = false
+        stack.alignment = .fill
+
         bubbleView.addSubview(stack)
 
         // Layout
         NSLayoutConstraint.activate([
             bubbleView.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 8),
             bubbleView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -8),
+            
             bubbleView.widthAnchor.constraint(lessThanOrEqualTo: contentView.widthAnchor, multiplier: 0.75),
+            messageImageView.heightAnchor.constraint(equalToConstant: 250),
 
             stack.topAnchor.constraint(equalTo: bubbleView.topAnchor, constant: 8),
             stack.bottomAnchor.constraint(equalTo: bubbleView.bottomAnchor, constant: -8),
