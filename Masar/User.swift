@@ -12,7 +12,7 @@ struct User {
     let id: String
     let name: String
     let username: String
-    let avatarEmoji: String
+    let profileImageUrl: String?
     
     
 }

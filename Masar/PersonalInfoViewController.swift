@@ -105,19 +105,16 @@ final class PersonalInfoViewController: UIViewController {
     }
 
     @objc private func didTapSave() {
-        let alert = UIAlertController(
-            title: "Save Changes?",
-            message: nil,
-            preferredStyle: .alert
+        UserService.shared.updateProfile(
+            name: fullNameField.text ?? "",
+            username: usernameField.text ?? "",
+            avatarEmoji: "👤"
         )
-        alert.addAction(UIAlertAction(title: "Cancel", style: .cancel) { _ in
-            self.showCancelled()
-        })
-        alert.addAction(UIAlertAction(title: "Save", style: .default) { _ in
-            self.showSaved()
-        })
-        present(alert, animated: true)
+
+        navigationController?.popViewController(animated: true)
     }
+
+
 
     private func showCancelled() {
         let alert = UIAlertController(

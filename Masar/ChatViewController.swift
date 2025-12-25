@@ -101,7 +101,7 @@ final class ChatViewController: UIViewController,
         
 
         avatarLabel.translatesAutoresizingMaskIntoConstraints = false
-        avatarLabel.text = user.avatarEmoji
+        avatarLabel.text = user.profileImageUrl
         avatarLabel.font = UIFont.systemFont(ofSize: 32)
         
         headerView.addSubview(avatarLabel)

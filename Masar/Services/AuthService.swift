@@ -5,6 +5,7 @@
 //  Created by BP-36-201-10 on 15/12/2025.
 //
 import FirebaseAuth
+import FirebaseFirestore
 
 final class AuthService {
 
@@ -19,6 +20,15 @@ final class AuthService {
     func signInIfNeeded(completion: @escaping () -> Void) {
         if let savedId = UserDefaults.standard.string(forKey: "userId") {
             completion()
+            Firestore.firestore()
+                .collection("users")
+                .document(Auth.auth().currentUser!.uid)
+                .setData([
+                    "name": "New User",
+                    "username": "new_user",
+                    "avatarEmoji": "👤"
+                ], merge: true)
+
             return
         }
 

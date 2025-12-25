@@ -29,7 +29,7 @@ final class MessagesListViewController: UIViewController, UITableViewDelegate {
         id: "user_1",
         name: "Sayed Husain",
         username: "sayed",
-        avatarEmoji: "👨🏻"
+        profileImageUrl: nil
     )
 
 
@@ -50,7 +50,7 @@ final class MessagesListViewController: UIViewController, UITableViewDelegate {
                     id: "user_sayed",
                     name: "Sayed Husain",
                     username: "sayed_h",
-                    avatarEmoji: "👨🏻"
+                    profileImageUrl: nil
                 ),
                 lastMessage: "Sure, send me your requirements",
                 lastUpdated: Date()
@@ -61,7 +61,7 @@ final class MessagesListViewController: UIViewController, UITableViewDelegate {
                     id: "user_aisha",
                     name: "Aisha Noor",
                     username: "aisha_noor",
-                    avatarEmoji: "👩🏽‍🎨"
+                    profileImageUrl: nil
                 ),
                 lastMessage: "I’ll update the Figma today",
                 lastUpdated: Date()
@@ -72,7 +72,7 @@ final class MessagesListViewController: UIViewController, UITableViewDelegate {
                     id: "user_omar",
                     name: "Omar Khalid",
                     username: "omar_k",
-                    avatarEmoji: "👨🏾‍💻"
+                    profileImageUrl: nil
                 ),
                 lastMessage: "API is ready",
                 lastUpdated: Date()
@@ -126,7 +126,7 @@ final class MessagesListViewController: UIViewController, UITableViewDelegate {
         containerView.addGestureRecognizer(tap)
 
         avatarLabel.translatesAutoresizingMaskIntoConstraints = false
-        avatarLabel.text = user.avatarEmoji
+        avatarLabel.text = user.profileImageUrl
         avatarLabel.font = UIFont.systemFont(ofSize: 36)
         containerView.addSubview(avatarLabel)
 
