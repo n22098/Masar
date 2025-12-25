@@ -5,71 +5,78 @@ final class MessageCell: UITableViewCell {
     static let reuseIdentifier = "MessageCell"
 
     private let bubbleView = UIView()
-    private let messageLabel = UILabel()
     private let messageImageView = UIImageView()
+    private let messageLabel = UILabel()
     private let timeLabel = UILabel()
-    private let contentStack = UIStackView()
 
     private var leadingConstraint: NSLayoutConstraint!
     private var trailingConstraint: NSLayoutConstraint!
-    private var imageAspectConstraint: NSLayoutConstraint?
+
+    private let imageCache = NSCache<NSString, UIImage>()
 
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
-        selectionStyle = .none
-        backgroundColor = .clear
-        contentView.backgroundColor = .clear
-        setupViews()
+        setupUI()
     }
 
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
 
-    private func setupViews() {
+    private func setupUI() {
+        selectionStyle = .none
+        backgroundColor = .clear
+
+        // Bubble
         bubbleView.translatesAutoresizingMaskIntoConstraints = false
         bubbleView.layer.cornerRadius = 18
-        bubbleView.layer.masksToBounds = true
+        bubbleView.clipsToBounds = true
         contentView.addSubview(bubbleView)
+        messageImageView.isUserInteractionEnabled = true
+        let tap = UITapGestureRecognizer(target: self, action: #selector(imageTapped))
+        messageImageView.addGestureRecognizer(tap)
 
-        contentStack.axis = .vertical
-        contentStack.spacing = 6
-        contentStack.translatesAutoresizingMaskIntoConstraints = false
-        bubbleView.addSubview(contentStack)
 
+        // Image
+        messageImageView.translatesAutoresizingMaskIntoConstraints = false
+        messageImageView.contentMode = .scaleAspectFit
+        messageImageView.clipsToBounds = true
+        messageImageView.isHidden = true
+
+        // Text
+        messageLabel.translatesAutoresizingMaskIntoConstraints = false
         messageLabel.numberOfLines = 0
         messageLabel.font = .systemFont(ofSize: 16)
 
-        messageImageView.contentMode = .scaleAspectFill
-        messageImageView.clipsToBounds = true
-        messageImageView.layer.cornerRadius = 14
-        messageImageView.isHidden = true
+        // Stack
+        let stack = UIStackView(arrangedSubviews: [messageImageView, messageLabel])
+        stack.axis = .vertical
+        stack.spacing = 6
+        stack.translatesAutoresizingMaskIntoConstraints = false
+        bubbleView.addSubview(stack)
 
-        contentStack.addArrangedSubview(messageImageView)
-        contentStack.addArrangedSubview(messageLabel)
+        // Layout
+        NSLayoutConstraint.activate([
+            bubbleView.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 8),
+            bubbleView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -8),
+            bubbleView.widthAnchor.constraint(lessThanOrEqualTo: contentView.widthAnchor, multiplier: 0.75),
 
-        timeLabel.translatesAutoresizingMaskIntoConstraints = false
-        timeLabel.font = .systemFont(ofSize: 12)
-        timeLabel.textColor = .secondaryLabel
-        contentView.addSubview(timeLabel)
+            stack.topAnchor.constraint(equalTo: bubbleView.topAnchor, constant: 8),
+            stack.bottomAnchor.constraint(equalTo: bubbleView.bottomAnchor, constant: -8),
+            stack.leadingAnchor.constraint(equalTo: bubbleView.leadingAnchor, constant: 8),
+            stack.trailingAnchor.constraint(equalTo: bubbleView.trailingAnchor, constant: -8),
+        ])
 
         leadingConstraint = bubbleView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16)
         trailingConstraint = bubbleView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16)
+    }
 
-        NSLayoutConstraint.activate([
-            bubbleView.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 8),
-            bubbleView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -24),
-            bubbleView.widthAnchor.constraint(lessThanOrEqualTo: contentView.widthAnchor, multiplier: 0.75),
-
-            contentStack.topAnchor.constraint(equalTo: bubbleView.topAnchor, constant: 8),
-            contentStack.leadingAnchor.constraint(equalTo: bubbleView.leadingAnchor, constant: 8),
-            contentStack.trailingAnchor.constraint(equalTo: bubbleView.trailingAnchor, constant: -8),
-            contentStack.bottomAnchor.constraint(equalTo: bubbleView.bottomAnchor, constant: -8),
-
-            timeLabel.topAnchor.constraint(equalTo: bubbleView.bottomAnchor, constant: 4),
-            timeLabel.trailingAnchor.constraint(equalTo: bubbleView.trailingAnchor),
-            timeLabel.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -6)
-        ])
+    override func prepareForReuse() {
+        super.prepareForReuse()
+        messageImageView.image = nil
+        messageImageView.isHidden = true
+        messageLabel.text = nil
+        bubbleView.layer.borderWidth = 0
     }
 
     func configure(with message: Message, currentUserId: String) {
@@ -97,13 +104,14 @@ final class MessageCell: UITableViewCell {
             messageLabel.isHidden = false
             messageLabel.text = message.text
         }
-
-        let formatter = DateFormatter()
-        formatter.dateFormat = "h:mma"
-        timeLabel.text = formatter.string(from: message.timestamp).lowercased()
     }
 
     private func loadImage(from urlString: String) {
+        if let cached = imageCache.object(forKey: urlString as NSString) {
+            messageImageView.image = cached
+            return
+        }
+
         guard let url = URL(string: urlString) else { return }
 
         URLSession.shared.dataTask(with: url) { [weak self] data, _, _ in
@@ -112,39 +120,23 @@ final class MessageCell: UITableViewCell {
                   let image = UIImage(data: data) else { return }
 
             DispatchQueue.main.async {
+                self.imageCache.setObject(image, forKey: urlString as NSString)
                 self.messageImageView.image = image
-
-                self.imageAspectConstraint?.isActive = false
-                let ratio = image.size.height / image.size.width
-                self.imageAspectConstraint = self.messageImageView.heightAnchor
-                    .constraint(equalTo: self.messageImageView.widthAnchor, multiplier: ratio)
-                self.imageAspectConstraint?.isActive = true
             }
         }.resume()
-        
     }
-    override func prepareForReuse() {
-        super.prepareForReuse()
+    
+    @objc private func imageTapped() {
+        guard let image = messageImageView.image else { return }
 
-        // Reset content
-        messageLabel.text = nil
-        messageImageView.image = nil
+        let vc = ImagePreviewViewController()
+        vc.modalPresentationStyle = .fullScreen
+        vc.image = image
 
-        // Reset visibility
-        messageLabel.isHidden = false
-        messageImageView.isHidden = true
-
-        // Remove previous aspect ratio constraint
-        imageAspectConstraint?.isActive = false
-        imageAspectConstraint = nil
-
-        // Reset bubble appearance
-        bubbleView.backgroundColor = .clear
-        bubbleView.layer.borderWidth = 0
-
-        // Reset constraints
-        leadingConstraint.isActive = false
-        trailingConstraint.isActive = false
+        // Find top-most view controller
+        if let topVC = UIApplication.shared.windows.first?.rootViewController {
+            topVC.present(vc, animated: true)
+        }
     }
 
 }
