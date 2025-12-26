@@ -3,13 +3,12 @@ import UIKit
 class SeekerDetailsTVC: UITableViewController {
 
     // MARK: - Outlets
-    // اربط هذه الحقول فقط من الستوري بورد
     @IBOutlet weak var fullNameTextField: UITextField?
     @IBOutlet weak var emailTextField: UITextField?
     @IBOutlet weak var phoneTextField: UITextField?
     @IBOutlet weak var usernameTextField: UITextField?
     
-    // سنستخدم هذا فقط لإخفائه، وسنبني زراً جديداً بالكود لضمان شكله
+    // الزر القديم (مخفي)
     @IBOutlet weak var statusMenuButton: UIButton?
     
     // MARK: - Properties
@@ -17,80 +16,37 @@ class SeekerDetailsTVC: UITableViewController {
     var isNewSeeker: Bool = false
     private var currentStatus: String = "Active"
     
-    // العناصر البرمجية (لبناء الهيدر المثالي)
-    private let headerView = UIView()
-    private let proProfileImage = UIImageView()
-    private let proNameLabel = UILabel()
-    private let proRoleLabel = UILabel()
-    private let proStatusButton = UIButton(type: .system)
+    // عناصر الهيدر
+    private let headerContainer = UIView()
+    private let profileImage = UIImageView()
+    private let nameLabel = UILabel()
+    private let roleLabel = UILabel()
     
-    // ألوان المشروع
+    // عناصر الفوتر (الزر فقط)
+    private let footerContainer = UIView()
+    private let statusButton = UIButton(type: .system)
+    
+    // الألوان
     let brandColor = UIColor(red: 98/255, green: 84/255, blue: 243/255, alpha: 1.0)
-    let bgColor = UIColor(red: 248/255, green: 249/255, blue: 253/255, alpha: 1.0)
-
+    
     // MARK: - Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        // بيانات وهمية للتجربة
         if seeker == nil && !isNewSeeker {
             seeker = SampleData.seekers.first
         }
         
-        setupMainDesign()      // إعداد الصفحة
-        setupProHeader()       // بناء الهيدر بالكود
-        setupTextFieldsStyle() // تجميل الحقول
-        loadData()             // تعبئة البيانات
-        
-        // 👇 هذا هو الحل لمشكلة الزر
-        setupSaveButtonProgrammatically()
+        setupMainSettings()
+        setupHeaderOnlyInfo()   // الهيدر (تم تقليص المساحة)
+        setupListStyleFields()  // القائمة
+        setupFooterButtonOnly() // الفوتر (تم رفع الزر للأعلى)
+        loadData()
+        setupSaveButton()
     }
     
-    // MARK: - 1. زر الحفظ (الحل المضمون)
-    private func setupSaveButtonProgrammatically() {
-        // ننشئ الزر بالكود لنتأكد أنه مربوط
-        let saveBtn = UIBarButtonItem(title: "Save", style: .done, target: self, action: #selector(saveButtonTapped))
-        saveBtn.tintColor = .white
-        
-        // نضعه في النافيجيشن بار
-        self.navigationItem.rightBarButtonItem = saveBtn
-    }
-    
-    @objc private func saveButtonTapped() {
-        print("🟢 Save button pressed!") // للتأكد في الكونسول
-        
-        // التحقق من البيانات
-        guard let name = fullNameTextField?.text, !name.isEmpty else {
-            let alert = UIAlertController(title: "Missing Info", message: "Please enter the full name.", preferredStyle: .alert)
-            alert.addAction(UIAlertAction(title: "OK", style: .default))
-            present(alert, animated: true)
-            return
-        }
-        
-        // حفظ البيانات
-        if isNewSeeker {
-            let new = Seeker(fullName: name, email: emailTextField?.text ?? "", phone: phoneTextField?.text ?? "", username: usernameTextField?.text ?? "", status: currentStatus, imageName: "profile1", roleType: "Seeker")
-            SampleData.seekers.append(new)
-        } else {
-            if let index = SampleData.seekers.firstIndex(where: { $0.fullName == seeker?.fullName }) {
-                SampleData.seekers[index].fullName = name
-                SampleData.seekers[index].email = emailTextField?.text ?? ""
-                SampleData.seekers[index].phone = phoneTextField?.text ?? ""
-                SampleData.seekers[index].status = currentStatus
-            }
-        }
-        
-        // ✅ إظهار رسالة النجاح
-        let successAlert = UIAlertController(title: "Success", message: "Seeker details have been saved successfully!", preferredStyle: .alert)
-        successAlert.addAction(UIAlertAction(title: "OK", style: .default) { [weak self] _ in
-            // العودة للصفحة السابقة بعد الضغط على OK
-            self?.navigationController?.popViewController(animated: true)
-        })
-        present(successAlert, animated: true)
-    }
-
-    // MARK: - 2. إعداد التصميم (لإصلاح الشكل المكسور)
-    private func setupMainDesign() {
+    // MARK: - 1. إعدادات الصفحة
+    private func setupMainSettings() {
         title = isNewSeeker ? "New Seeker" : "Profile Details"
         
         let appearance = UINavigationBarAppearance()
@@ -104,143 +60,152 @@ class SeekerDetailsTVC: UITableViewController {
         navigationController?.navigationBar.scrollEdgeAppearance = appearance
         navigationController?.navigationBar.tintColor = .white
         
-        tableView.backgroundColor = bgColor
+        tableView.backgroundColor = .white
         tableView.separatorStyle = .none
-        
-        statusMenuButton?.isHidden = true // إخفاء الزر القديم
+        statusMenuButton?.isHidden = true
     }
 
-    // MARK: - 3. بناء الهيدر بالكود
-    private func setupProHeader() {
-        let headerHeight: CGFloat = 280
-        headerView.frame = CGRect(x: 0, y: 0, width: tableView.bounds.width, height: headerHeight)
-        headerView.backgroundColor = bgColor
+    // MARK: - 2. الهيدر (تم تقليص الارتفاع)
+    private func setupHeaderOnlyInfo() {
+        // 👇 قللنا الارتفاع هنا لتقليل المساحة الفارغة العلوية
+        let headerHeight: CGFloat = 120
+        headerContainer.frame = CGRect(x: 0, y: 0, width: tableView.bounds.width, height: headerHeight)
+        headerContainer.backgroundColor = .white
         
-        // خلفية بنفسجية
-        let purpleBackground = UIView()
-        purpleBackground.backgroundColor = brandColor
-        purpleBackground.layer.cornerRadius = 30
-        purpleBackground.layer.maskedCorners = [.layerMinXMaxYCorner, .layerMaxXMaxYCorner]
-        purpleBackground.translatesAutoresizingMaskIntoConstraints = false
-        headerView.addSubview(purpleBackground)
-        
-        // الصورة
-        proProfileImage.translatesAutoresizingMaskIntoConstraints = false
-        proProfileImage.contentMode = .scaleAspectFill
-        proProfileImage.layer.cornerRadius = 55
-        proProfileImage.layer.borderWidth = 5
-        proProfileImage.layer.borderColor = bgColor.cgColor
-        proProfileImage.clipsToBounds = true
-        proProfileImage.backgroundColor = .white
-        headerView.addSubview(proProfileImage)
+        // الصورة (يسار)
+        profileImage.translatesAutoresizingMaskIntoConstraints = false
+        profileImage.contentMode = .scaleAspectFill
+        profileImage.layer.cornerRadius = 50
+        profileImage.layer.borderWidth = 3
+        profileImage.layer.borderColor = UIColor.systemGray6.cgColor
+        profileImage.clipsToBounds = true
+        headerContainer.addSubview(profileImage)
         
         // الاسم
-        proNameLabel.translatesAutoresizingMaskIntoConstraints = false
-        proNameLabel.font = .systemFont(ofSize: 22, weight: .bold)
-        proNameLabel.textColor = .black
-        proNameLabel.textAlignment = .center
-        headerView.addSubview(proNameLabel)
+        nameLabel.font = .systemFont(ofSize: 22, weight: .bold)
+        nameLabel.textColor = .black
+        nameLabel.translatesAutoresizingMaskIntoConstraints = false
+        headerContainer.addSubview(nameLabel)
         
-        proRoleLabel.translatesAutoresizingMaskIntoConstraints = false
-        proRoleLabel.font = .systemFont(ofSize: 15, weight: .medium)
-        proRoleLabel.textColor = .gray
-        proRoleLabel.textAlignment = .center
-        headerView.addSubview(proRoleLabel)
+        // الوظيفة
+        roleLabel.font = .systemFont(ofSize: 15, weight: .medium)
+        roleLabel.textColor = .gray
+        roleLabel.translatesAutoresizingMaskIntoConstraints = false
+        headerContainer.addSubview(roleLabel)
         
-        // زر الحالة الجديد
-        proStatusButton.translatesAutoresizingMaskIntoConstraints = false
+        // القيود
+        NSLayoutConstraint.activate([
+            // الصورة
+            profileImage.leadingAnchor.constraint(equalTo: headerContainer.leadingAnchor, constant: 20),
+            profileImage.centerYAnchor.constraint(equalTo: headerContainer.centerYAnchor),
+            profileImage.widthAnchor.constraint(equalToConstant: 100),
+            profileImage.heightAnchor.constraint(equalToConstant: 100),
+            
+            // الاسم والوظيفة (في المنتصف بجانب الصورة)
+            nameLabel.leadingAnchor.constraint(equalTo: profileImage.trailingAnchor, constant: 20),
+            nameLabel.centerYAnchor.constraint(equalTo: profileImage.centerYAnchor, constant: -10),
+            nameLabel.trailingAnchor.constraint(equalTo: headerContainer.trailingAnchor, constant: -20),
+            
+            roleLabel.leadingAnchor.constraint(equalTo: nameLabel.leadingAnchor),
+            roleLabel.topAnchor.constraint(equalTo: nameLabel.bottomAnchor, constant: 4),
+            roleLabel.trailingAnchor.constraint(equalTo: headerContainer.trailingAnchor, constant: -20)
+        ])
+        
+        tableView.tableHeaderView = headerContainer
+    }
+    
+    // MARK: - 3. الفوتر (تم رفع الزر للأعلى)
+    private func setupFooterButtonOnly() {
+        let footerHeight: CGFloat = 80 // ارتفاع صغير وملموم
+        footerContainer.frame = CGRect(x: 0, y: 0, width: tableView.bounds.width, height: footerHeight)
+        footerContainer.backgroundColor = .white
+        
+        // إعداد الزر
         var config = UIButton.Configuration.filled()
         config.cornerStyle = .capsule
-        config.contentInsets = NSDirectionalEdgeInsets(top: 8, leading: 20, bottom: 8, trailing: 20)
-        proStatusButton.configuration = config
-        proStatusButton.showsMenuAsPrimaryAction = true
+        config.contentInsets = NSDirectionalEdgeInsets(top: 10, leading: 24, bottom: 10, trailing: 24)
+        config.titleTextAttributesTransformer = UIConfigurationTextAttributesTransformer { incoming in
+            var outgoing = incoming
+            outgoing.font = UIFont.systemFont(ofSize: 16, weight: .semibold)
+            return outgoing
+        }
+        statusButton.configuration = config
+        statusButton.showsMenuAsPrimaryAction = true
+        statusButton.translatesAutoresizingMaskIntoConstraints = false
         
+        // القائمة المنسدلة
         let actions = [
             UIAction(title: "Active", image: UIImage(systemName: "checkmark.circle.fill")) { [weak self] _ in self?.updateStatusUI("Active", .systemGreen) },
             UIAction(title: "Suspend", image: UIImage(systemName: "pause.circle.fill")) { [weak self] _ in self?.updateStatusUI("Suspend", .systemOrange) },
             UIAction(title: "Ban", image: UIImage(systemName: "xmark.circle.fill")) { [weak self] _ in self?.updateStatusUI("Ban", .systemRed) }
         ]
-        proStatusButton.menu = UIMenu(children: actions)
-        headerView.addSubview(proStatusButton)
+        statusButton.menu = UIMenu(children: actions)
         
-        // القيود
+        footerContainer.addSubview(statusButton)
+        
+        // القيود للفوتر
         NSLayoutConstraint.activate([
-            purpleBackground.topAnchor.constraint(equalTo: headerView.topAnchor),
-            purpleBackground.leadingAnchor.constraint(equalTo: headerView.leadingAnchor),
-            purpleBackground.trailingAnchor.constraint(equalTo: headerView.trailingAnchor),
-            purpleBackground.heightAnchor.constraint(equalToConstant: 100),
-            
-            proProfileImage.centerXAnchor.constraint(equalTo: headerView.centerXAnchor),
-            proProfileImage.centerYAnchor.constraint(equalTo: purpleBackground.bottomAnchor),
-            proProfileImage.widthAnchor.constraint(equalToConstant: 110),
-            proProfileImage.heightAnchor.constraint(equalToConstant: 110),
-            
-            proNameLabel.topAnchor.constraint(equalTo: proProfileImage.bottomAnchor, constant: 12),
-            proNameLabel.centerXAnchor.constraint(equalTo: headerView.centerXAnchor),
-            
-            proRoleLabel.topAnchor.constraint(equalTo: proNameLabel.bottomAnchor, constant: 4),
-            proRoleLabel.centerXAnchor.constraint(equalTo: headerView.centerXAnchor),
-            
-            proStatusButton.topAnchor.constraint(equalTo: proRoleLabel.bottomAnchor, constant: 16),
-            proStatusButton.centerXAnchor.constraint(equalTo: headerView.centerXAnchor),
-            proStatusButton.heightAnchor.constraint(equalToConstant: 40)
+            // 👇 هنا السر: قللنا المسافة العلوية إلى 4 فقط ليكون تحت العنوان مباشرة
+            statusButton.topAnchor.constraint(equalTo: footerContainer.topAnchor, constant: 4),
+            statusButton.leadingAnchor.constraint(equalTo: footerContainer.leadingAnchor, constant: 20),
+            statusButton.heightAnchor.constraint(equalToConstant: 44),
+            statusButton.widthAnchor.constraint(greaterThanOrEqualToConstant: 120)
         ])
         
-        tableView.tableHeaderView = headerView
+        tableView.tableFooterView = footerContainer
     }
     
-    // MARK: - 4. تجميل الحقول
-    private func setupTextFieldsStyle() {
+    // MARK: - 4. تصميم القائمة (List Style)
+    private func setupListStyleFields() {
         let fields = [fullNameTextField, emailTextField, phoneTextField, usernameTextField]
-        let icons = ["person", "envelope", "phone", "at"]
-        let placeholders = ["Full Name", "Email Address", "Phone Number", "Username"]
+        let labels = ["Full Name", "Email", "Phone", "Username"]
         
         for (index, tf) in fields.enumerated() {
             guard let tf = tf else { continue }
             
             tf.borderStyle = .none
             tf.backgroundColor = .white
-            tf.layer.cornerRadius = 12
-            tf.layer.borderWidth = 1
-            tf.layer.borderColor = UIColor.systemGray5.cgColor
-            tf.layer.shadowColor = UIColor.black.cgColor
-            tf.layer.shadowOpacity = 0.03
-            tf.layer.shadowOffset = CGSize(width: 0, height: 2)
-            tf.layer.shadowRadius = 4
+            tf.layer.sublayers?.forEach { if $0.name == "bottomLine" { $0.removeFromSuperlayer() } }
             
-            let iconContainer = UIView(frame: CGRect(x: 0, y: 0, width: 44, height: 50))
-            let iconView = UIImageView(frame: CGRect(x: 14, y: 15, width: 20, height: 20))
-            iconView.image = UIImage(systemName: icons[index])
-            iconView.tintColor = .systemGray2
-            iconView.contentMode = .scaleAspectFit
-            iconContainer.addSubview(iconView)
+            let labelWidth: CGFloat = 100
+            let leftContainer = UIView(frame: CGRect(x: 0, y: 0, width: labelWidth, height: 50))
+            let label = UILabel(frame: CGRect(x: 0, y: 0, width: labelWidth - 10, height: 50))
+            label.text = labels[index]
+            label.font = .systemFont(ofSize: 16, weight: .regular)
+            label.textColor = .black
+            leftContainer.addSubview(label)
             
-            tf.leftView = iconContainer
+            tf.leftView = leftContainer
             tf.leftViewMode = .always
-            tf.textColor = .black
-            tf.attributedPlaceholder = NSAttributedString(string: placeholders[index], attributes: [.foregroundColor: UIColor.lightGray])
+            
+            tf.textColor = .darkGray
+            tf.textAlignment = .left
+            tf.font = .systemFont(ofSize: 16, weight: .regular)
+            tf.placeholder = ""
+            
+            let bottomLine = CALayer()
+            bottomLine.name = "bottomLine"
+            bottomLine.frame = CGRect(x: 0, y: 49, width: tableView.bounds.width, height: 1)
+            bottomLine.backgroundColor = UIColor.systemGray5.cgColor
+            tf.layer.addSublayer(bottomLine)
             
             tf.translatesAutoresizingMaskIntoConstraints = false
-            if let heightConstraint = tf.constraints.first(where: { $0.firstAttribute == .height }) {
-                heightConstraint.constant = 50
-            } else {
-                tf.heightAnchor.constraint(equalToConstant: 50).isActive = true
-            }
+            tf.heightAnchor.constraint(equalToConstant: 50).isActive = true
         }
     }
-    
-    // MARK: - 5. تعبئة البيانات
+
+    // MARK: - 5. البيانات
     private func loadData() {
         guard let seeker = seeker else { return }
         
-        proNameLabel.text = seeker.fullName
-        proRoleLabel.text = seeker.roleType
+        nameLabel.text = seeker.fullName
+        roleLabel.text = seeker.roleType
         
         if let img = UIImage(named: seeker.imageName) {
-            proProfileImage.image = img
+            profileImage.image = img
         } else {
-            proProfileImage.image = UIImage(systemName: "person.circle.fill")
-            proProfileImage.tintColor = .systemGray4
+            profileImage.image = UIImage(systemName: "person.circle.fill")
+            profileImage.tintColor = .systemGray4
         }
         
         fullNameTextField?.text = seeker.fullName
@@ -261,22 +226,45 @@ class SeekerDetailsTVC: UITableViewController {
     private func updateStatusUI(_ status: String, _ color: UIColor) {
         currentStatus = status
         seeker?.status = status
-        proStatusButton.configuration?.title = status
-        proStatusButton.configuration?.baseBackgroundColor = color.withAlphaComponent(0.1)
-        proStatusButton.configuration?.baseForegroundColor = color
+        statusButton.configuration?.title = status
+        statusButton.configuration?.baseBackgroundColor = color.withAlphaComponent(0.15)
+        statusButton.configuration?.baseForegroundColor = color
     }
     
-    // تباعد الخلايا
-    override func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
-        return 70
+    // MARK: - 6. الحفظ
+    private func setupSaveButton() {
+        let saveBtn = UIBarButtonItem(title: "Save", style: .done, target: self, action: #selector(saveTapped))
+        saveBtn.tintColor = .white
+        navigationItem.rightBarButtonItem = saveBtn
     }
     
-    override func tableView(_ tableView: UITableView, willDisplay cell: UITableViewCell, forRowAt indexPath: IndexPath) {
-        cell.backgroundColor = .clear
+    @objc private func saveTapped() {
+        guard let name = fullNameTextField?.text, !name.isEmpty else { return }
+        
+        if isNewSeeker {
+            let new = Seeker(fullName: name, email: emailTextField?.text ?? "", phone: phoneTextField?.text ?? "", username: usernameTextField?.text ?? "", status: currentStatus, imageName: "profile1", roleType: "Seeker")
+            SampleData.seekers.append(new)
+        } else {
+            if let index = SampleData.seekers.firstIndex(where: { $0.fullName == seeker?.fullName }) {
+                SampleData.seekers[index].fullName = name
+                SampleData.seekers[index].email = emailTextField?.text ?? ""
+                SampleData.seekers[index].phone = phoneTextField?.text ?? ""
+                SampleData.seekers[index].status = currentStatus
+            }
+        }
+        
+        let success = UIAlertController(title: "Success", message: "Changes saved successfully.", preferredStyle: .alert)
+        success.addAction(UIAlertAction(title: "OK", style: .default) { _ in
+            self.navigationController?.popViewController(animated: true)
+        })
+        present(success, animated: true)
     }
     
-    // إخفاء الكيبورد
     override func scrollViewWillBeginDragging(_ scrollView: UIScrollView) {
         view.endEditing(true)
+    }
+    
+    override func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
+        return 55
     }
 }
