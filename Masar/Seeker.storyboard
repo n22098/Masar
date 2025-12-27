@@ -933,7 +933,7 @@
                                                             <color key="textColor" white="0.33333333329999998" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                                             <nil key="highlightedColor"/>
                                                         </label>
-                                                        <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="ddddd" textAlignment="natural" lineBreakMode="wordWrap" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="OwP-je-KSk">
+                                                        <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Description" textAlignment="natural" lineBreakMode="wordWrap" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="OwP-je-KSk">
                                                             <rect key="frame" x="141.33333333333337" y="0.0" width="211.66666666666663" height="79"/>
                                                             <fontDescription key="fontDescription" type="system" pointSize="15"/>
                                                             <nil key="highlightedColor"/>
@@ -949,6 +949,41 @@
                                                 <constraint firstAttribute="trailingMargin" secondItem="Ja0-pa-XgI" secondAttribute="trailing" id="Z6P-52-pyP"/>
                                                 <constraint firstItem="Ja0-pa-XgI" firstAttribute="top" secondItem="zll-kB-nXx" secondAttribute="topMargin" id="ZHs-h0-qJT"/>
                                                 <constraint firstAttribute="bottomMargin" secondItem="Ja0-pa-XgI" secondAttribute="bottom" id="khb-JV-GLf"/>
+                                            </constraints>
+                                        </tableViewCellContentView>
+                                    </tableViewCell>
+                                    <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" preservesSuperviewLayoutMargins="YES" selectionStyle="default" indentationWidth="10" reuseIdentifier="Service Item" rowHeight="103" id="UYq-fi-RuV">
+                                        <rect key="frame" x="0.0" y="344" width="393" height="103"/>
+                                        <autoresizingMask key="autoresizingMask"/>
+                                        <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" preservesSuperviewLayoutMargins="YES" insetsLayoutMarginsFromSafeArea="NO" tableViewCell="UYq-fi-RuV" id="Kbh-9k-3ge">
+                                            <rect key="frame" x="0.0" y="0.0" width="393" height="103"/>
+                                            <autoresizingMask key="autoresizingMask"/>
+                                            <subviews>
+                                                <stackView opaque="NO" contentMode="scaleToFill" spacing="24" translatesAutoresizingMaskIntoConstraints="NO" id="sjY-ee-I7L">
+                                                    <rect key="frame" x="20" y="12" width="353" height="79"/>
+                                                    <subviews>
+                                                        <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Service Item:" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="oRl-Y6-4Av">
+                                                            <rect key="frame" x="0.0" y="0.0" width="117.33333333333333" height="79"/>
+                                                            <fontDescription key="fontDescription" type="system" pointSize="15"/>
+                                                            <color key="textColor" white="0.33333333329999998" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                                            <nil key="highlightedColor"/>
+                                                        </label>
+                                                        <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Service Item" textAlignment="natural" lineBreakMode="wordWrap" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="zs8-5f-s3T">
+                                                            <rect key="frame" x="141.33333333333337" y="0.0" width="211.66666666666663" height="79"/>
+                                                            <fontDescription key="fontDescription" type="system" pointSize="15"/>
+                                                            <nil key="highlightedColor"/>
+                                                        </label>
+                                                    </subviews>
+                                                    <constraints>
+                                                        <constraint firstItem="zs8-5f-s3T" firstAttribute="width" secondItem="sjY-ee-I7L" secondAttribute="width" multiplier="0.6" id="PBI-MW-hul"/>
+                                                    </constraints>
+                                                </stackView>
+                                            </subviews>
+                                            <constraints>
+                                                <constraint firstItem="sjY-ee-I7L" firstAttribute="top" secondItem="Kbh-9k-3ge" secondAttribute="topMargin" id="Ec4-sn-ao8"/>
+                                                <constraint firstAttribute="bottomMargin" secondItem="sjY-ee-I7L" secondAttribute="bottom" id="K9G-Qr-cTK"/>
+                                                <constraint firstItem="sjY-ee-I7L" firstAttribute="leading" secondItem="Kbh-9k-3ge" secondAttribute="leadingMargin" id="j5B-Hk-fm2"/>
+                                                <constraint firstAttribute="trailingMargin" secondItem="sjY-ee-I7L" secondAttribute="trailing" id="vt2-AG-sCx"/>
                                             </constraints>
                                         </tableViewCellContentView>
                                     </tableViewCell>
@@ -978,6 +1013,7 @@
                         <outlet property="datePicker" destination="v3M-3V-bf4" id="aRl-4p-CFx"/>
                         <outlet property="descriptionLabel" destination="OwP-je-KSk" id="F7M-8U-Q05"/>
                         <outlet property="priceLabel" destination="w60-hm-KFd" id="IoT-OL-wWO"/>
+                        <outlet property="serviceItemLabel" destination="zs8-5f-s3T" id="6fn-I8-6Tx"/>
                         <outlet property="serviceNameLabel" destination="Qes-vi-GTT" id="x4v-ov-SPv"/>
                     </connections>
                 </tableViewController>

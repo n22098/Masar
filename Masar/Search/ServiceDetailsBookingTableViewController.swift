@@ -7,12 +7,17 @@ class ServiceDetailsBookingTableViewController: UITableViewController {
     @IBOutlet weak var serviceNameLabel: UILabel!
     @IBOutlet weak var priceLabel: UILabel!
     @IBOutlet weak var descriptionLabel: UILabel!
+    @IBOutlet weak var serviceItemLabel: UILabel!
     @IBOutlet weak var confirmButton: UIButton!
     
     // MARK: - Data Variables
     var receivedServiceName: String?
     var receivedServicePrice: String?
     var receivedServiceDetails: String?
+    
+    // 👇 Variable to receive the add-ons/items string
+    var receivedServiceItems: String?
+    
     var providerData: ServiceProviderModel?
     
     // Brand Color
@@ -28,7 +33,7 @@ class ServiceDetailsBookingTableViewController: UITableViewController {
     
     // MARK: - Setup UI
     func setupUI() {
-        // 1) نفس خلفية Add Service
+        // 1) Same background as Add Service
         tableView.backgroundColor = UIColor(red: 248/255, green: 248/255, blue: 252/255, alpha: 1.0)
         tableView.keyboardDismissMode = .interactive
         tableView.separatorStyle = .none
@@ -37,7 +42,7 @@ class ServiceDetailsBookingTableViewController: UITableViewController {
             tableView.sectionHeaderTopPadding = 12
         }
         
-        // 2) تنسيق الزر السفلي (نفس ما عندك)
+        // 2) Button Styling
         if let btn = confirmButton {
             btn.layer.cornerRadius = 12
             btn.backgroundColor = brandColor
@@ -46,7 +51,7 @@ class ServiceDetailsBookingTableViewController: UITableViewController {
             btn.titleLabel?.font = UIFont.systemFont(ofSize: 17, weight: .bold)
         }
         
-        // 3) تنسيق اختيار التاريخ (نفس ما عندك)
+        // 3) Date Picker Styling
         if let picker = datePicker {
             picker.preferredDatePickerStyle = .compact
             picker.tintColor = brandColor
@@ -76,12 +81,12 @@ class ServiceDetailsBookingTableViewController: UITableViewController {
         showBookingConfirmation()
     }
     
-    // MARK: - Fill Data (تعبئة البيانات)
+    // MARK: - Fill Data (Populate UI)
     func fillData() {
-        // 1. الاسم
+        // 1. Name
         serviceNameLabel?.text = receivedServiceName ?? "Unknown Service"
         
-        // 2. السعر
+        // 2. Price
         if let price = receivedServicePrice {
             let cleanPrice = price.replacingOccurrences(of: "BHD ", with: "")
             priceLabel?.text = cleanPrice
@@ -89,7 +94,7 @@ class ServiceDetailsBookingTableViewController: UITableViewController {
             priceLabel?.text = "0"
         }
         
-        // 3. الوصف
+        // 3. Description
         if let details = receivedServiceDetails, !details.isEmpty {
             descriptionLabel?.text = details
             descriptionLabel?.textColor = .black
@@ -97,11 +102,23 @@ class ServiceDetailsBookingTableViewController: UITableViewController {
             descriptionLabel?.text = "No description details available."
             descriptionLabel?.textColor = .darkGray
         }
-        
         descriptionLabel?.numberOfLines = 0
         descriptionLabel?.lineBreakMode = .byWordWrapping
         
-        print("DEBUG: Description passed is: \(String(describing: receivedServiceDetails))")
+        // 👇 NEW: 4. Service Items (Add-ons)
+        // Enable multiple lines for the items list
+        serviceItemLabel?.numberOfLines = 0
+        serviceItemLabel?.lineBreakMode = .byWordWrapping
+        
+        if let items = receivedServiceItems, !items.isEmpty {
+            serviceItemLabel?.text = items
+            serviceItemLabel?.textColor = .black
+            print("✅ DEBUG: Service Items displayed: \(items)")
+        } else {
+            serviceItemLabel?.text = "None"
+            serviceItemLabel?.textColor = .darkGray
+            print("⚠️ DEBUG: No Service Items received (is nil or empty)")
+        }
     }
     
     // MARK: - Actions
@@ -142,6 +159,10 @@ class ServiceDetailsBookingTableViewController: UITableViewController {
         let seekerEmail = currentUser?.email ?? "no-email@example.com"
         let seekerPhone = currentUser?.phone ?? "No Phone"
         
+        // Add items to the final description saved in Firebase
+        let itemsText = receivedServiceItems ?? "None"
+        let finalDescription = "Booking via App.\nAdd-ons: \(itemsText)"
+        
         let newBooking = BookingModel(
             seekerName: seekerName,
             serviceName: serviceName,
@@ -152,7 +173,7 @@ class ServiceDetailsBookingTableViewController: UITableViewController {
             phoneNumber: seekerPhone,
             price: price,
             instructions: "No instructions",
-            descriptionText: "Booking made via App"
+            descriptionText: finalDescription
         )
         
         ServiceManager.shared.saveBooking(booking: newBooking) { [weak self] success in
@@ -194,7 +215,7 @@ class ServiceDetailsBookingTableViewController: UITableViewController {
         present(successAlert, animated: true)
     }
     
-    // MARK: - Table View Styling (Card Style مثل Add Service)
+    // MARK: - Table View Styling (Card Style)
     override func tableView(_ tableView: UITableView,
                             willDisplay cell: UITableViewCell,
                             forRowAt indexPath: IndexPath) {
@@ -212,7 +233,7 @@ class ServiceDetailsBookingTableViewController: UITableViewController {
             bg.backgroundColor = .white
             bg.cornerRadius = corner
             
-            // ✅ هذا اللي يسوي “مسافة” بين الصفوف
+            // Cell Spacing
             bg.backgroundInsets = NSDirectionalEdgeInsets(top: topBottom,
                                                           leading: side,
                                                           bottom: topBottom,
@@ -221,7 +242,7 @@ class ServiceDetailsBookingTableViewController: UITableViewController {
             cell.backgroundConfiguration = bg
         }
         
-        // ✅ ظل خفيف لكل كرت
+        // Card Shadow
         let shadowRect = cell.bounds.insetBy(dx: side, dy: topBottom)
         cell.layer.masksToBounds = false
         cell.layer.shadowColor = UIColor.black.cgColor

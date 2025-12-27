@@ -1349,7 +1349,7 @@
                                                             </constraints>
                                                         </view>
                                                         <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="lod-fq-Jfd">
-                                                            <rect key="frame" x="127.33333333333336" y="0.0" width="190.66666666666663" height="75"/>
+                                                            <rect key="frame" x="127.33333333333336" y="0.0" width="190.66666666666657" height="75"/>
                                                             <subviews>
                                                                 <datePicker contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="center" datePickerMode="date" translatesAutoresizingMaskIntoConstraints="NO" id="8e7-7W-ptL">
                                                                     <rect key="frame" x="0.0" y="0.0" width="190.66666666666666" height="75"/>
@@ -1488,6 +1488,41 @@
                                             </constraints>
                                         </tableViewCellContentView>
                                     </tableViewCell>
+                                    <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" preservesSuperviewLayoutMargins="YES" selectionStyle="default" indentationWidth="10" reuseIdentifier="Service Item" rowHeight="103" id="UkA-pj-lU3">
+                                        <rect key="frame" x="20" y="312" width="353" height="103"/>
+                                        <autoresizingMask key="autoresizingMask"/>
+                                        <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" preservesSuperviewLayoutMargins="YES" insetsLayoutMarginsFromSafeArea="NO" tableViewCell="UkA-pj-lU3" id="A6q-0O-gi8">
+                                            <rect key="frame" x="0.0" y="0.0" width="353" height="103"/>
+                                            <autoresizingMask key="autoresizingMask"/>
+                                            <subviews>
+                                                <stackView opaque="NO" contentMode="scaleToFill" spacing="24" translatesAutoresizingMaskIntoConstraints="NO" id="nX0-uj-Q0e">
+                                                    <rect key="frame" x="20" y="12" width="313" height="79"/>
+                                                    <subviews>
+                                                        <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Service Item:" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="zld-Tl-zGz">
+                                                            <rect key="frame" x="0.0" y="0.0" width="101.33333333333333" height="79"/>
+                                                            <fontDescription key="fontDescription" type="system" pointSize="15"/>
+                                                            <color key="textColor" white="0.33333333329999998" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                                            <nil key="highlightedColor"/>
+                                                        </label>
+                                                        <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Service Item" textAlignment="natural" lineBreakMode="wordWrap" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="z7l-dG-mvS">
+                                                            <rect key="frame" x="125.33333333333336" y="0.0" width="187.66666666666663" height="79"/>
+                                                            <fontDescription key="fontDescription" type="system" pointSize="15"/>
+                                                            <nil key="highlightedColor"/>
+                                                        </label>
+                                                    </subviews>
+                                                    <constraints>
+                                                        <constraint firstItem="z7l-dG-mvS" firstAttribute="width" secondItem="nX0-uj-Q0e" secondAttribute="width" multiplier="0.6" id="9uW-r8-FVs"/>
+                                                    </constraints>
+                                                </stackView>
+                                            </subviews>
+                                            <constraints>
+                                                <constraint firstItem="nX0-uj-Q0e" firstAttribute="top" secondItem="A6q-0O-gi8" secondAttribute="topMargin" id="8yV-1y-bys"/>
+                                                <constraint firstAttribute="trailingMargin" secondItem="nX0-uj-Q0e" secondAttribute="trailing" id="CRV-24-nox"/>
+                                                <constraint firstItem="nX0-uj-Q0e" firstAttribute="leading" secondItem="A6q-0O-gi8" secondAttribute="leadingMargin" id="REq-mi-B8B"/>
+                                                <constraint firstAttribute="bottomMargin" secondItem="nX0-uj-Q0e" secondAttribute="bottom" id="d8s-Y7-Ylo"/>
+                                            </constraints>
+                                        </tableViewCellContentView>
+                                    </tableViewCell>
                                 </cells>
                             </tableViewSection>
                         </sections>
@@ -1514,6 +1549,7 @@
                         <outlet property="datePicker" destination="8e7-7W-ptL" id="F7k-2p-GgV"/>
                         <outlet property="descriptionLabel" destination="yX3-bD-b0l" id="w6j-qr-vQk"/>
                         <outlet property="priceLabel" destination="DS5-qA-mAd" id="d2E-4t-j6H"/>
+                        <outlet property="serviceItemLabel" destination="z7l-dG-mvS" id="8Ub-CY-v0h"/>
                         <outlet property="serviceNameLabel" destination="dM1-rN-6Lj" id="BAl-ir-iH8"/>
                     </connections>
                 </tableViewController>
