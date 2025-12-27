@@ -27,6 +27,9 @@ class ResetPasswordViewController: UIViewController {
         view.backgroundColor = lightBg
         title = "Reset Password"
         
+        // إزالة جميع التسميات القديمة (بشكل عميق في كل التسلسل الهرمي)
+        removeAllLabelsRecursively(from: view)
+        
         // 1. حاوية البطاقة (Card View)
         let cardView = UIView()
         cardView.backgroundColor = .white
@@ -56,6 +59,7 @@ class ResetPasswordViewController: UIViewController {
         resetButton.layer.shadowOpacity = 0.3
         resetButton.layer.shadowOffset = CGSize(width: 0, height: 5)
         resetButton.layer.shadowRadius = 10
+        resetButton.addTarget(self, action: #selector(resetPasswordBtn(_:)), for: .touchUpInside)
         
         // 4. ستايل الحقول
         styleListField(currentPasswordTextField, icon: "lock.fill", placeholder: "Current Password")
@@ -85,6 +89,7 @@ class ResetPasswordViewController: UIViewController {
         textField.isSecureTextEntry = true
         textField.placeholder = placeholder
         textField.textColor = .black
+        textField.font = .systemFont(ofSize: 16)
         
         let iconContainer = UIView(frame: CGRect(x: 0, y: 0, width: 45, height: 60))
         let iconView = UIImageView(frame: CGRect(x: 12, y: 20, width: 20, height: 20))
@@ -110,6 +115,19 @@ class ResetPasswordViewController: UIViewController {
         ])
     }
     
+    // MARK: - Helper Method لإزالة جميع الـ Labels بشكل عميق
+    private func removeAllLabelsRecursively(from view: UIView) {
+        for subview in view.subviews {
+            // إذا كان Label وليس له Tag 999، احذفه
+            if subview is UILabel && subview.tag != 999 {
+                subview.removeFromSuperview()
+            } else {
+                // ابحث في الطبقات الداخلية أيضاً
+                removeAllLabelsRecursively(from: subview)
+            }
+        }
+    }
+    
     // MARK: - Actions
     @IBAction func resetPasswordBtn(_ sender: UIButton) {
         performUpdateLogic()
@@ -119,12 +137,12 @@ class ResetPasswordViewController: UIViewController {
         guard let currentPw = currentPasswordTextField.text, !currentPw.isEmpty,
               let newPw = newPasswordTextField.text, !newPw.isEmpty,
               let confirmPw = confirmPasswordTextField.text, !confirmPw.isEmpty else {
-            showPrompt(title: "تنبيه", message: "يرجى ملء جميع الحقول")
+            showPrompt(title: "Warning", message: "Please fill in all fields")
             return
         }
         
         if newPw != confirmPw {
-            showPrompt(title: "تنبيه", message: "كلمات المرور الجديدة غير متطابقة")
+            showPrompt(title: "Warning", message: "New passwords do not match")
             return
         }
         
@@ -135,7 +153,7 @@ class ResetPasswordViewController: UIViewController {
         // إعادة التحقق من كلمة المرور القديمة أولاً
         user?.reauthenticate(with: credential) { [weak self] _, error in
             if let error = error {
-                self?.showPrompt(title: "خطأ", message: "كلمة المرور الحالية غير صحيحة")
+                self?.showPrompt(title: "Error", message: "Current password is incorrect")
                 print(error.localizedDescription)
                 return
             }
@@ -143,7 +161,7 @@ class ResetPasswordViewController: UIViewController {
             // تحديث كلمة المرور
             user?.updatePassword(to: newPw) { error in
                 if let error = error {
-                    self?.showPrompt(title: "خطأ", message: error.localizedDescription)
+                    self?.showPrompt(title: "Error", message: error.localizedDescription)
                 } else {
                     self?.showSuccessAndExit()
                 }
@@ -154,13 +172,13 @@ class ResetPasswordViewController: UIViewController {
     // MARK: - Alerts
     private func showPrompt(title: String, message: String) {
         let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
-        alert.addAction(UIAlertAction(title: "حسناً", style: .default))
+        alert.addAction(UIAlertAction(title: "OK", style: .default))
         present(alert, animated: true)
     }
     
     private func showSuccessAndExit() {
-        let alert = UIAlertController(title: "تم بنجاح", message: "تم تحديث كلمة المرور بنجاح!", preferredStyle: .alert)
-        alert.addAction(UIAlertAction(title: "ممتاز", style: .default) { _ in
+        let alert = UIAlertController(title: "Success", message: "Password updated successfully!", preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: "Great", style: .default) { _ in
             self.navigationController?.popViewController(animated: true)
         })
         present(alert, animated: true)

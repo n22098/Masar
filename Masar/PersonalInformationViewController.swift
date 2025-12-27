@@ -34,12 +34,8 @@ class PersonalInformationViewController: UIViewController {
         view.backgroundColor = lightBg
         title = "Personal Information"
         
-        // 2. إخفاء أي "تسميات" أو عناصر قديمة قد تكون مضافة برمجياً بشكل خاطئ
-        view.subviews.forEach { subview in
-            if subview is UILabel && subview.tag != 999 { // نضع Tag لتمييز العناصر الجديدة لو احتجنا
-                subview.isHidden = true
-            }
-        }
+        // 2. إزالة جميع التسميات القديمة (بشكل عميق في كل التسلسل الهرمي)
+        removeAllLabelsRecursively(from: view)
         
         // 3. إنشاء حاوية "البطاقة" (Card View)
         let cardView = UIView()
@@ -70,6 +66,7 @@ class PersonalInformationViewController: UIViewController {
         saveButton.layer.shadowOpacity = 0.3
         saveButton.layer.shadowOffset = CGSize(width: 0, height: 5)
         saveButton.layer.shadowRadius = 10
+        saveButton.addTarget(self, action: #selector(saveBtn(_:)), for: .touchUpInside)
         
         // 6. تطبيق ستايل الحقول
         styleListField(nameTextField, icon: "person.fill", placeholder: "Full Name")
@@ -130,6 +127,19 @@ class PersonalInformationViewController: UIViewController {
         ])
     }
     
+    // MARK: - Helper Method لإزالة جميع الـ Labels بشكل عميق
+    private func removeAllLabelsRecursively(from view: UIView) {
+        for subview in view.subviews {
+            // إذا كان Label وليس له Tag 999، احذفه
+            if subview is UILabel && subview.tag != 999 {
+                subview.removeFromSuperview()
+            } else {
+                // ابحث في الطبقات الداخلية أيضاً
+                removeAllLabelsRecursively(from: subview)
+            }
+        }
+    }
+    
     // MARK: - Logic (Firebase)
     func fetchUserData() {
         guard let uid = uid else { return }
@@ -144,17 +154,41 @@ class PersonalInformationViewController: UIViewController {
     }
     
     @IBAction func saveBtn(_ sender: UIButton) {
-        guard let uid = uid, let name = nameTextField?.text, !name.isEmpty,
-              let phone = phoneNumberTextField?.text, !phone.isEmpty else { return }
+        guard let uid = uid else { return }
         
-        db.collection("users").document(uid).updateData(["name": name, "phone": phone]) { error in
-            if error == nil {
-                let alert = UIAlertController(title: "Success", message: "Profile updated successfully!", preferredStyle: .alert)
-                alert.addAction(UIAlertAction(title: "OK", style: .default) { _ in
-                    self.navigationController?.popViewController(animated: true)
-                })
-                self.present(alert, animated: true)
+        // التحقق من ملء جميع الحقول
+        guard let name = nameTextField?.text, !name.isEmpty else {
+            showPrompt(title: "Warning", message: "Please enter your name")
+            return
+        }
+        
+        guard let phone = phoneNumberTextField?.text, !phone.isEmpty else {
+            showPrompt(title: "Warning", message: "Please enter your phone number")
+            return
+        }
+        
+        // تحديث البيانات في Firebase
+        db.collection("users").document(uid).updateData(["name": name, "phone": phone]) { [weak self] error in
+            if let error = error {
+                self?.showPrompt(title: "Error", message: error.localizedDescription)
+            } else {
+                self?.showSuccessAndExit()
             }
         }
+    }
+    
+    // MARK: - Alerts
+    private func showPrompt(title: String, message: String) {
+        let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: "OK", style: .default))
+        present(alert, animated: true)
+    }
+    
+    private func showSuccessAndExit() {
+        let alert = UIAlertController(title: "Success", message: "Profile updated successfully!", preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: "Great", style: .default) { _ in
+            self.navigationController?.popViewController(animated: true)
+        })
+        present(alert, animated: true)
     }
 }
