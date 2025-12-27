@@ -1314,6 +1314,7 @@
                         <outlet property="dateLabel" destination="ARi-Pc-i9H" id="Qm5-XM-xXC"/>
                         <outlet property="descriptionLabel" destination="NKK-z3-6bU" id="JBw-ad-F5v"/>
                         <outlet property="priceLabel" destination="4D9-pA-fwb" id="FX5-9p-mS3"/>
+                        <outlet property="serviceItemLabel" destination="R93-k5-0ys" id="LrT-ev-xC0"/>
                         <outlet property="serviceNameLabel" destination="5FH-gO-XHv" id="ONH-2t-TW0"/>
                         <outlet property="statusLabel" destination="Ews-Pp-p5U" id="CvL-tm-Xez"/>
                     </connections>

@@ -1848,7 +1848,7 @@
                     <connections>
                         <outlet property="cancelButton" destination="2Uy-ql-dj2" id="4kW-Qv-P4d"/>
                         <outlet property="dateLabel" destination="0Lb-kT-78Q" id="tEw-Wo-WBW"/>
-                        <outlet property="descriptionLabel" destination="78T-9r-Iyb" id="SoS-Qs-DfC"/>
+                        <outlet property="descriptionLabel" destination="78T-9r-Iyb" id="1qe-T6-nhA"/>
                         <outlet property="priceLabel" destination="e6u-Rc-BWy" id="L1o-pL-50I"/>
                         <outlet property="serviceItemLabel" destination="QCv-PB-kpy" id="dB5-dC-Ixl"/>
                         <outlet property="serviceNameLabel" destination="bKj-UA-HPJ" id="St8-51-BVd"/>

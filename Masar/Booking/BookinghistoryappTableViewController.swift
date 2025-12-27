@@ -8,7 +8,10 @@ class Bookinghistoryapp: UITableViewController {
     @IBOutlet weak var serviceNameLabel: UILabel?
     @IBOutlet weak var priceLabel: UILabel?
     @IBOutlet weak var descriptionLabel: UILabel?
+    
+    // ✅ تأكد أن هذا مربوط بالـ Label اليمين (القيمة) وليس العنوان
     @IBOutlet weak var serviceItemLabel: UILabel?
+    
     @IBOutlet weak var cancelButton: UIBarButtonItem?
 
     var bookingData: BookingModel?
@@ -19,68 +22,65 @@ class Bookinghistoryapp: UITableViewController {
         super.viewDidLoad()
         setupData()
         
-        // Ensure rows expand to fit the text
-        tableView.rowHeight = UITableView.automaticDimension
+        // توسيع الخلايا لتناسب النصوص الطويلة
         tableView.estimatedRowHeight = 100
+        tableView.rowHeight = UITableView.automaticDimension
     }
     
     func setupData() {
-            if let booking = bookingData {
-                dateLabel?.text = booking.dateString
-                priceLabel?.text = booking.priceString
-                statusLabel?.text = booking.status.rawValue
-                serviceNameLabel?.text = booking.serviceName
-                
-                // Get raw data
-                let rawDescription = booking.descriptionText
-                // ✅ FIX: 'instructions' is a String, so we don't use 'if let'
-                let rawInstructions = booking.instructions
-                
-                // 🛑 LOGIC TO HANDLE OLD vs NEW BOOKINGS 🛑
-                
-                // Case 1: OLD BOOKINGS (Description contains "Add-ons:")
-                if rawDescription.contains("Add-ons:") {
-                    let parts = rawDescription.components(separatedBy: "Add-ons:")
-                    
-                    // Part 0 is the Description (e.g. "Booking via App")
-                    if parts.count > 0 {
-                        descriptionLabel?.text = parts[0].trimmingCharacters(in: .whitespacesAndNewlines)
-                    }
-                    
-                    // Part 1 is the Items
-                    if parts.count > 1 {
-                        let extractedItems = parts[1].trimmingCharacters(in: .whitespacesAndNewlines)
-                        serviceItemLabel?.text = extractedItems.isEmpty ? "None" : extractedItems
-                    } else {
-                        serviceItemLabel?.text = "None"
-                    }
-                    
+        guard let booking = bookingData else { return }
+        
+        // تعبئة البيانات الأساسية
+        dateLabel?.text = booking.dateString
+        priceLabel?.text = booking.priceString
+        statusLabel?.text = booking.status.rawValue
+        serviceNameLabel?.text = booking.serviceName
+        
+        // ---------------------------------------------------------
+        // 🛑 إصلاح طريقة عرض الوصف والخدمات (يدعم القديم والجديد)
+        // ---------------------------------------------------------
+        
+        let rawDescription = booking.descriptionText
+        // لا نحتاج if let لأن instructions نص عادي في الموديل
+        let rawInstructions = booking.instructions
+        
+        // 1. التعامل مع الوصف (Description)
+        // إذا كان الحجز قديمًا ويحتوي على كلمة "Booking via App"، نحاول تنظيفه
+        if rawDescription.contains("Booking via App") || rawDescription.contains("Add-ons:") {
+            if rawDescription.contains("Add-ons:") {
+                // محاولة فصل النص القديم
+                let parts = rawDescription.components(separatedBy: "Add-ons:")
+                if let firstPart = parts.first {
+                    descriptionLabel?.text = firstPart.trimmingCharacters(in: .whitespacesAndNewlines)
                 }
-                // Case 2: NEW BOOKINGS (Clean description, items in instructions)
-                else {
-                    descriptionLabel?.text = rawDescription
-                    
-                    // ✅ FIX: Check the string directly
-                    if rawInstructions != "No instructions" && !rawInstructions.isEmpty {
-                        serviceItemLabel?.text = rawInstructions
-                    } else {
-                        serviceItemLabel?.text = "None"
-                    }
-                }
-                
-                updateUIState(status: booking.status)
-                
             } else {
-                // Dummy Data (For testing in Storyboard)
-                dateLabel?.text = "27 Dec 2025"
-                statusLabel?.text = "Upcoming"
-                serviceNameLabel?.text = "Test Service"
-                priceLabel?.text = "10.000 BHD"
-                descriptionLabel?.text = "Test Description"
-                serviceItemLabel?.text = "None"
-                cancelButton?.isEnabled = true
+                // إذا كان النص فقط "Booking via App." نستبدله بجملة أفضل
+                descriptionLabel?.text = "Service details unavailable."
             }
+        } else {
+            // ✅ للحجوزات الجديدة: اعرض الوصف كما هو
+            descriptionLabel?.text = rawDescription
         }
+        
+        // 2. التعامل مع الإضافات (Service Items)
+        // تنظيف النص من المسافات والجمل الافتراضية
+        let cleanInstructions = rawInstructions.trimmingCharacters(in: .whitespacesAndNewlines)
+        
+        if !cleanInstructions.isEmpty &&
+           cleanInstructions != "No instructions" &&
+           cleanInstructions != "No special instructions" &&
+           cleanInstructions != "None" {
+            
+            serviceItemLabel?.text = cleanInstructions
+            serviceItemLabel?.textColor = .black
+        } else {
+            serviceItemLabel?.text = "None"
+            serviceItemLabel?.textColor = .gray
+        }
+        
+        // تحديث حالة الأزرار والألوان
+        updateUIState(status: booking.status)
+    }
     
     func updateUIState(status: BookingStatus) {
         switch status {
@@ -103,21 +103,19 @@ class Bookinghistoryapp: UITableViewController {
         alert.addAction(UIAlertAction(title: "Yes", style: .destructive) { [weak self] _ in
             guard let self = self, let booking = self.bookingData, let bookingId = booking.id else { return }
             
-            // Update UI immediately
+            // تحديث الواجهة فوراً
             self.statusLabel?.text = "Canceled"
             self.statusLabel?.textColor = .red
             self.cancelButton?.isEnabled = false
             self.bookingData?.status = .canceled
             
-            // Update Firebase
+            // تحديث في Firebase
             ServiceManager.shared.updateBookingStatus(bookingId: bookingId, newStatus: .canceled) { success in
                 DispatchQueue.main.async {
                     if success {
-                        print("✅ Booking canceled successfully")
                         self.onStatusChanged?(.canceled)
                     } else {
-                        print("❌ Failed to cancel booking")
-                        // Revert UI if failed
+                        // التراجع عند الفشل
                         let errorAlert = UIAlertController(title: "Error", message: "Failed to cancel booking.", preferredStyle: .alert)
                         errorAlert.addAction(UIAlertAction(title: "OK", style: .default))
                         self.present(errorAlert, animated: true)
@@ -132,5 +130,10 @@ class Bookinghistoryapp: UITableViewController {
         })
         
         present(alert, animated: true)
+    }
+    
+    // هذا يضمن أن الخلية تتوسع حسب حجم النص
+    override func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
+        return UITableView.automaticDimension
     }
 }
