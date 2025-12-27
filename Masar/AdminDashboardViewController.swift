@@ -1,100 +1,162 @@
 import UIKit
-import FirebaseFirestore // Add this
-import FirebaseAnalytics // Add this
+import FirebaseFirestore
+import FirebaseAnalytics
 
 class AdminDashboardViewController: UIViewController {
-
+    
+    // MARK: - Properties
     private let scrollView = UIScrollView()
     private let contentView = UIView()
     private let mainStack = UIStackView()
-
-    private let totalUsersLabel = UILabel()
-        private let totalCategoryLabel = UILabel()
-        private let totalReportsLabel = UILabel()
-        private let pendingVerificationsLabel = UILabel()
-        private let chartView = DonutChart() // Make this a property too
-
-        let db = Firestore.firestore()
     
+    // Class-level UI elements
+    private let totalUsersLabel = UILabel()
+    private let totalCategoryLabel = UILabel()
+    private let totalReportsLabel = UILabel()
+    private let pendingVerificationsLabel = UILabel()
+    private let chartView = DonutChart()
+    
+    private let db = Firestore.firestore()
+    
+    // MARK: - Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
         setupMainLayout()
+        fetchFirebaseData()
+        updateChartFromFirebase()
     }
-
+    
+    // MARK: - Layout Setup
     private func setupMainLayout() {
         view.backgroundColor = UIColor(white: 0.98, alpha: 1.0)
-     
         
-        // 1. ScrollView Setup
         scrollView.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(scrollView)
         
         contentView.translatesAutoresizingMaskIntoConstraints = false
         scrollView.addSubview(contentView)
         
-        // 2. Main Body Stack
         mainStack.axis = .vertical
         mainStack.spacing = 25
         mainStack.translatesAutoresizingMaskIntoConstraints = false
         contentView.addSubview(mainStack)
-
-        // 3. Grid Rows
-        // Change this:
+        
+        // Setup Grid Rows
         let topRow = createHorizontalStack(
-            left: createCard(title: "Total\nUsers", valueLabel: totalUsersLabel), // Pass the variable, not "2,300+"
+            left: createCard(title: "Total\nUsers", valueLabel: totalUsersLabel),
             right: createCard(title: "Total\nCategory", valueLabel: totalCategoryLabel)
         )
-
+        
         let bottomRow = createHorizontalStack(
             left: createCard(title: "Total\nReport", valueLabel: totalReportsLabel),
             right: createCard(title: "Pending\nVerifications", valueLabel: pendingVerificationsLabel)
         )
-
-        // 4. Chart Section
+        
+        // Chart Section
         let chartTitle = UILabel()
         chartTitle.text = "Most Booking Categories"
         chartTitle.font = .systemFont(ofSize: 18, weight: .bold)
         chartTitle.textAlignment = .center
-
-        let chartView = DonutChart()
+        
+        // IMPORTANT: We use the class property 'self.chartView' here, NO 'let' keyword.
+        chartView.translatesAutoresizingMaskIntoConstraints = false
         chartView.heightAnchor.constraint(equalToConstant: 320).isActive = true
         chartView.backgroundColor = .clear
         
+        // Set initial placeholder state
         chartView.segments = [
-            ChartSegment(color: .systemOrange, value: 0.40, name: "Electronics"),
-            ChartSegment(color: .systemRed, value: 0.10, name: "Fashion"),
-            ChartSegment(color: .systemTeal, value: 0.25, name: "Home Goods"),
-            ChartSegment(color: .systemBlue, value: 0.15, name: "Books"),
-            ChartSegment(color: .systemGreen, value: 0.10, name: "Others")
+            ChartSegment(color: .systemGray5, value: 1.0, name: "Loading...")
         ]
-
-        // Add everything to stack
+        
         mainStack.addArrangedSubview(topRow)
         mainStack.addArrangedSubview(bottomRow)
         mainStack.addArrangedSubview(chartTitle)
         mainStack.addArrangedSubview(chartView)
-
-        // 5. Constraints (Pinned to Top Safe Area)
+        
         NSLayoutConstraint.activate([
             scrollView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
             scrollView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             scrollView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             scrollView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
-
+            
             contentView.topAnchor.constraint(equalTo: scrollView.topAnchor),
             contentView.leadingAnchor.constraint(equalTo: scrollView.leadingAnchor),
             contentView.trailingAnchor.constraint(equalTo: scrollView.trailingAnchor),
             contentView.bottomAnchor.constraint(equalTo: scrollView.bottomAnchor),
             contentView.widthAnchor.constraint(equalTo: scrollView.widthAnchor),
-
-            // Main stack now starts immediately at the top of the content view
+            
             mainStack.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 20),
             mainStack.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 20),
             mainStack.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -20),
             mainStack.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -20)
         ])
     }
-
+    
+    // MARK: - Firebase Data Fetching
+    private func fetchFirebaseData() {
+        // A. Total Users
+        db.collection("users").count.getAggregation(source: .server) { snapshot, _ in
+            if let count = snapshot?.count {
+                DispatchQueue.main.async { self.totalUsersLabel.text = "\(count)+" }
+            }
+        }
+        
+        // B. Total Categories
+        db.collection("categories").count.getAggregation(source: .server) { snapshot, _ in
+            if let count = snapshot?.count {
+                DispatchQueue.main.async { self.totalCategoryLabel.text = "\(count)" }
+            }
+        }
+        
+        // C. Total Reports
+        db.collection("reports").count.getAggregation(source: .server) { snapshot, _ in
+            if let count = snapshot?.count {
+                DispatchQueue.main.async { self.totalReportsLabel.text = "\(count)" }
+            }
+        }
+        
+        // D. Pending Verifications
+        db.collection("provider_requests")
+            .whereField("status", isEqualTo: "pending")
+            .count.getAggregation(source: .server) { snapshot, error in
+                if let count = snapshot?.count {
+                    DispatchQueue.main.async { self.pendingVerificationsLabel.text = "\(count)" }
+                }
+            }
+    }
+    
+    private func updateChartFromFirebase() {
+        db.collection("bookings").getDocuments { (querySnapshot, error) in
+            if let error = error {
+                print("❌ Chart Error: \(error.localizedDescription)")
+                return
+            }
+            
+            guard let documents = querySnapshot?.documents, !documents.isEmpty else {
+                DispatchQueue.main.async {
+                    self.chartView.segments = [ChartSegment(color: .systemGray4, value: 1.0, name: "No Bookings")]
+                }
+                return
+            }
+            
+            var counts: [String: Int] = [:]
+            for doc in documents {
+                let category = doc.get("category_name") as? String ?? "Other"
+                counts[category, default: 0] += 1
+            }
+            
+            let total = CGFloat(documents.count)
+            let newSegments = counts.map { (category, count) in
+                ChartSegment(color: self.randomColor(), value: CGFloat(count) / total, name: category)
+            }
+            
+            DispatchQueue.main.async {
+                self.chartView.segments = newSegments
+            }
+        }
+    }
+    
+    // MARK: - Helper Methods
     private func createCard(title: String, valueLabel: UILabel) -> UIView {
         let card = UIView()
         card.backgroundColor = .white
@@ -105,20 +167,19 @@ class AdminDashboardViewController: UIViewController {
         card.layer.shadowRadius = 12
         
         let tLabel = UILabel()
-            tLabel.text = title
-            tLabel.font = .systemFont(ofSize: 14, weight: .medium)
-            tLabel.textColor = .systemGray
-            tLabel.numberOfLines = 2
-
-            // Style the valueLabel passed into the function
-            valueLabel.font = .systemFont(ofSize: 24, weight: .bold)
-            valueLabel.text = "Loading..." // Initial state
-
-            let stack = UIStackView(arrangedSubviews: [tLabel, valueLabel])
-            stack.axis = .vertical
-            stack.spacing = 6
-            stack.translatesAutoresizingMaskIntoConstraints = false
-            card.addSubview(stack)
+        tLabel.text = title
+        tLabel.font = .systemFont(ofSize: 14, weight: .medium)
+        tLabel.textColor = .systemGray
+        tLabel.numberOfLines = 2
+        
+        valueLabel.font = .systemFont(ofSize: 24, weight: .bold)
+        valueLabel.text = "Loading..."
+        
+        let stack = UIStackView(arrangedSubviews: [tLabel, valueLabel])
+        stack.axis = .vertical
+        stack.spacing = 6
+        stack.translatesAutoresizingMaskIntoConstraints = false
+        card.addSubview(stack)
         
         NSLayoutConstraint.activate([
             stack.topAnchor.constraint(equalTo: card.topAnchor, constant: 20),
@@ -128,7 +189,7 @@ class AdminDashboardViewController: UIViewController {
         ])
         return card
     }
-
+    
     private func createHorizontalStack(left: UIView, right: UIView) -> UIStackView {
         let stack = UIStackView(arrangedSubviews: [left, right])
         stack.axis = .horizontal
@@ -136,51 +197,13 @@ class AdminDashboardViewController: UIViewController {
         stack.spacing = 16
         return stack
     }
-    private func fetchFirebaseData() {
-        // 1. Fetch User Count
-        db.collection("users").count.getAggregation(source: .server) { snapshot, error in
-            if let count = snapshot?.count {
-                DispatchQueue.main.async {
-                    self.totalUsersLabel.text = "\(count)+"
-                }
-            }
-        }
-
-        // 2. Fetch Category Count
-        db.collection("categories").count.getAggregation(source: .server) { snapshot, error in
-            if let count = snapshot?.count {
-                DispatchQueue.main.async {
-                    self.totalCategoryLabel.text = "\(count)"
-                }
-            }
-        }
-    }
-    private func updateChartFromFirebase() {
-        db.collection("bookings").getDocuments { (querySnapshot, error) in
-            guard let documents = querySnapshot?.documents else { return }
-            
-            // Count occurrences of each category
-            var counts: [String: Int] = [:]
-            for doc in documents {
-                let cat = doc.get("category_name") as? String ?? "Other"
-                counts[cat, default: 0] += 1
-            }
-            
-            // Convert to segments for your DonutChart
-            let total = CGFloat(documents.count)
-            self.chartView.segments = counts.map { (key, value) in
-                ChartSegment(color: self.randomColor(), value: CGFloat(value) / total, name: key)
-            }
-        }
-    }
-
-    // Helper for dynamic chart colors
+    
     private func randomColor() -> UIColor {
-        return UIColor(red: .random(in: 0...1), green: .random(in: 0...1), blue: .random(in: 0...1), alpha: 1.0)
+        return UIColor(red: .random(in: 0.2...0.8), green: .random(in: 0.2...0.8), blue: .random(in: 0.2...0.8), alpha: 1.0)
     }
 }
 
-// MARK: - Donut Chart Component
+// MARK: - Supporting Components
 struct ChartSegment {
     let color: UIColor
     let value: CGFloat
@@ -198,22 +221,13 @@ class DonutChart: UIView {
         
         for segment in segments {
             let endAngle = startAngle + (2 * .pi * segment.value)
-            
             let path = UIBezierPath(arcCenter: center, radius: radius, startAngle: startAngle, endAngle: endAngle, clockwise: true)
             segment.color.setStroke()
             path.lineWidth = 40
             path.stroke()
             
             let midAngle = startAngle + (endAngle - startAngle) / 2
-            let lineStart = CGPoint(x: center.x + (radius + 25) * cos(midAngle), y: center.y + (radius + 25) * sin(midAngle))
             let lineEnd = CGPoint(x: center.x + (radius + 50) * cos(midAngle), y: center.y + (radius + 50) * sin(midAngle))
-            
-            let linePath = UIBezierPath()
-            linePath.move(to: lineStart)
-            linePath.addLine(to: lineEnd)
-            UIColor.lightGray.withAlphaComponent(0.4).setStroke()
-            linePath.lineWidth = 1.0
-            linePath.stroke()
             
             let labelText = "\(segment.name)\n\(Int(segment.value * 100))%"
             let paragraphStyle = NSMutableParagraphStyle()
