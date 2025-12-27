@@ -1,12 +1,39 @@
 import UIKit
 
-final class MessagesListViewController: UIViewController {
+final class MessagesListViewController: UIViewController, UITableViewDelegate {
 
+<<<<<<< HEAD
+=======
+
+    
+    private let tableView = UITableView()
+    private var conversations: [Conversation] = []
+    
+    
+>>>>>>> 5fc0ec21c6f220f016f76b852eb752b75f53b331
     private let headerView = UIView()
     private let headerTitleLabel = UILabel()
     private let tableView = UITableView(frame: .zero, style: .plain)
 
+<<<<<<< HEAD
     private var conversations: [Conversation] = SampleConversations.items
+=======
+    private let avatarLabel = UILabel()
+    private let nameLabel = UILabel()
+    private let subtitleLabel = UILabel()
+    private let chevronImageView = UIImageView()
+
+    private let containerView = UIView()
+
+    private let user = User(
+        id: "user_1",
+        name: "Sayed Husain",
+        username: "sayed",
+        profileImageUrl: nil
+    )
+
+>>>>>>> 5fc0ec21c6f220f016f76b852eb752b75f53b331
+
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -14,6 +41,47 @@ final class MessagesListViewController: UIViewController {
         setupHeader()
         setupTableView()
     }
+    
+    
+    private func loadMockData() {
+        conversations = [
+            Conversation(
+                id: "conversation_1",
+                user: User(
+                    id: "user_sayed",
+                    name: "Sayed Husain",
+                    username: "sayed_h",
+                    profileImageUrl: nil
+                ),
+                lastMessage: "Sure, send me your requirements",
+                lastUpdated: Date()
+            ),
+            Conversation(
+                id: "conversation_2",
+                user: User(
+                    id: "user_aisha",
+                    name: "Aisha Noor",
+                    username: "aisha_noor",
+                    profileImageUrl: nil
+                ),
+                lastMessage: "I’ll update the Figma today",
+                lastUpdated: Date()
+            ),
+            Conversation(
+                id: "conversation_3",
+                user: User(
+                    id: "user_omar",
+                    name: "Omar Khalid",
+                    username: "omar_k",
+                    profileImageUrl: nil
+                ),
+                lastMessage: "API is ready",
+                lastUpdated: Date()
+            )
+
+        ]
+    }
+
 
     private func setupHeader() {
         headerView.translatesAutoresizingMaskIntoConstraints = false
@@ -50,19 +118,143 @@ final class MessagesListViewController: UIViewController {
         view.addSubview(tableView)
 
         NSLayoutConstraint.activate([
+<<<<<<< HEAD
             tableView.topAnchor.constraint(equalTo: headerView.bottomAnchor),
             tableView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             tableView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             tableView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
+=======
+            backgroundView.topAnchor.constraint(equalTo: headerView.bottomAnchor),
+            backgroundView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            backgroundView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            backgroundView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
+        ])
+
+        containerView.translatesAutoresizingMaskIntoConstraints = false
+        containerView.backgroundColor = .white
+        containerView.isUserInteractionEnabled = true
+        backgroundView.addSubview(containerView)
+
+        let tap = UITapGestureRecognizer(target: self, action: #selector(openChat))
+        containerView.addGestureRecognizer(tap)
+
+        avatarLabel.translatesAutoresizingMaskIntoConstraints = false
+        avatarLabel.text = user.profileImageUrl
+        avatarLabel.font = UIFont.systemFont(ofSize: 36)
+        containerView.addSubview(avatarLabel)
+
+        nameLabel.translatesAutoresizingMaskIntoConstraints = false
+        nameLabel.text = user.name
+        nameLabel.font = UIFont.systemFont(ofSize: 17, weight: .semibold)
+        nameLabel.textColor = .label
+        containerView.addSubview(nameLabel)
+
+        subtitleLabel.translatesAutoresizingMaskIntoConstraints = false
+        subtitleLabel.text = "@\(user.username)"
+        subtitleLabel.font = UIFont.systemFont(ofSize: 14)
+        subtitleLabel.textColor = .secondaryLabel
+        containerView.addSubview(subtitleLabel)
+
+        chevronImageView.translatesAutoresizingMaskIntoConstraints = false
+        chevronImageView.image = UIImage(systemName: "chevron.right")
+        chevronImageView.tintColor = .tertiaryLabel
+        containerView.addSubview(chevronImageView)
+
+        NSLayoutConstraint.activate([
+            containerView.topAnchor.constraint(equalTo: backgroundView.topAnchor, constant: 12),
+            containerView.leadingAnchor.constraint(equalTo: backgroundView.leadingAnchor, constant: 16),
+            containerView.trailingAnchor.constraint(equalTo: backgroundView.trailingAnchor, constant: -16),
+            containerView.heightAnchor.constraint(equalToConstant: 72),
+
+            avatarLabel.centerYAnchor.constraint(equalTo: containerView.centerYAnchor),
+            avatarLabel.leadingAnchor.constraint(equalTo: containerView.leadingAnchor),
+
+            chevronImageView.centerYAnchor.constraint(equalTo: containerView.centerYAnchor),
+            chevronImageView.trailingAnchor.constraint(equalTo: containerView.trailingAnchor),
+
+            nameLabel.leadingAnchor.constraint(equalTo: avatarLabel.trailingAnchor, constant: 12),
+            nameLabel.trailingAnchor.constraint(lessThanOrEqualTo: chevronImageView.leadingAnchor, constant: -8),
+            nameLabel.bottomAnchor.constraint(equalTo: containerView.centerYAnchor, constant: -1),
+
+            subtitleLabel.leadingAnchor.constraint(equalTo: nameLabel.leadingAnchor),
+            subtitleLabel.topAnchor.constraint(equalTo: containerView.centerYAnchor, constant: 1),
+            subtitleLabel.trailingAnchor.constraint(lessThanOrEqualTo: chevronImageView.leadingAnchor, constant: -8)
+>>>>>>> 5fc0ec21c6f220f016f76b852eb752b75f53b331
         ])
     }
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+            let conversation = conversations[indexPath.row]
 
+<<<<<<< HEAD
     // Navigation
     private func openChat(for conversation: Conversation) {
         // Pass the conversation’s messages to the Chat screen
         let chatVC = ChatViewController(user: conversation.user, messages: conversation.messages)
+=======
+            let chatVC = ChatViewController(
+                user: conversation.user,
+                messages: []
+            )
+
+            navigationController?.pushViewController(chatVC, animated: true)
+        }
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        navigationController?.setNavigationBarHidden(true, animated: false)
+    }
+
+    override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+        navigationController?.setNavigationBarHidden(false, animated: false)
+    }
+
+    @objc private func openChat() {
+
+        let currentUserId = "current_user"
+        let otherUserId = user.id
+
+        let messages: [Message] = [
+            Message(
+                id: "msg_1",
+                senderId: otherUserId,
+                receiverId: currentUserId,
+                text: "Hello, I need to create a website for my work",
+                imageURL: nil,
+                timestamp: Date()
+            ),
+            Message(
+                id: "msg_2",
+                senderId: currentUserId,
+                receiverId: otherUserId,
+                text: """
+    Sure, send me your requirement details
+    and I will help you with my template
+    or create new one if you have
+    specific design
+    """, imageURL: nil,
+                timestamp: Date()
+            ),
+            Message(
+                id: "msg_3",
+                senderId: otherUserId,
+                receiverId: currentUserId,
+                text: "Ok Thanks, I will send you after a few hours", imageURL: nil,
+                timestamp: Date()
+            ),
+            Message(
+                id: "msg_4",
+                senderId: currentUserId,
+                receiverId: otherUserId,
+                text: "Thanks!", imageURL: nil,
+                timestamp: Date()
+            )
+        ]
+
+        let chatVC = ChatViewController(user: user, messages: messages)
+>>>>>>> 5fc0ec21c6f220f016f76b852eb752b75f53b331
         navigationController?.pushViewController(chatVC, animated: true)
     }
+
 }
 
 // Delegate

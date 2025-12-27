@@ -11,6 +11,7 @@ final class ConversationCell: UITableViewCell {
 
     static let reuseIdentifier = "ConversationCell"
 
+
     private let avatarLabel = UILabel()
     private let nameLabel = UILabel()
     private let subtitleLabel = UILabel()
@@ -64,8 +65,9 @@ final class ConversationCell: UITableViewCell {
     }
 
     func configure(with user: User) {
-        avatarLabel.text = user.avatarEmoji
+        avatarLabel.text = user.profileImageUrl
         nameLabel.text = user.name
-        subtitleLabel.text = user.subtitle
+        subtitleLabel.text = "@\(user.username)"
+
     }
 }

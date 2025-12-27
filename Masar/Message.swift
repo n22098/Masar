@@ -8,8 +8,13 @@
 import Foundation
 
 struct Message {
-    let id: UUID
-    let text: String
-    let isIncoming: Bool
-    let date: Date
+    let id: String
+    let senderId: String
+    let receiverId: String
+    let text: String?
+    let imageURL: String?
+    let timestamp: Date
 }
+
+
+

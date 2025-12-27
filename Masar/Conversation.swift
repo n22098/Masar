@@ -2,6 +2,7 @@
 //  Conversation.swift
 //  Masar
 //
+<<<<<<< HEAD
 //  Created by BP-36-212-19 on 11/12/2025.
 //
 
@@ -53,3 +54,16 @@ enum SampleConversations {
         )
     ]
 }
+=======
+//  Created by BP-36-212-05 on 15/12/2025.
+//
+import Foundation
+
+struct Conversation {
+    let id: String
+    let user: User
+    let lastMessage: String
+    let lastUpdated: Date
+}
+
+>>>>>>> 5fc0ec21c6f220f016f76b852eb752b75f53b331
