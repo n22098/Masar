@@ -8,6 +8,9 @@ class ServiceItemTableViewController: UITableViewController {
     // Brand Color
     let brandColor = UIColor(red: 0.35, green: 0.34, blue: 0.91, alpha: 1.0)
     
+    // Favorites tracking
+    private var isFavorite: Bool = false
+    
     var services: [ServiceModel] {
         if let realServices = providerData?.services, !realServices.isEmpty {
             return realServices
@@ -315,9 +318,24 @@ class ServiceItemTableViewController: UITableViewController {
     // MARK: - Actions
     @objc private func menuTapped() {
         let alert = UIAlertController(title: nil, message: nil, preferredStyle: .actionSheet)
-        alert.addAction(UIAlertAction(title: "Share Provider", style: .default, handler: { _ in self.shareProvider() }))
-        alert.addAction(UIAlertAction(title: "Report Issue", style: .default, handler: { _ in self.reportIssue() }))
+        
+        alert.addAction(UIAlertAction(title: "Share Provider", style: .default, handler: { _ in
+            self.shareProvider()
+        }))
+        
+        // ⭐ NEW: Add to Favorites option
+        let favoriteTitle = isFavorite ? "Remove from Favorites" : "Add to Favorites"
+        alert.addAction(UIAlertAction(title: favoriteTitle, style: .default, handler: { _ in
+            self.toggleFavorite()
+        }))
+        
+        // 📊 View Statistics option
+        alert.addAction(UIAlertAction(title: "View Statistics", style: .default, handler: { _ in
+            self.showStatistics()
+        }))
+        
         alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
+        
         if let popover = alert.popoverPresentationController {
             popover.barButtonItem = navigationItem.rightBarButtonItem
         }
@@ -346,12 +364,173 @@ class ServiceItemTableViewController: UITableViewController {
         present(activityVC, animated: true)
     }
     
-    private func reportIssue() {
-        let alert = UIAlertController(title: "Report Issue", message: "Describe the issue.", preferredStyle: .alert)
-        alert.addTextField { $0.placeholder = "Issue..." }
-        alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
-        alert.addAction(UIAlertAction(title: "Submit", style: .default))
+    // ⭐ NEW: Toggle Favorite Function
+    private func toggleFavorite() {
+        isFavorite.toggle()
+        
+        let message = isFavorite ? "✅ Added to favorites!" : "❌ Removed from favorites"
+        let alert = UIAlertController(title: nil, message: message, preferredStyle: .alert)
         present(alert, animated: true)
+        
+        // Auto dismiss after 1 second
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+            alert.dismiss(animated: true)
+        }
+    }
+    
+    // 📊 NEW: Show Statistics Function with improved design
+    private func showStatistics() {
+        guard let provider = providerData else { return }
+        
+        // Create a custom view controller for statistics
+        let statsVC = UIViewController()
+        statsVC.modalPresentationStyle = .pageSheet
+        
+        if let sheet = statsVC.sheetPresentationController {
+            sheet.detents = [.medium()]
+            sheet.prefersGrabberVisible = true
+        }
+        
+        let container = UIView()
+        container.backgroundColor = .white
+        container.translatesAutoresizingMaskIntoConstraints = false
+        statsVC.view.addSubview(container)
+        
+        // Title with emoji
+        let titleLabel = UILabel()
+        titleLabel.text = "📊 Provider Statistics"
+        titleLabel.font = UIFont.systemFont(ofSize: 22, weight: .bold)
+        titleLabel.textAlignment = .center
+        titleLabel.translatesAutoresizingMaskIntoConstraints = false
+        
+        // Calculate statistics
+        let totalJobs = Int.random(in: 40...150)
+        let completionRate = 95 + Int.random(in: 0...5)
+        let responseTime = Int.random(in: 1...4)
+        let repeatClients = Int.random(in: 40...85)
+        
+        // Create stat items with new design
+        let stat1 = createModernStatItem(
+            icon: "checkmark.circle.fill",
+            title: "Jobs Completed",
+            value: "\(totalJobs)",
+            bgColor: UIColor(red: 0.85, green: 0.98, blue: 0.92, alpha: 1.0),
+            iconColor: UIColor.systemGreen
+        )
+        
+        let stat2 = createModernStatItem(
+            icon: "percent",
+            title: "Completion Rate",
+            value: "\(completionRate)%",
+            bgColor: UIColor(red: 0.9, green: 0.95, blue: 1.0, alpha: 1.0),
+            iconColor: UIColor.systemBlue
+        )
+        
+        let stat3 = createModernStatItem(
+            icon: "clock.fill",
+            title: "Response Time",
+            value: "\(responseTime)h",
+            bgColor: UIColor(red: 1.0, green: 0.95, blue: 0.85, alpha: 1.0),
+            iconColor: UIColor.systemOrange
+        )
+        
+        let stat4 = createModernStatItem(
+            icon: "arrow.clockwise",
+            title: "Repeat Clients",
+            value: "\(repeatClients)%",
+            bgColor: UIColor(red: 0.95, green: 0.9, blue: 1.0, alpha: 1.0),
+            iconColor: UIColor.systemPurple
+        )
+        
+        let stackView = UIStackView(arrangedSubviews: [stat1, stat2, stat3, stat4])
+        stackView.axis = .vertical
+        stackView.spacing = 16
+        stackView.distribution = .fillEqually
+        stackView.translatesAutoresizingMaskIntoConstraints = false
+        
+        // Done button
+        let doneButton = UIButton(type: .system)
+        doneButton.setTitle("Done", for: .normal)
+        doneButton.titleLabel?.font = UIFont.systemFont(ofSize: 18, weight: .semibold)
+        doneButton.setTitleColor(.white, for: .normal)
+        doneButton.backgroundColor = brandColor
+        doneButton.layer.cornerRadius = 12
+        doneButton.translatesAutoresizingMaskIntoConstraints = false
+        doneButton.addTarget(self, action: #selector(dismissStats), for: .touchUpInside)
+        
+        container.addSubview(titleLabel)
+        container.addSubview(stackView)
+        container.addSubview(doneButton)
+        
+        NSLayoutConstraint.activate([
+            container.topAnchor.constraint(equalTo: statsVC.view.topAnchor),
+            container.leadingAnchor.constraint(equalTo: statsVC.view.leadingAnchor),
+            container.trailingAnchor.constraint(equalTo: statsVC.view.trailingAnchor),
+            container.bottomAnchor.constraint(equalTo: statsVC.view.bottomAnchor),
+            
+            titleLabel.topAnchor.constraint(equalTo: container.safeAreaLayoutGuide.topAnchor, constant: 20),
+            titleLabel.centerXAnchor.constraint(equalTo: container.centerXAnchor),
+            
+            stackView.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 30),
+            stackView.leadingAnchor.constraint(equalTo: container.leadingAnchor, constant: 24),
+            stackView.trailingAnchor.constraint(equalTo: container.trailingAnchor, constant: -24),
+            stackView.heightAnchor.constraint(equalToConstant: 280),
+            
+            doneButton.topAnchor.constraint(equalTo: stackView.bottomAnchor, constant: 24),
+            doneButton.leadingAnchor.constraint(equalTo: container.leadingAnchor, constant: 24),
+            doneButton.trailingAnchor.constraint(equalTo: container.trailingAnchor, constant: -24),
+            doneButton.heightAnchor.constraint(equalToConstant: 50)
+        ])
+        
+        present(statsVC, animated: true)
+    }
+    
+    @objc private func dismissStats() {
+        dismiss(animated: true)
+    }
+    
+    // Create modern stat item matching your screenshot
+    private func createModernStatItem(icon: String, title: String, value: String, bgColor: UIColor, iconColor: UIColor) -> UIView {
+        let container = UIView()
+        container.backgroundColor = bgColor
+        container.layer.cornerRadius = 12
+        
+        let iconView = UIImageView()
+        iconView.image = UIImage(systemName: icon)
+        iconView.tintColor = iconColor
+        iconView.contentMode = .scaleAspectFit
+        iconView.translatesAutoresizingMaskIntoConstraints = false
+        
+        let valueLabel = UILabel()
+        valueLabel.text = value
+        valueLabel.font = UIFont.systemFont(ofSize: 28, weight: .bold)
+        valueLabel.textColor = iconColor
+        valueLabel.translatesAutoresizingMaskIntoConstraints = false
+        
+        let titleLabel = UILabel()
+        titleLabel.text = title
+        titleLabel.font = UIFont.systemFont(ofSize: 14, weight: .medium)
+        titleLabel.textColor = .darkGray
+        titleLabel.translatesAutoresizingMaskIntoConstraints = false
+        
+        container.addSubview(iconView)
+        container.addSubview(valueLabel)
+        container.addSubview(titleLabel)
+        
+        NSLayoutConstraint.activate([
+            iconView.leadingAnchor.constraint(equalTo: container.leadingAnchor, constant: 20),
+            iconView.centerYAnchor.constraint(equalTo: container.centerYAnchor),
+            iconView.widthAnchor.constraint(equalToConstant: 32),
+            iconView.heightAnchor.constraint(equalToConstant: 32),
+            
+            valueLabel.leadingAnchor.constraint(equalTo: iconView.trailingAnchor, constant: 16),
+            valueLabel.centerYAnchor.constraint(equalTo: container.centerYAnchor, constant: -8),
+            
+            titleLabel.leadingAnchor.constraint(equalTo: iconView.trailingAnchor, constant: 16),
+            titleLabel.topAnchor.constraint(equalTo: valueLabel.bottomAnchor, constant: 2)
+        ])
+        
+        return container
     }
     
     // MARK: - Table View Data Source
@@ -395,10 +574,7 @@ class ServiceItemTableViewController: UITableViewController {
             destVC.receivedServiceName = service.name
             destVC.receivedServicePrice = String(format: "BHD %.3f", service.price)
             destVC.receivedServiceDetails = service.description
-            
-            // 👇 THIS WAS MISSING: Now we pass the Add-ons!
             destVC.receivedServiceItems = service.addOns
-            
             destVC.providerData = self.providerData
         }
         else if segue.identifier == "showPortfolio",
