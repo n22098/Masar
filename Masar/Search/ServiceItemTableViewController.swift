@@ -5,14 +5,14 @@ class ServiceItemTableViewController: UITableViewController {
     // MARK: - Properties
     var providerData: ServiceProviderModel?
     
-    // لون البراند الثابت
+    // Brand Color
     let brandColor = UIColor(red: 0.35, green: 0.34, blue: 0.91, alpha: 1.0)
     
     var services: [ServiceModel] {
         if let realServices = providerData?.services, !realServices.isEmpty {
             return realServices
         }
-        // بيانات وهمية احتياطية في حال عدم وجود بيانات حقيقية
+        // Dummy data fallback
         return [
             ServiceModel(
                 name: "Website Starter",
@@ -156,31 +156,26 @@ class ServiceItemTableViewController: UITableViewController {
     private func setupUI() {
         title = providerData?.role ?? "Services"
         
-        // إعدادات النافيقيشن بار (تم تعديل الألوان للأبيض)
         let appearance = UINavigationBarAppearance()
         appearance.configureWithOpaqueBackground()
         appearance.backgroundColor = brandColor
         
-        // 1. العناوين العادية
         appearance.titleTextAttributes = [
             .foregroundColor: UIColor.white,
             .font: UIFont.systemFont(ofSize: 18, weight: .semibold)
         ]
         
-        // 2. 🔥 العناوين الكبيرة (Large Titles) - هنا الحل لمشكلة اللون الأسود
         appearance.largeTitleTextAttributes = [
             .foregroundColor: UIColor.white,
             .font: UIFont.systemFont(ofSize: 34, weight: .bold)
         ]
         
-        appearance.shadowColor = .clear // إزالة الخط الفاصل
+        appearance.shadowColor = .clear
         
-        // تطبيق الإعدادات
         navigationController?.navigationBar.standardAppearance = appearance
         navigationController?.navigationBar.scrollEdgeAppearance = appearance
         navigationController?.navigationBar.compactAppearance = appearance
         
-        // لون أزرار العودة (Back Button)
         navigationController?.navigationBar.tintColor = .white
         navigationController?.navigationBar.prefersLargeTitles = true
         
@@ -398,11 +393,12 @@ class ServiceItemTableViewController: UITableViewController {
            let service = sender as? ServiceModel {
             
             destVC.receivedServiceName = service.name
-            
-            // 🔥 الإصلاح هنا: تحويل السعر من رقم إلى نص مع العملة
             destVC.receivedServicePrice = String(format: "BHD %.3f", service.price)
-            
             destVC.receivedServiceDetails = service.description
+            
+            // 👇 THIS WAS MISSING: Now we pass the Add-ons!
+            destVC.receivedServiceItems = service.addOns
+            
             destVC.providerData = self.providerData
         }
         else if segue.identifier == "showPortfolio",

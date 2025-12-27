@@ -14,9 +14,7 @@ class ServiceDetailsBookingTableViewController: UITableViewController {
     var receivedServiceName: String?
     var receivedServicePrice: String?
     var receivedServiceDetails: String?
-    
-    // 👇 Variable to receive the add-ons/items string
-    var receivedServiceItems: String?
+    var receivedServiceItems: String? // Holds the Add-ons string
     
     var providerData: ServiceProviderModel?
     
@@ -29,12 +27,18 @@ class ServiceDetailsBookingTableViewController: UITableViewController {
         setupUI()
         setupNavigationBar()
         fillData()
+        
+        // Help table view layout
+        tableView.estimatedRowHeight = 100
+        tableView.rowHeight = UITableView.automaticDimension
     }
     
     // MARK: - Setup UI
     func setupUI() {
-        // 1) Same background as Add Service
+        // 1) Background
         tableView.backgroundColor = UIColor(red: 248/255, green: 248/255, blue: 252/255, alpha: 1.0)
+        view.backgroundColor = UIColor(red: 248/255, green: 248/255, blue: 252/255, alpha: 1.0)
+        
         tableView.keyboardDismissMode = .interactive
         tableView.separatorStyle = .none
         
@@ -55,7 +59,7 @@ class ServiceDetailsBookingTableViewController: UITableViewController {
         if let picker = datePicker {
             picker.preferredDatePickerStyle = .compact
             picker.tintColor = brandColor
-            picker.contentHorizontalAlignment = .leading
+            picker.contentHorizontalAlignment = .trailing
         }
     }
     
@@ -81,7 +85,7 @@ class ServiceDetailsBookingTableViewController: UITableViewController {
         showBookingConfirmation()
     }
     
-    // MARK: - Fill Data (Populate UI)
+    // MARK: - Fill Data
     func fillData() {
         // 1. Name
         serviceNameLabel?.text = receivedServiceName ?? "Unknown Service"
@@ -103,22 +107,27 @@ class ServiceDetailsBookingTableViewController: UITableViewController {
             descriptionLabel?.textColor = .darkGray
         }
         descriptionLabel?.numberOfLines = 0
-        descriptionLabel?.lineBreakMode = .byWordWrapping
         
-        // 👇 NEW: 4. Service Items (Add-ons)
-        // Enable multiple lines for the items list
+        // 4. Service Items (Add-ons)
         serviceItemLabel?.numberOfLines = 0
-        serviceItemLabel?.lineBreakMode = .byWordWrapping
-        
         if let items = receivedServiceItems, !items.isEmpty {
             serviceItemLabel?.text = items
             serviceItemLabel?.textColor = .black
-            print("✅ DEBUG: Service Items displayed: \(items)")
         } else {
             serviceItemLabel?.text = "None"
             serviceItemLabel?.textColor = .darkGray
-            print("⚠️ DEBUG: No Service Items received (is nil or empty)")
         }
+    }
+    
+    // MARK: - ⚠️ HEIGHT FIX: Uniform Cards
+    override func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
+        // Row 0 = Date, Row 1 = Name, Row 2 = Price
+        // Force them to be 90 so they look like uniform cards
+        if indexPath.row <= 2 {
+            return 90
+        }
+        // Row 3 (Description) & Row 4 (Items) expand automatically
+        return UITableView.automaticDimension
     }
     
     // MARK: - Actions
@@ -128,14 +137,9 @@ class ServiceDetailsBookingTableViewController: UITableViewController {
         showBookingConfirmation()
     }
     
-    // MARK: - Confirmation & Save
+    // MARK: - Saving Logic
     func showBookingConfirmation() {
-        let confirmAlert = UIAlertController(
-            title: "Confirm Booking",
-            message: "Are you sure you want to proceed?",
-            preferredStyle: .alert
-        )
-        
+        let confirmAlert = UIAlertController(title: "Confirm Booking", message: "Are you sure you want to proceed?", preferredStyle: .alert)
         confirmAlert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
         
         let bookAction = UIAlertAction(title: "Book", style: .default) { [weak self] _ in
@@ -143,7 +147,6 @@ class ServiceDetailsBookingTableViewController: UITableViewController {
         }
         confirmAlert.addAction(bookAction)
         confirmAlert.preferredAction = bookAction
-        
         present(confirmAlert, animated: true)
     }
     
@@ -159,10 +162,11 @@ class ServiceDetailsBookingTableViewController: UITableViewController {
         let seekerEmail = currentUser?.email ?? "no-email@example.com"
         let seekerPhone = currentUser?.phone ?? "No Phone"
         
-        // Add items to the final description saved in Firebase
+        // ✅ CRITICAL FIX: Save Items separately from Description
         let itemsText = receivedServiceItems ?? "None"
-        let finalDescription = "Booking via App.\nAdd-ons: \(itemsText)"
+        let originalDescription = receivedServiceDetails ?? "No details"
         
+        // We save 'itemsText' into 'instructions' so the History screen can read it cleanly
         let newBooking = BookingModel(
             seekerName: seekerName,
             serviceName: serviceName,
@@ -172,8 +176,8 @@ class ServiceDetailsBookingTableViewController: UITableViewController {
             email: seekerEmail,
             phoneNumber: seekerPhone,
             price: price,
-            instructions: "No instructions",
-            descriptionText: finalDescription
+            instructions: itemsText,            // 👈 Add-ons saved here
+            descriptionText: originalDescription // 👈 Description saved here
         )
         
         ServiceManager.shared.saveBooking(booking: newBooking) { [weak self] success in
@@ -194,61 +198,39 @@ class ServiceDetailsBookingTableViewController: UITableViewController {
         dateFormatter.dateFormat = "dd MMM yyyy"
         let formattedDate = dateFormatter.string(from: booking.date)
         
-        let message = """
-        Successfully booked!
+        let message = "Successfully booked!\n\nService: \(booking.serviceName)\nDate: \(formattedDate)\nPrice: \(booking.priceString)"
         
-        Service: \(booking.serviceName)
-        Date: \(formattedDate)
-        Price: \(booking.priceString)
-        """
-        
-        let successAlert = UIAlertController(
-            title: "Booking Confirmed ✓",
-            message: message,
-            preferredStyle: .alert
-        )
-        
+        let successAlert = UIAlertController(title: "Booking Confirmed ✓", message: message, preferredStyle: .alert)
         successAlert.addAction(UIAlertAction(title: "Done", style: .default) { [weak self] _ in
             self?.navigationController?.popToRootViewController(animated: true)
         })
-        
         present(successAlert, animated: true)
     }
     
     // MARK: - Table View Styling (Card Style)
-    override func tableView(_ tableView: UITableView,
-                            willDisplay cell: UITableViewCell,
-                            forRowAt indexPath: IndexPath) {
-        
+    override func tableView(_ tableView: UITableView, willDisplay cell: UITableViewCell, forRowAt indexPath: IndexPath) {
         cell.selectionStyle = .none
         cell.backgroundColor = .clear
         cell.contentView.backgroundColor = .clear
         
-        let topBottom: CGFloat = 6
+        let topBottom: CGFloat = 8
         let side: CGFloat = 16
-        let corner: CGFloat = 14
+        let corner: CGFloat = 16
         
         if #available(iOS 14.0, *) {
             var bg = UIBackgroundConfiguration.clear()
             bg.backgroundColor = .white
             bg.cornerRadius = corner
-            
-            // Cell Spacing
-            bg.backgroundInsets = NSDirectionalEdgeInsets(top: topBottom,
-                                                          leading: side,
-                                                          bottom: topBottom,
-                                                          trailing: side)
-            
+            bg.backgroundInsets = NSDirectionalEdgeInsets(top: topBottom, leading: side, bottom: topBottom, trailing: side)
             cell.backgroundConfiguration = bg
         }
         
-        // Card Shadow
         let shadowRect = cell.bounds.insetBy(dx: side, dy: topBottom)
         cell.layer.masksToBounds = false
         cell.layer.shadowColor = UIColor.black.cgColor
-        cell.layer.shadowOpacity = 0.05
-        cell.layer.shadowOffset = CGSize(width: 0, height: 2)
-        cell.layer.shadowRadius = 8
+        cell.layer.shadowOpacity = 0.06
+        cell.layer.shadowOffset = CGSize(width: 0, height: 3)
+        cell.layer.shadowRadius = 10
         cell.layer.shadowPath = UIBezierPath(roundedRect: shadowRect, cornerRadius: corner).cgPath
     }
 }

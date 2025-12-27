@@ -1795,6 +1795,41 @@
                                             </constraints>
                                         </tableViewCellContentView>
                                     </tableViewCell>
+                                    <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" preservesSuperviewLayoutMargins="YES" selectionStyle="default" indentationWidth="10" reuseIdentifier="BookingCell" rowHeight="126" id="575-Zy-pxj">
+                                        <rect key="frame" x="20" y="491" width="353" height="126"/>
+                                        <autoresizingMask key="autoresizingMask"/>
+                                        <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" preservesSuperviewLayoutMargins="YES" insetsLayoutMarginsFromSafeArea="NO" tableViewCell="575-Zy-pxj" id="X5r-eP-zb3">
+                                            <rect key="frame" x="0.0" y="0.0" width="353" height="126"/>
+                                            <autoresizingMask key="autoresizingMask"/>
+                                            <subviews>
+                                                <stackView opaque="NO" contentMode="scaleToFill" spacing="24" translatesAutoresizingMaskIntoConstraints="NO" id="hnU-R4-QAT">
+                                                    <rect key="frame" x="20" y="12" width="313" height="102"/>
+                                                    <subviews>
+                                                        <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Service Item:" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="DRB-OL-WSf">
+                                                            <rect key="frame" x="0.0" y="0.0" width="105.33333333333333" height="102"/>
+                                                            <constraints>
+                                                                <constraint firstAttribute="width" constant="105.33333333333333" id="hL7-Y8-KOB"/>
+                                                            </constraints>
+                                                            <fontDescription key="fontDescription" type="system" pointSize="15"/>
+                                                            <color key="textColor" white="0.33333333329999998" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                                            <nil key="highlightedColor"/>
+                                                        </label>
+                                                        <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Service Item" textAlignment="natural" lineBreakMode="wordWrap" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="QCv-PB-kpy">
+                                                            <rect key="frame" x="129.33333333333337" y="0.0" width="183.66666666666663" height="102"/>
+                                                            <fontDescription key="fontDescription" type="system" pointSize="15"/>
+                                                            <nil key="highlightedColor"/>
+                                                        </label>
+                                                    </subviews>
+                                                </stackView>
+                                            </subviews>
+                                            <constraints>
+                                                <constraint firstAttribute="trailingMargin" secondItem="hnU-R4-QAT" secondAttribute="trailing" id="8qW-Va-P2B"/>
+                                                <constraint firstItem="hnU-R4-QAT" firstAttribute="leading" secondItem="X5r-eP-zb3" secondAttribute="leadingMargin" id="UKT-c1-fxa"/>
+                                                <constraint firstItem="hnU-R4-QAT" firstAttribute="top" secondItem="X5r-eP-zb3" secondAttribute="topMargin" id="WVY-aq-X7b"/>
+                                                <constraint firstAttribute="bottomMargin" secondItem="hnU-R4-QAT" secondAttribute="bottom" id="hg2-Ly-jw9"/>
+                                            </constraints>
+                                        </tableViewCellContentView>
+                                    </tableViewCell>
                                 </cells>
                             </tableViewSection>
                         </sections>
@@ -1815,6 +1850,7 @@
                         <outlet property="dateLabel" destination="0Lb-kT-78Q" id="tEw-Wo-WBW"/>
                         <outlet property="descriptionLabel" destination="78T-9r-Iyb" id="SoS-Qs-DfC"/>
                         <outlet property="priceLabel" destination="e6u-Rc-BWy" id="L1o-pL-50I"/>
+                        <outlet property="serviceItemLabel" destination="QCv-PB-kpy" id="dB5-dC-Ixl"/>
                         <outlet property="serviceNameLabel" destination="bKj-UA-HPJ" id="St8-51-BVd"/>
                         <outlet property="statusLabel" destination="Xjl-kT-mPw" id="A1H-eg-XxY"/>
                     </connections>

@@ -2,42 +2,85 @@ import UIKit
 
 class Bookinghistoryapp: UITableViewController {
 
-    // ✅ Changed from ! to ? to prevent crashes
+    // MARK: - Outlets
     @IBOutlet weak var dateLabel: UILabel?
     @IBOutlet weak var statusLabel: UILabel?
     @IBOutlet weak var serviceNameLabel: UILabel?
     @IBOutlet weak var priceLabel: UILabel?
     @IBOutlet weak var descriptionLabel: UILabel?
+    @IBOutlet weak var serviceItemLabel: UILabel?
     @IBOutlet weak var cancelButton: UIBarButtonItem?
 
     var bookingData: BookingModel?
     var onStatusChanged: ((BookingStatus) -> Void)?
 
+    // MARK: - Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
         setupData()
+        
+        // Ensure rows expand to fit the text
+        tableView.rowHeight = UITableView.automaticDimension
+        tableView.estimatedRowHeight = 100
     }
     
     func setupData() {
-        if let booking = bookingData {
-            dateLabel?.text = booking.dateString
-            priceLabel?.text = booking.priceString
-            
-            statusLabel?.text = booking.status.rawValue
-            serviceNameLabel?.text = booking.serviceName
-            descriptionLabel?.text = booking.descriptionText
-            updateUIState(status: booking.status)
-            
-        } else {
-            // Dummy Data
-            dateLabel?.text = "23 Dec 2025"
-            statusLabel?.text = "Upcoming"
-            serviceNameLabel?.text = "Website Starter"
-            priceLabel?.text = "85.000 BHD"
-            descriptionLabel?.text = "Full app development."
-            cancelButton?.isEnabled = true
+            if let booking = bookingData {
+                dateLabel?.text = booking.dateString
+                priceLabel?.text = booking.priceString
+                statusLabel?.text = booking.status.rawValue
+                serviceNameLabel?.text = booking.serviceName
+                
+                // Get raw data
+                let rawDescription = booking.descriptionText
+                // ✅ FIX: 'instructions' is a String, so we don't use 'if let'
+                let rawInstructions = booking.instructions
+                
+                // 🛑 LOGIC TO HANDLE OLD vs NEW BOOKINGS 🛑
+                
+                // Case 1: OLD BOOKINGS (Description contains "Add-ons:")
+                if rawDescription.contains("Add-ons:") {
+                    let parts = rawDescription.components(separatedBy: "Add-ons:")
+                    
+                    // Part 0 is the Description (e.g. "Booking via App")
+                    if parts.count > 0 {
+                        descriptionLabel?.text = parts[0].trimmingCharacters(in: .whitespacesAndNewlines)
+                    }
+                    
+                    // Part 1 is the Items
+                    if parts.count > 1 {
+                        let extractedItems = parts[1].trimmingCharacters(in: .whitespacesAndNewlines)
+                        serviceItemLabel?.text = extractedItems.isEmpty ? "None" : extractedItems
+                    } else {
+                        serviceItemLabel?.text = "None"
+                    }
+                    
+                }
+                // Case 2: NEW BOOKINGS (Clean description, items in instructions)
+                else {
+                    descriptionLabel?.text = rawDescription
+                    
+                    // ✅ FIX: Check the string directly
+                    if rawInstructions != "No instructions" && !rawInstructions.isEmpty {
+                        serviceItemLabel?.text = rawInstructions
+                    } else {
+                        serviceItemLabel?.text = "None"
+                    }
+                }
+                
+                updateUIState(status: booking.status)
+                
+            } else {
+                // Dummy Data (For testing in Storyboard)
+                dateLabel?.text = "27 Dec 2025"
+                statusLabel?.text = "Upcoming"
+                serviceNameLabel?.text = "Test Service"
+                priceLabel?.text = "10.000 BHD"
+                descriptionLabel?.text = "Test Description"
+                serviceItemLabel?.text = "None"
+                cancelButton?.isEnabled = true
+            }
         }
-    }
     
     func updateUIState(status: BookingStatus) {
         switch status {
@@ -71,20 +114,14 @@ class Bookinghistoryapp: UITableViewController {
                 DispatchQueue.main.async {
                     if success {
                         print("✅ Booking canceled successfully")
-                        // Notify the list view about the status change
                         self.onStatusChanged?(.canceled)
                     } else {
                         print("❌ Failed to cancel booking")
-                        // Show error alert
-                        let errorAlert = UIAlertController(
-                            title: "Error",
-                            message: "Failed to cancel booking. Please try again.",
-                            preferredStyle: .alert
-                        )
+                        // Revert UI if failed
+                        let errorAlert = UIAlertController(title: "Error", message: "Failed to cancel booking.", preferredStyle: .alert)
                         errorAlert.addAction(UIAlertAction(title: "OK", style: .default))
                         self.present(errorAlert, animated: true)
                         
-                        // Revert UI changes
                         self.statusLabel?.text = "Upcoming"
                         self.statusLabel?.textColor = .orange
                         self.cancelButton?.isEnabled = true

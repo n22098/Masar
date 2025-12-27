@@ -6,6 +6,10 @@ class ServiceInformationTableViewController: UITableViewController {
     var receivedServiceName: String?
     var receivedServicePrice: String?
     var receivedServiceDetails: String?
+    
+    // 👇 NEW: Variable to hold the Service Items (Add-ons)
+    var receivedServiceItems: [String]?
+    
     var providerData: ServiceProviderModel?
     
     let brandColor = UIColor(red: 0.35, green: 0.34, blue: 0.91, alpha: 1.0)
@@ -101,7 +105,7 @@ class ServiceInformationTableViewController: UITableViewController {
         return label
     }()
     
-    // اجعل هذا المتغير متاحاً للكلاس لكي نستخدمه عند الانتقال
+    // Make this accessible to the class
     private let serviceDetailsLabel: UILabel = {
         let label = UILabel()
         label.font = UIFont.systemFont(ofSize: 15, weight: .regular)
@@ -345,7 +349,7 @@ class ServiceInformationTableViewController: UITableViewController {
         performSegue(withIdentifier: "showBooking", sender: nil)
     }
     
-    // ✅ MARK: - Navigation Fix Here
+    // ✅ MARK: - Navigation with Fix
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
         if segue.identifier == "showBooking" {
             if let destVC = segue.destination as? ServiceDetailsBookingTableViewController {
@@ -354,11 +358,18 @@ class ServiceInformationTableViewController: UITableViewController {
                 destVC.receivedServiceName = self.receivedServiceName
                 destVC.receivedServicePrice = self.receivedServicePrice
                 
-                // ✅ Fix: Pass the visible text from the Label, not the variable
-                // This ensures whatever the user sees is what gets passed
+                // Pass the visible text from the Label
                 destVC.receivedServiceDetails = self.serviceDetailsLabel.text
                 
                 destVC.providerData = self.providerData
+                
+                // 👇 NEW FIX: Pass the Service Items (Add-ons) to the Booking Screen
+                // We join the array into a single string (e.g. "Hosting, Domain, SSL")
+                if let items = receivedServiceItems {
+                    destVC.receivedServiceItems = items.joined(separator: ", ")
+                } else {
+                    destVC.receivedServiceItems = "None"
+                }
             }
         }
     }
