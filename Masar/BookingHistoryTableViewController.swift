@@ -230,7 +230,7 @@ class ModernBookingHistoryCell: UITableViewCell {
     // Added the Rating Button (Blue text style)
     private let ratingButton: UIButton = {
         let button = UIButton(type: .system)
-        button.setTitle("rating", for: .normal)
+        button.setTitle("Rate", for: .normal)
         button.titleLabel?.font = UIFont.systemFont(ofSize: 15, weight: .medium)
         button.setTitleColor(UIColor.systemBlue, for: .normal)
         button.translatesAutoresizingMaskIntoConstraints = false

@@ -43,12 +43,13 @@ class RatingTableViewCell: UITableViewCell {
         
         // Star label (single star)
         starLabel.font = .systemFont(ofSize: 24)
-        starLabel.text = "⭐"
+        starLabel.text = "★"
+        starLabel.textColor = UIColor(red: 1.0, green: 0.8, blue: 0.0, alpha: 1.0)
         starLabel.translatesAutoresizingMaskIntoConstraints = false
         
-        // Rating value label
+        // Rating value label - CHANGED TO BLACK
         ratingValueLabel.font = .systemFont(ofSize: 20, weight: .bold)
-        ratingValueLabel.textColor = UIColor(red: 1.0, green: 0.8, blue: 0.0, alpha: 1.0)
+        ratingValueLabel.textColor = .black  // Changed from yellow to black
         ratingValueLabel.translatesAutoresizingMaskIntoConstraints = false
         
         // Rating container

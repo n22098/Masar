@@ -1,4 +1,5 @@
 import UIKit
+import FirebaseFirestore
 
 // MARK: - Rating Model
 struct Rating: Codable {
@@ -132,13 +133,29 @@ class RatingViewController: UIViewController {
             stars: stars,
             feedback: feedback,
             date: Date(),
-            username: "User",
+            username: "User", // يمكنك لاحقاً جلب اسم المستخدم الحقيقي من Firebase Auth
             bookingName: self.bookingName
         )
         
+        // 1. الاتصال بـ Firestore
+        let db = Firestore.firestore()
+        
+        // 2. رفع البيانات
+        do {
+            try db.collection("Rating").addDocument(from: newRating) { error in
+                if let error = error {
+                    print("Error uploading to Firestore: \(error.localizedDescription)")
+                } else {
+                    print("Successfully uploaded to Firestore!")
+                }
+            }
+        } catch let error {
+            print("Error encoding rating: \(error.localizedDescription)")
+        }
+
+        // (اختياري) الاحتفاظ بالكود القديم الخاص بـ UserDefaults إذا كنت تريد نسخة محلية
         var ratings = loadRatings()
         ratings.append(newRating)
-        
         if let encoded = try? JSONEncoder().encode(ratings) {
             UserDefaults.standard.set(encoded, forKey: "SavedRatings")
             NotificationCenter.default.post(name: NSNotification.Name("RatingAdded"), object: nil)
