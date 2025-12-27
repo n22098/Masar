@@ -44,8 +44,9 @@ class BookingProviderDetailsTableViewController: UITableViewController {
         priceLabel?.textColor = brandColor
         descriptionLabel?.text = data.descriptionText
         
-        // Service Item (Instructions field)
-        if let instructions = data.instructions, !instructions.isEmpty, instructions != "None" {
+        // Service Item (Instructions field) - FIXED for optional String
+        let instructions = data.instructions ?? ""
+        if !instructions.isEmpty && instructions != "None" {
             serviceItemLabel?.text = instructions
             serviceItemLabel?.textColor = .black
         } else {

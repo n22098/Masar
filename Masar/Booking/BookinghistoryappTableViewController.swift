@@ -37,33 +37,30 @@ class Bookinghistoryapp: UITableViewController {
         serviceNameLabel?.text = booking.serviceName
         
         // ---------------------------------------------------------
-        // 🛑 إصلاح طريقة عرض الوصف والخدمات (يدعم القديم والجديد)
+        // 🛑 إصلاح طريقة عرض الوصف والخدمات
         // ---------------------------------------------------------
         
         let rawDescription = booking.descriptionText
-        // لا نحتاج if let لأن instructions نص عادي في الموديل
-        let rawInstructions = booking.instructions
+        
+        // ✅ الإصلاح هنا: نستخدم ( ?? "" ) لتحويل الـ Optional إلى نص فارغ في حال كان nil
+        let rawInstructions = booking.instructions ?? ""
         
         // 1. التعامل مع الوصف (Description)
-        // إذا كان الحجز قديمًا ويحتوي على كلمة "Booking via App"، نحاول تنظيفه
         if rawDescription.contains("Booking via App") || rawDescription.contains("Add-ons:") {
             if rawDescription.contains("Add-ons:") {
-                // محاولة فصل النص القديم
                 let parts = rawDescription.components(separatedBy: "Add-ons:")
                 if let firstPart = parts.first {
                     descriptionLabel?.text = firstPart.trimmingCharacters(in: .whitespacesAndNewlines)
                 }
             } else {
-                // إذا كان النص فقط "Booking via App." نستبدله بجملة أفضل
                 descriptionLabel?.text = "Service details unavailable."
             }
         } else {
-            // ✅ للحجوزات الجديدة: اعرض الوصف كما هو
             descriptionLabel?.text = rawDescription
         }
         
         // 2. التعامل مع الإضافات (Service Items)
-        // تنظيف النص من المسافات والجمل الافتراضية
+        // الآن rawInstructions أصبح نصاً عادياً (ليس Optional) ويمكن استخدام trimmingCharacters عليه
         let cleanInstructions = rawInstructions.trimmingCharacters(in: .whitespacesAndNewlines)
         
         if !cleanInstructions.isEmpty &&

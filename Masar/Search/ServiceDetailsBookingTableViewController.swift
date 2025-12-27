@@ -1,5 +1,6 @@
 import UIKit
 
+// MARK: - Service Details Booking Table View Controller (Unchanged)
 class ServiceDetailsBookingTableViewController: UITableViewController {
     
     // MARK: - Outlets
@@ -146,7 +147,7 @@ class ServiceDetailsBookingTableViewController: UITableViewController {
     }
 }
 
-// MARK: - Payment View Controller
+// MARK: - Payment View Controller (UPDATED)
 class PaymentViewController: UIViewController {
     
     let brandColor = UIColor(red: 98/255, green: 84/255, blue: 243/255, alpha: 1.0)
@@ -180,10 +181,12 @@ class PaymentViewController: UIViewController {
         return label
     }()
     
-    private lazy var creditCardButton = createPaymentButton(title: "💳 Credit Card", tag: 0)
-    private lazy var applePayButton = createPaymentButton(title: " Apple Pay", tag: 1)
-    private lazy var benefitPayButton = createPaymentButton(title: "🔵 Benefit Pay", tag: 2)
+    // UPDATED: Titles without icons
+    private lazy var creditCardButton = createPaymentButton(title: "Credit Card", tag: 0)
+    private lazy var applePayButton = createPaymentButton(title: "Apple Pay", tag: 1)
+    private lazy var benefitPayButton = createPaymentButton(title: "Benefit Pay", tag: 2)
     
+    // MARK: - Credit Card UI
     private let cardDetailsContainer: UIView = {
         let view = UIView()
         view.backgroundColor = .white
@@ -238,6 +241,84 @@ class PaymentViewController: UIViewController {
         return tf
     }()
     
+    // MARK: - Benefit Pay UI (NEW)
+    private let benefitPayContainer: UIView = {
+        let view = UIView()
+        view.backgroundColor = .white
+        view.layer.cornerRadius = 16
+        view.layer.shadowColor = UIColor.black.cgColor
+        view.layer.shadowOpacity = 0.05
+        view.layer.shadowOffset = CGSize(width: 0, height: 2)
+        view.layer.shadowRadius = 8
+        view.translatesAutoresizingMaskIntoConstraints = false
+        view.isHidden = true // Hidden by default
+        return view
+    }()
+    
+    private let benefitSegmentControl: UISegmentedControl = {
+        let items = ["IBAN", "Phone Number"]
+        let sc = UISegmentedControl(items: items)
+        sc.selectedSegmentIndex = 0
+        sc.translatesAutoresizingMaskIntoConstraints = false
+        return sc
+    }()
+    
+    // Wrapper for IBAN views
+    private let ibanWrapperView: UIView = {
+        let view = UIView()
+        view.translatesAutoresizingMaskIntoConstraints = false
+        return view
+    }()
+    
+    private let ibanPrefixLabel: UILabel = {
+        let label = UILabel()
+        label.text = "GB33BUKB2020155555" // Fixed random prefix
+        label.font = UIFont.systemFont(ofSize: 14, weight: .regular)
+        label.textColor = .darkGray
+        label.translatesAutoresizingMaskIntoConstraints = false
+        return label
+    }()
+    
+    private let ibanSuffixTextField: UITextField = {
+        let tf = UITextField()
+        tf.placeholder = "Last 8 digits"
+        tf.keyboardType = .numberPad
+        tf.borderStyle = .roundedRect
+        tf.font = UIFont.systemFont(ofSize: 16)
+        tf.textAlignment = .left
+        tf.translatesAutoresizingMaskIntoConstraints = false
+        return tf
+    }()
+    
+    // Wrapper for Phone views
+    private let phoneWrapperView: UIView = {
+        let view = UIView()
+        view.translatesAutoresizingMaskIntoConstraints = false
+        view.isHidden = true
+        return view
+    }()
+    
+    private let benefitPhoneTextField: UITextField = {
+        let tf = UITextField()
+        tf.placeholder = "Enter Phone Number"
+        tf.keyboardType = .phonePad
+        tf.borderStyle = .roundedRect
+        tf.font = UIFont.systemFont(ofSize: 16)
+        tf.translatesAutoresizingMaskIntoConstraints = false
+        return tf
+    }()
+    
+    // StackView to hold either CreditCard or BenefitPay container
+    private let formsStackView: UIStackView = {
+        let stack = UIStackView()
+        stack.axis = .vertical
+        stack.alignment = .fill
+        stack.distribution = .fill
+        stack.spacing = 0
+        stack.translatesAutoresizingMaskIntoConstraints = false
+        return stack
+    }()
+
     private let purchaseButton: UIButton = {
         let btn = UIButton(type: .system)
         btn.setTitle("Purchase", for: .normal)
@@ -266,10 +347,14 @@ class PaymentViewController: UIViewController {
         applePayButton.addTarget(self, action: #selector(paymentMethodTapped(_:)), for: .touchUpInside)
         benefitPayButton.addTarget(self, action: #selector(paymentMethodTapped(_:)), for: .touchUpInside)
         
+        // Add target for Segment Control
+        benefitSegmentControl.addTarget(self, action: #selector(benefitSegmentChanged(_:)), for: .valueChanged)
+        
         cardNumberTextField.delegate = self
         validThruTextField.delegate = self
         cvcTextField.delegate = self
         pinTextField.delegate = self
+        ibanSuffixTextField.delegate = self // For 8 digit limit
         
         view.addSubview(scrollView)
         scrollView.addSubview(contentView)
@@ -278,15 +363,32 @@ class PaymentViewController: UIViewController {
         contentView.addSubview(creditCardButton)
         contentView.addSubview(applePayButton)
         contentView.addSubview(benefitPayButton)
-        contentView.addSubview(cardDetailsContainer)
+        
+        // Add forms to stack
+        contentView.addSubview(formsStackView)
+        formsStackView.addArrangedSubview(cardDetailsContainer)
+        formsStackView.addArrangedSubview(benefitPayContainer)
+        
         contentView.addSubview(purchaseButton)
         
+        // Setup Credit Card fields
         cardDetailsContainer.addSubview(cardNumberTextField)
         cardDetailsContainer.addSubview(validThruTextField)
         cardDetailsContainer.addSubview(cvcTextField)
         cardDetailsContainer.addSubview(pinTextField)
-        
         addTextFieldSeparators()
+        
+        // Setup Benefit Pay fields
+        benefitPayContainer.addSubview(benefitSegmentControl)
+        benefitPayContainer.addSubview(ibanWrapperView)
+        benefitPayContainer.addSubview(phoneWrapperView)
+        
+        // IBAN Subviews
+        ibanWrapperView.addSubview(ibanPrefixLabel)
+        ibanWrapperView.addSubview(ibanSuffixTextField)
+        
+        // Phone Subviews
+        phoneWrapperView.addSubview(benefitPhoneTextField)
     }
     
     private func setupConstraints() {
@@ -320,11 +422,18 @@ class PaymentViewController: UIViewController {
             benefitPayButton.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -20),
             benefitPayButton.heightAnchor.constraint(equalToConstant: 56),
             
-            cardDetailsContainer.topAnchor.constraint(equalTo: benefitPayButton.bottomAnchor, constant: 24),
-            cardDetailsContainer.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 20),
-            cardDetailsContainer.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -20),
+            // FORMS STACK
+            formsStackView.topAnchor.constraint(equalTo: benefitPayButton.bottomAnchor, constant: 24),
+            formsStackView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 20),
+            formsStackView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -20),
+            
+            // Credit Card Container Constraints (Height)
             cardDetailsContainer.heightAnchor.constraint(equalToConstant: 240),
             
+            // Benefit Container Constraints (Height)
+            benefitPayContainer.heightAnchor.constraint(equalToConstant: 180),
+            
+            // Credit Card Internal Constraints
             cardNumberTextField.topAnchor.constraint(equalTo: cardDetailsContainer.topAnchor, constant: 20),
             cardNumberTextField.leadingAnchor.constraint(equalTo: cardDetailsContainer.leadingAnchor, constant: 16),
             cardNumberTextField.trailingAnchor.constraint(equalTo: cardDetailsContainer.trailingAnchor, constant: -16),
@@ -345,7 +454,40 @@ class PaymentViewController: UIViewController {
             pinTextField.trailingAnchor.constraint(equalTo: cardDetailsContainer.trailingAnchor, constant: -16),
             pinTextField.heightAnchor.constraint(equalToConstant: 44),
             
-            purchaseButton.topAnchor.constraint(equalTo: cardDetailsContainer.bottomAnchor, constant: 32),
+            // Benefit Internal Constraints
+            benefitSegmentControl.topAnchor.constraint(equalTo: benefitPayContainer.topAnchor, constant: 20),
+            benefitSegmentControl.leadingAnchor.constraint(equalTo: benefitPayContainer.leadingAnchor, constant: 20),
+            benefitSegmentControl.trailingAnchor.constraint(equalTo: benefitPayContainer.trailingAnchor, constant: -20),
+            
+            // IBAN Wrapper
+            ibanWrapperView.topAnchor.constraint(equalTo: benefitSegmentControl.bottomAnchor, constant: 20),
+            ibanWrapperView.leadingAnchor.constraint(equalTo: benefitPayContainer.leadingAnchor, constant: 20),
+            ibanWrapperView.trailingAnchor.constraint(equalTo: benefitPayContainer.trailingAnchor, constant: -20),
+            ibanWrapperView.bottomAnchor.constraint(equalTo: benefitPayContainer.bottomAnchor, constant: -20),
+            
+            // IBAN Prefix
+            ibanPrefixLabel.topAnchor.constraint(equalTo: ibanWrapperView.topAnchor),
+            ibanPrefixLabel.leadingAnchor.constraint(equalTo: ibanWrapperView.leadingAnchor),
+            ibanPrefixLabel.trailingAnchor.constraint(equalTo: ibanWrapperView.trailingAnchor),
+            
+            // IBAN TextField
+            ibanSuffixTextField.topAnchor.constraint(equalTo: ibanPrefixLabel.bottomAnchor, constant: 8),
+            ibanSuffixTextField.leadingAnchor.constraint(equalTo: ibanWrapperView.leadingAnchor),
+            ibanSuffixTextField.trailingAnchor.constraint(equalTo: ibanWrapperView.trailingAnchor),
+            ibanSuffixTextField.heightAnchor.constraint(equalToConstant: 40),
+            
+            // Phone Wrapper
+            phoneWrapperView.topAnchor.constraint(equalTo: benefitSegmentControl.bottomAnchor, constant: 20),
+            phoneWrapperView.leadingAnchor.constraint(equalTo: benefitPayContainer.leadingAnchor, constant: 20),
+            phoneWrapperView.trailingAnchor.constraint(equalTo: benefitPayContainer.trailingAnchor, constant: -20),
+            phoneWrapperView.bottomAnchor.constraint(equalTo: benefitPayContainer.bottomAnchor, constant: -20),
+            
+            benefitPhoneTextField.centerYAnchor.constraint(equalTo: phoneWrapperView.centerYAnchor),
+            benefitPhoneTextField.leadingAnchor.constraint(equalTo: phoneWrapperView.leadingAnchor),
+            benefitPhoneTextField.trailingAnchor.constraint(equalTo: phoneWrapperView.trailingAnchor),
+            benefitPhoneTextField.heightAnchor.constraint(equalToConstant: 44),
+            
+            purchaseButton.topAnchor.constraint(equalTo: formsStackView.bottomAnchor, constant: 32),
             purchaseButton.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 20),
             purchaseButton.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -20),
             purchaseButton.heightAnchor.constraint(equalToConstant: 54),
@@ -400,6 +542,18 @@ class PaymentViewController: UIViewController {
         updatePaymentMethodSelection()
     }
     
+    @objc private func benefitSegmentChanged(_ sender: UISegmentedControl) {
+        if sender.selectedSegmentIndex == 0 {
+            // IBAN
+            ibanWrapperView.isHidden = false
+            phoneWrapperView.isHidden = true
+        } else {
+            // Phone
+            ibanWrapperView.isHidden = true
+            phoneWrapperView.isHidden = false
+        }
+    }
+    
     private func updatePaymentMethodSelection() {
         [creditCardButton, applePayButton, benefitPayButton].forEach { btn in
             btn.layer.borderColor = UIColor.lightGray.withAlphaComponent(0.3).cgColor
@@ -411,22 +565,50 @@ class PaymentViewController: UIViewController {
         case .creditCard: selectedButton = creditCardButton
         case .applePay: selectedButton = applePayButton
         case .benefitPay: selectedButton = benefitPayButton
-        default: selectedButton = creditCardButton
         }
         
         selectedButton.layer.borderColor = brandColor.cgColor
         selectedButton.layer.borderWidth = 3
         
-        // Show/hide card details based on payment method
-        if selectedPaymentMethod == .creditCard {
-            cardDetailsContainer.isHidden = false
-        } else {
-            cardDetailsContainer.isHidden = true
+        // Show/hide specific container
+        UIView.animate(withDuration: 0.3) {
+            switch self.selectedPaymentMethod {
+            case .creditCard:
+                self.cardDetailsContainer.isHidden = false
+                self.benefitPayContainer.isHidden = true
+            case .benefitPay:
+                self.cardDetailsContainer.isHidden = true
+                self.benefitPayContainer.isHidden = false
+            case .applePay:
+                self.cardDetailsContainer.isHidden = true
+                self.benefitPayContainer.isHidden = true
+            }
         }
     }
     
     @objc private func purchaseButtonTapped() {
         view.endEditing(true)
+        
+        // Validation for Benefit Pay
+        if selectedPaymentMethod == .benefitPay {
+            if benefitSegmentControl.selectedSegmentIndex == 0 {
+                // IBAN Check
+                if (ibanSuffixTextField.text?.count ?? 0) != 8 {
+                    let alert = UIAlertController(title: "Invalid IBAN", message: "Please enter exactly 8 digits.", preferredStyle: .alert)
+                    alert.addAction(UIAlertAction(title: "OK", style: .default))
+                    present(alert, animated: true)
+                    return
+                }
+            } else {
+                // Phone Check
+                if (benefitPhoneTextField.text?.isEmpty ?? true) {
+                    let alert = UIAlertController(title: "Missing Phone", message: "Please enter your phone number.", preferredStyle: .alert)
+                    alert.addAction(UIAlertAction(title: "OK", style: .default))
+                    present(alert, animated: true)
+                    return
+                }
+            }
+        }
         
         // Save booking to Firebase here
         if let booking = bookingData {
@@ -459,6 +641,11 @@ extension PaymentViewController: UITextFieldDelegate {
             return updatedText.count <= 3
         } else if textField == pinTextField {
             return updatedText.count <= 4
+        } else if textField == ibanSuffixTextField {
+            // Only allow numbers and max 8 digits for the IBAN suffix
+            let allowedCharacters = CharacterSet.decimalDigits
+            let characterSet = CharacterSet(charactersIn: string)
+            return allowedCharacters.isSuperset(of: characterSet) && updatedText.count <= 8
         }
         
         return true

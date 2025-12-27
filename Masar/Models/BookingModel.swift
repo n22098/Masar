@@ -20,7 +20,7 @@ struct BookingModel: Codable, Identifiable {
     let email: String
     let phoneNumber: String
     let price: Double
-    let instructions: String
+    let instructions: String?  // ✅ Changed to Optional
     let descriptionText: String
     
     // Converts Date to String for display purposes

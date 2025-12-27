@@ -1,6 +1,6 @@
 import UIKit
 
-// الموديل
+// The Model
 struct ServiceItemOption {
     let name: String
     var isSelected: Bool
@@ -8,29 +8,50 @@ struct ServiceItemOption {
 
 class ServiceItemsSelectionTableViewController: UITableViewController {
 
-    // بيانات الخدمات
+    // ✅ UPDATED: 25+ Services covering IT, Digital, and Teaching
     var items: [ServiceItemOption] = [
+        // --- IT & Tech Support ---
+        ServiceItemOption(name: "PC & Laptop Repair", isSelected: false),
+        ServiceItemOption(name: "Virus & Malware Removal", isSelected: false),
+        ServiceItemOption(name: "Data Recovery", isSelected: false),
+        ServiceItemOption(name: "Wi-Fi & Network Setup", isSelected: false),
+        ServiceItemOption(name: "Software Installation", isSelected: false),
+        ServiceItemOption(name: "Custom PC Building", isSelected: false),
+        ServiceItemOption(name: "Printer Setup & Repair", isSelected: false),
+        ServiceItemOption(name: "Cybersecurity Audit", isSelected: false),
+        
+        // --- Digital Services ---
+        ServiceItemOption(name: "Mobile App Development", isSelected: false),
+        ServiceItemOption(name: "Website Maintenance", isSelected: false),
+        ServiceItemOption(name: "UX/UI Design", isSelected: false),
+        ServiceItemOption(name: "Logo & Brand Identity", isSelected: false),
+        ServiceItemOption(name: "Video Editing & Montage", isSelected: false),
+        ServiceItemOption(name: "Social Media Management", isSelected: false),
         ServiceItemOption(name: "SEO Optimization", isSelected: false),
-        ServiceItemOption(name: "1 Year Free Hosting", isSelected: false),
-        ServiceItemOption(name: "Domain Name Registration", isSelected: false),
-        ServiceItemOption(name: "Logo Design", isSelected: false),
-        ServiceItemOption(name: "SSL Certificate", isSelected: false),
         ServiceItemOption(name: "Content Writing", isSelected: false),
-        ServiceItemOption(name: "Social Media Integration", isSelected: false),
-        ServiceItemOption(name: "3 Months Support", isSelected: false),
-        ServiceItemOption(name: "Google Analytics Setup", isSelected: false)
+        ServiceItemOption(name: "Digital Marketing Strategy", isSelected: false),
+        
+        // --- Teaching & Education ---
+        ServiceItemOption(name: "Coding Lessons (Python/Swift)", isSelected: false),
+        ServiceItemOption(name: "Online Math Tutoring", isSelected: false),
+        ServiceItemOption(name: "English Language Training", isSelected: false),
+        ServiceItemOption(name: "Project Mentorship", isSelected: false),
+        ServiceItemOption(name: "CV & Resume Review", isSelected: false),
+        ServiceItemOption(name: "Excel & Office Training", isSelected: false),
+        ServiceItemOption(name: "Exam Preparation", isSelected: false),
+        ServiceItemOption(name: "Graphic Design Course", isSelected: false)
     ]
     
-    // ✅ متغير جديد لاستقبال الاختيارات السابقة
+    // Variable to receive previously selected items
     var previouslySelectedItems: [String] = []
     
     var onSelectionComplete: (([String]) -> Void)?
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        title = "Select Add-ons"
+        title = "Select Services"
         
-        // ✅ الحل هنا: نقوم بتفعيل الـ checkbox للعناصر المختارة سابقاً
+        // Logic to check previously selected items
         for i in 0..<items.count {
             if previouslySelectedItems.contains(items[i].name) {
                 items[i].isSelected = true
