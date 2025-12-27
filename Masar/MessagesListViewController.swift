@@ -1,38 +1,18 @@
-//
-//  MessagesListViewController.swift
-//  Masar
-//
-//  Created by BP-36-212-19 on 11/12/2025.
-//
-
 import UIKit
 
 final class MessagesListViewController: UIViewController {
 
-
     private let headerView = UIView()
     private let headerTitleLabel = UILabel()
+    private let tableView = UITableView(frame: .zero, style: .plain)
 
-    private let avatarLabel = UILabel()
-    private let nameLabel = UILabel()
-    private let subtitleLabel = UILabel()
-    private let chevronImageView = UIImageView()
-
-    private let containerView = UIView()
-
-    private let user = User(
-        id: UUID(),
-        name: "Sayed Husain",
-        subtitle: "Software Engineer",
-        avatarEmoji: "👨🏻"
-    )
-
+    private var conversations: [Conversation] = SampleConversations.items
 
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .systemBackground
         setupHeader()
-        setupContent()
+        setupTableView()
     }
 
     private func setupHeader() {
@@ -43,7 +23,7 @@ final class MessagesListViewController: UIViewController {
         headerTitleLabel.translatesAutoresizingMaskIntoConstraints = false
         headerTitleLabel.text = "Messages"
         headerTitleLabel.textColor = .white
-        headerTitleLabel.font = UIFont.systemFont(ofSize: 21, weight: .semibold)
+        headerTitleLabel.font = UIFont.systemFont(ofSize: 20, weight: .semibold)
         headerView.addSubview(headerTitleLabel)
 
         NSLayoutConstraint.activate([
@@ -57,87 +37,57 @@ final class MessagesListViewController: UIViewController {
         ])
     }
 
-    private func setupContent() {
-        let backgroundView = UIView()
-        backgroundView.translatesAutoresizingMaskIntoConstraints = false
-        backgroundView.backgroundColor = .white
-        view.addSubview(backgroundView)
+    private func setupTableView() {
+        tableView.translatesAutoresizingMaskIntoConstraints = false
+        tableView.backgroundColor = .white
+        tableView.tableFooterView = UIView()
+        tableView.separatorInset = UIEdgeInsets(top: 0, left: 72, bottom: 0, right: 16)
+
+        tableView.dataSource = self
+        tableView.delegate = self
+        tableView.register(ConversationCell.self, forCellReuseIdentifier: ConversationCell.reuseIdentifier)
+
+        view.addSubview(tableView)
 
         NSLayoutConstraint.activate([
-            backgroundView.topAnchor.constraint(equalTo: headerView.bottomAnchor),
-            backgroundView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            backgroundView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            backgroundView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
-        ])
-
-        containerView.translatesAutoresizingMaskIntoConstraints = false
-        containerView.backgroundColor = .white
-        containerView.isUserInteractionEnabled = true
-        backgroundView.addSubview(containerView)
-
-        let tap = UITapGestureRecognizer(target: self, action: #selector(openChat))
-        containerView.addGestureRecognizer(tap)
-
-        avatarLabel.translatesAutoresizingMaskIntoConstraints = false
-        avatarLabel.text = user.avatarEmoji
-        avatarLabel.font = UIFont.systemFont(ofSize: 36)
-        containerView.addSubview(avatarLabel)
-
-        nameLabel.translatesAutoresizingMaskIntoConstraints = false
-        nameLabel.text = user.name
-        nameLabel.font = UIFont.systemFont(ofSize: 17, weight: .semibold)
-        nameLabel.textColor = .label
-        containerView.addSubview(nameLabel)
-
-        subtitleLabel.translatesAutoresizingMaskIntoConstraints = false
-        subtitleLabel.text = user.subtitle
-        subtitleLabel.font = UIFont.systemFont(ofSize: 14)
-        subtitleLabel.textColor = .secondaryLabel
-        containerView.addSubview(subtitleLabel)
-
-        chevronImageView.translatesAutoresizingMaskIntoConstraints = false
-        chevronImageView.image = UIImage(systemName: "chevron.right")
-        chevronImageView.tintColor = .tertiaryLabel
-        containerView.addSubview(chevronImageView)
-
-        NSLayoutConstraint.activate([
-            containerView.topAnchor.constraint(equalTo: backgroundView.topAnchor, constant: 12),
-            containerView.leadingAnchor.constraint(equalTo: backgroundView.leadingAnchor, constant: 16),
-            containerView.trailingAnchor.constraint(equalTo: backgroundView.trailingAnchor, constant: -16),
-            containerView.heightAnchor.constraint(equalToConstant: 72),
-
-            avatarLabel.centerYAnchor.constraint(equalTo: containerView.centerYAnchor),
-            avatarLabel.leadingAnchor.constraint(equalTo: containerView.leadingAnchor),
-
-            chevronImageView.centerYAnchor.constraint(equalTo: containerView.centerYAnchor),
-            chevronImageView.trailingAnchor.constraint(equalTo: containerView.trailingAnchor),
-
-            nameLabel.leadingAnchor.constraint(equalTo: avatarLabel.trailingAnchor, constant: 12),
-            nameLabel.trailingAnchor.constraint(lessThanOrEqualTo: chevronImageView.leadingAnchor, constant: -8),
-            nameLabel.bottomAnchor.constraint(equalTo: containerView.centerYAnchor, constant: -1),
-
-            subtitleLabel.leadingAnchor.constraint(equalTo: nameLabel.leadingAnchor),
-            subtitleLabel.topAnchor.constraint(equalTo: containerView.centerYAnchor, constant: 1),
-            subtitleLabel.trailingAnchor.constraint(lessThanOrEqualTo: chevronImageView.leadingAnchor, constant: -8)
+            tableView.topAnchor.constraint(equalTo: headerView.bottomAnchor),
+            tableView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            tableView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            tableView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
         ])
     }
 
-
-    @objc private func openChat() {
-        let messages: [Message] = [
-            Message(id: UUID(), text: "Hello, I need to create a website for my work", isIncoming: true, date: Date()),
-            Message(id: UUID(), text: """
-Sure, send me your requirement details
-and I will help you with my template
-or create new one if you have
-specific design
-""", isIncoming: false, date: Date()),
-            Message(id: UUID(), text: "Ok Thanks, I will send you after a few hours", isIncoming: true, date: Date()),
-            Message(id: UUID(), text: "Thanks!", isIncoming: false, date: Date())
-            
-        ]
-
-        let chatVC = ChatViewController(user: user, messages: messages)
+    // Navigation
+    private func openChat(for conversation: Conversation) {
+        // Pass the conversation’s messages to the Chat screen
+        let chatVC = ChatViewController(user: conversation.user, messages: conversation.messages)
         navigationController?.pushViewController(chatVC, animated: true)
+    }
+}
+
+// Delegate
+extension MessagesListViewController: UITableViewDataSource, UITableViewDelegate {
+    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        conversations.count
+    }
+
+    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        let cell = tableView.dequeueReusableCell(
+            withIdentifier: ConversationCell.reuseIdentifier,
+            for: indexPath
+        ) as! ConversationCell
+
+        let conversation = conversations[indexPath.row]
+        cell.configure(with: conversation.user)
+        return cell
+    }
+
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        tableView.deselectRow(at: indexPath, animated: true)
+        openChat(for: conversations[indexPath.row])
+    }
+
+    func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
+        72
     }
 }

@@ -36,7 +36,6 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
             tag: 1
         )
 
-        // 2. Messages root (wrapped in navigation controller)
         let messagesListVC = MessagesListViewController()
         let messagesNav = UINavigationController(rootViewController: messagesListVC)
         messagesNav.setNavigationBarHidden(true, animated: false)
@@ -46,7 +45,6 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
             tag: 2
         )
 
-        // 3. Profile dummy
         let profileVC = UIViewController()
         profileVC.view.backgroundColor = .systemBackground
         profileVC.tabBarItem = UITabBarItem(

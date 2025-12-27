@@ -58,6 +58,19 @@ final class ChatViewController: UIViewController {
     deinit {
         NotificationCenter.default.removeObserver(self)
     }
+    private var didAutoFocusOnce = false
+
+       override func viewDidAppear(_ animated: Bool) {
+           super.viewDidAppear(animated)
+
+           // Auto-focus the input on first appearance
+           if !didAutoFocusOnce {
+               didAutoFocusOnce = true
+               DispatchQueue.main.async { [weak self] in
+                   self?.textField.becomeFirstResponder()
+               }
+           }
+       }
 
 //generakl layout
     private func setupHeader() {
