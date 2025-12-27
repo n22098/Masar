@@ -10,7 +10,7 @@ class BookingProviderDetailsTableViewController: UITableViewController {
     @IBOutlet weak var serviceNameLabel: UILabel!
     @IBOutlet weak var priceLabel: UILabel!
     @IBOutlet weak var descriptionLabel: UILabel!
-    
+    @IBOutlet weak var serviceItemLabel: UILabel!
     @IBOutlet weak var cancelButton: UIButton!
     @IBOutlet weak var completeButton: UIButton!
     @IBOutlet weak var statusInfoLabel: UILabel!
@@ -43,6 +43,16 @@ class BookingProviderDetailsTableViewController: UITableViewController {
         serviceNameLabel?.text = data.serviceName
         priceLabel?.textColor = brandColor
         descriptionLabel?.text = data.descriptionText
+        
+        // Service Item (Instructions field)
+        if let instructions = data.instructions, !instructions.isEmpty, instructions != "None" {
+            serviceItemLabel?.text = instructions
+            serviceItemLabel?.textColor = .black
+        } else {
+            serviceItemLabel?.text = "None"
+            serviceItemLabel?.textColor = .darkGray
+        }
+        serviceItemLabel?.numberOfLines = 0
         
         switch data.status {
         case .upcoming:

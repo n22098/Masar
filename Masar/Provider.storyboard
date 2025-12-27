@@ -1120,6 +1120,40 @@
                                             </constraints>
                                         </tableViewCellContentView>
                                     </tableViewCell>
+                                    <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" insetsLayoutMarginsFromSafeArea="NO" selectionStyle="blue" hidesAccessoryWhenEditing="NO" indentationLevel="1" indentationWidth="0.0" rowHeight="100" id="YEH-Xd-8uf">
+                                        <rect key="frame" x="0.0" y="635.33333587646484" width="393" height="100"/>
+                                        <autoresizingMask key="autoresizingMask"/>
+                                        <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" insetsLayoutMarginsFromSafeArea="NO" tableViewCell="YEH-Xd-8uf" id="qyz-js-GXA">
+                                            <rect key="frame" x="0.0" y="0.0" width="393" height="100"/>
+                                            <autoresizingMask key="autoresizingMask"/>
+                                            <subviews>
+                                                <stackView opaque="NO" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="fWJ-LG-RY0">
+                                                    <rect key="frame" x="10" y="0.0" width="373" height="100"/>
+                                                    <subviews>
+                                                        <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Service Item" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="23k-8a-lax">
+                                                            <rect key="frame" x="0.0" y="0.0" width="137.33333333333334" height="100"/>
+                                                            <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                                            <nil key="textColor"/>
+                                                            <nil key="highlightedColor"/>
+                                                        </label>
+                                                        <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text=": " textAlignment="natural" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="hv4-d1-RC4">
+                                                            <rect key="frame" x="137.33333333333337" y="0.0" width="235.66666666666663" height="100"/>
+                                                            <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                                            <nil key="textColor"/>
+                                                            <nil key="highlightedColor"/>
+                                                        </label>
+                                                    </subviews>
+                                                </stackView>
+                                            </subviews>
+                                            <constraints>
+                                                <constraint firstItem="fWJ-LG-RY0" firstAttribute="leading" secondItem="qyz-js-GXA" secondAttribute="leading" constant="10" id="FA5-nd-TYP"/>
+                                                <constraint firstItem="fWJ-LG-RY0" firstAttribute="top" secondItem="qyz-js-GXA" secondAttribute="top" id="VmI-fg-snv"/>
+                                                <constraint firstAttribute="trailing" secondItem="fWJ-LG-RY0" secondAttribute="trailing" constant="10" id="W2Q-0T-lsa"/>
+                                                <constraint firstAttribute="bottom" secondItem="fWJ-LG-RY0" secondAttribute="bottom" id="kIW-4D-GzV"/>
+                                                <constraint firstItem="hv4-d1-RC4" firstAttribute="width" secondItem="qyz-js-GXA" secondAttribute="width" multiplier="0.6" id="ktc-EM-ONb"/>
+                                            </constraints>
+                                        </tableViewCellContentView>
+                                    </tableViewCell>
                                 </cells>
                             </tableViewSection>
                         </sections>
@@ -1138,6 +1172,7 @@
                         <outlet property="phoneLabel" destination="53R-aD-6yC" id="O4r-sw-vyY"/>
                         <outlet property="priceLabel" destination="WDz-UA-wvm" id="9bK-gK-iBu"/>
                         <outlet property="seekerNameLabel" destination="gGF-9R-CZP" id="LsN-bs-KKr"/>
+                        <outlet property="serviceItemLabel" destination="hv4-d1-RC4" id="cAg-uc-pVI"/>
                         <outlet property="serviceNameLabel" destination="Gl4-ex-ggb" id="a27-6A-BU2"/>
                         <outlet property="statusInfoLabel" destination="W9I-aJ-06F" id="9N1-8X-uFk"/>
                         <segue destination="HXR-BX-yv5" kind="unwind" identifier="unwindToLabBokingPage" unwindAction="unwindToLabBookingPageWithSegue:" id="l4d-hA-4Ll"/>
@@ -2046,7 +2081,7 @@
         </scene>
     </scenes>
     <inferredMetricsTieBreakers>
-        <segue reference="9iO-hL-XsA"/>
+        <segue reference="DUf-Ku-gRu"/>
     </inferredMetricsTieBreakers>
     <resources>
         <image name="arrow.up.arrow.down" catalog="system" width="128" height="97"/>
