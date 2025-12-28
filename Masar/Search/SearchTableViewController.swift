@@ -1,4 +1,5 @@
 import UIKit
+import FirebaseFirestore
 
 class SearchTableViewController: UITableViewController {
     
@@ -6,8 +7,8 @@ class SearchTableViewController: UITableViewController {
     private let searchController = UISearchController(searchResultsController: nil)
     
     private lazy var categorySegment: UISegmentedControl = {
-        // قمنا بإضافة "All" لرؤية كل شيء للتجربة
-        let sc = UISegmentedControl(items: ["All", "IT Solutions", "Teaching", "Digital Services"])
+        // Start with just "All" - categories will be added from Firebase
+        let sc = UISegmentedControl(items: ["All"])
         sc.selectedSegmentIndex = 0
         
         // Modern styling
@@ -28,11 +29,13 @@ class SearchTableViewController: UITableViewController {
         return sc
     }()
     
-    // هذه المصفوفة ستمتلئ من الفايربيس، لا حاجة للبيانات الوهمية الآن
     var allProviders: [ServiceProviderModel] = []
     
     private var filteredProviders: [ServiceProviderModel] = []
     private var isAscending = true
+    
+    // 🔥 New: Array to hold category names from Firebase
+    private var categoryNames: [String] = ["All"]
     
     // MARK: - Lifecycle
     override func viewDidLoad() {
@@ -41,24 +44,83 @@ class SearchTableViewController: UITableViewController {
         setupSearchController()
         setupTableView()
         
-        // 🔥 تشغيل دالة جلب البيانات من الفايربيس
+        // 🔥 Fetch categories first, then providers
+        fetchCategoriesFromFirebase()
         fetchProvidersFromFirebase()
     }
     
     // MARK: - Firebase Fetching 📡
+    
+    // 🔥 New: Fetch categories from Firebase
+    private func fetchCategoriesFromFirebase() {
+        print("⏳ Fetching categories from Firebase...")
+        
+        Firestore.firestore().collection("categories").addSnapshotListener { [weak self] snapshot, error in
+            guard let self = self else { return }
+            
+            if let error = error {
+                print("❌ Error fetching categories: \(error.localizedDescription)")
+                return
+            }
+            
+            guard let documents = snapshot?.documents else {
+                print("⚠️ No categories found")
+                return
+            }
+            
+            // Extract category names from documents
+            var fetchedCategories: [String] = ["All"]
+            for document in documents {
+                if let categoryName = document.data()["name"] as? String {
+                    fetchedCategories.append(categoryName)
+                }
+            }
+            
+            // Update UI on main thread
+            DispatchQueue.main.async {
+                self.categoryNames = fetchedCategories
+                self.updateCategorySegment()
+                print("✅ Successfully loaded \(fetchedCategories.count - 1) categories from Firebase!")
+            }
+        }
+    }
+    
+    // 🔥 New: Update the segment control with fetched categories
+    private func updateCategorySegment() {
+        // Remove all segments
+        categorySegment.removeAllSegments()
+        
+        // Add all categories
+        for (index, categoryName) in categoryNames.enumerated() {
+            categorySegment.insertSegment(withTitle: categoryName, at: index, animated: false)
+        }
+        
+        // Select the first segment (All)
+        categorySegment.selectedSegmentIndex = 0
+        
+        // Reapply styling after updating segments
+        categorySegment.setTitleTextAttributes([
+            .foregroundColor: UIColor.gray,
+            .font: UIFont.systemFont(ofSize: 14, weight: .medium)
+        ], for: .normal)
+        categorySegment.setTitleTextAttributes([
+            .foregroundColor: UIColor(red: 98/255, green: 84/255, blue: 243/255, alpha: 1),
+            .font: UIFont.systemFont(ofSize: 14, weight: .semibold)
+        ], for: .selected)
+        
+        // Refresh the filtered list
+        filterProvidersByCategory()
+    }
+    
     private func fetchProvidersFromFirebase() {
         print("⏳ Fetching data from Firebase...")
         
-        // استدعاء المانجر الذي أنشأناه سابقاً
         ServiceManager.shared.fetchAllServices { [weak self] services in
             guard let self = self else { return }
             
-            // 1. تجميع الخدمات حسب اسم الموفر (Grouping)
-            // يعني: إذا "Hamed Studio" عنده 3 خدمات، نجمعهم في مكان واحد
             var providersMap: [String: [ServiceModel]] = [:]
             
             for service in services {
-                // نستخدم providerName، وإذا كان nil نعتبره "Unknown"
                 let pName = service.providerName ?? "Unknown Provider"
                 
                 if providersMap[pName] == nil {
@@ -67,24 +129,22 @@ class SearchTableViewController: UITableViewController {
                 providersMap[pName]?.append(service)
             }
             
-            // 2. تحويل المجموعات إلى ServiceProviderModel
             var newProviders: [ServiceProviderModel] = []
             
             for (providerName, providerServices) in providersMap {
-                // نأخذ التصنيف (Category) من أول خدمة عشان نحدد دور الشخص
                 let role = providerServices.first?.category ?? "Service Provider"
                 
                 let provider = ServiceProviderModel(
                     id: UUID().uuidString,
                     name: providerName,
                     role: role,
-                    imageName: "person.circle.fill", // صورة افتراضية حالياً
-                    rating: 5.0, // تقييم افتراضي
-                    skills: providerServices.map { $0.name }, // المهارات هي أسماء الخدمات
+                    imageName: "person.circle.fill",
+                    rating: 5.0,
+                    skills: providerServices.map { $0.name },
                     availability: "Available",
                     location: "Online",
                     phone: "N/A",
-                    services: providerServices, // 🔥 نضع الخدمات الحقيقية هنا
+                    services: providerServices,
                     aboutMe: "Provider from Firebase",
                     portfolio: [],
                     certifications: [],
@@ -95,10 +155,9 @@ class SearchTableViewController: UITableViewController {
                 newProviders.append(provider)
             }
             
-            // 3. تحديث الواجهة
             DispatchQueue.main.async {
                 self.allProviders = newProviders
-                self.filterProvidersByCategory() // إعادة الفلترة والعرض
+                self.filterProvidersByCategory()
                 print("✅ Successfully loaded \(newProviders.count) providers from Firebase!")
             }
         }
@@ -195,24 +254,24 @@ class SearchTableViewController: UITableViewController {
         filterProvidersByCategory()
     }
     
+    // 🔥 Modified: Dynamic filtering based on Firebase categories
     private func filterProvidersByCategory() {
-        let selectedCategory = categorySegment.selectedSegmentIndex
+        let selectedIndex = categorySegment.selectedSegmentIndex
         var categoryProviders: [ServiceProviderModel] = []
         
-        switch selectedCategory {
-        case 0: // All
+        if selectedIndex == 0 {
+            // "All" is always at index 0
             categoryProviders = allProviders
-        case 1: // IT Solutions
-            categoryProviders = allProviders.filter {
-                $0.role.contains("IT") || $0.role.contains("Engineer") || $0.role.contains("Technician")
+        } else if selectedIndex < categoryNames.count {
+            // Get the selected category name
+            let selectedCategory = categoryNames[selectedIndex]
+            
+            // Filter providers whose role matches this category
+            categoryProviders = allProviders.filter { provider in
+                provider.role.lowercased().contains(selectedCategory.lowercased()) ||
+                selectedCategory.lowercased().contains(provider.role.lowercased())
             }
-        case 2: // Teaching
-            categoryProviders = allProviders.filter { $0.role.contains("Teacher") || $0.role.contains("Tutor") }
-        case 3: // Digital Services
-            categoryProviders = allProviders.filter {
-                $0.role.contains("Design") || $0.role.contains("Creative") || $0.role.contains("Media")
-            }
-        default:
+        } else {
             categoryProviders = allProviders
         }
         
