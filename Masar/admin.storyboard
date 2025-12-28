@@ -69,10 +69,10 @@
                                             </subviews>
                                         </tableViewCellContentView>
                                         <connections>
-                                            <segue destination="21T-95-Q94" kind="show" id="uTg-dJ-WsX"/>
+                                            <segue destination="21T-95-Q94" kind="show" id="rin-vA-z8Q"/>
                                         </connections>
                                     </tableViewCell>
-                                    <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" insetsLayoutMarginsFromSafeArea="NO" selectionStyle="blue" accessoryType="disclosureIndicator" hidesAccessoryWhenEditing="NO" indentationLevel="1" indentationWidth="0.0" id="eUF-aw-vtG" customClass="ModerationCell" customModule="Masar" customModuleProvider="target">
+                                    <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" insetsLayoutMarginsFromSafeArea="NO" selectionStyle="blue" accessoryType="disclosureIndicator" hidesAccessoryWhenEditing="NO" indentationLevel="1" indentationWidth="0.0" id="eUF-aw-vtG" customClass="reportCell" customModule="Masar" customModuleProvider="target">
                                         <rect key="frame" x="0.0" y="97.666667938232422" width="393" height="47.666667938232422"/>
                                         <autoresizingMask key="autoresizingMask"/>
                                         <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" insetsLayoutMarginsFromSafeArea="NO" tableViewCell="eUF-aw-vtG" id="4II-te-7wg">
@@ -89,10 +89,10 @@
                                             </subviews>
                                         </tableViewCellContentView>
                                         <connections>
-                                            <segue destination="8XX-qM-BTt" kind="show" id="9BZ-XC-gVK"/>
+                                            <segue destination="8XX-qM-BTt" kind="show" id="J7z-sD-UNP"/>
                                         </connections>
                                     </tableViewCell>
-                                    <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" insetsLayoutMarginsFromSafeArea="NO" selectionStyle="blue" accessoryType="disclosureIndicator" hidesAccessoryWhenEditing="NO" indentationLevel="1" indentationWidth="0.0" id="eMJ-fp-0bv" customClass="ModerationCell" customModule="Masar" customModuleProvider="target">
+                                    <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" insetsLayoutMarginsFromSafeArea="NO" selectionStyle="blue" accessoryType="disclosureIndicator" hidesAccessoryWhenEditing="NO" indentationLevel="1" indentationWidth="0.0" id="eMJ-fp-0bv" customClass="verificationCell" customModule="Masar" customModuleProvider="target">
                                         <rect key="frame" x="0.0" y="145.33333587646484" width="393" height="47.666667938232422"/>
                                         <autoresizingMask key="autoresizingMask"/>
                                         <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" insetsLayoutMarginsFromSafeArea="NO" tableViewCell="eMJ-fp-0bv" id="QAU-eB-MHL">
@@ -109,7 +109,7 @@
                                             </subviews>
                                         </tableViewCellContentView>
                                         <connections>
-                                            <segue destination="lx2-Qx-q9n" kind="show" id="kRA-QG-VDZ"/>
+                                            <segue destination="lx2-Qx-q9n" kind="show" id="Qyq-Ia-6vj"/>
                                         </connections>
                                     </tableViewCell>
                                 </cells>
@@ -121,11 +121,6 @@
                         </connections>
                     </tableView>
                     <navigationItem key="navigationItem" title="Moderations Tool" id="1Bw-Ki-3MW"/>
-                    <connections>
-                        <outlet property="categoryCell" destination="Bb5-L7-5IA" id="arJ-ph-qg3"/>
-                        <outlet property="reportCell" destination="eUF-aw-vtG" id="g3U-en-6vD"/>
-                        <outlet property="verificationCell" destination="eMJ-fp-0bv" id="0ws-aP-zp8"/>
-                    </connections>
                 </tableViewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="47H-G2-Ond" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
@@ -944,7 +939,7 @@
                 </tableViewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="LgD-pl-YgR" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="1291" y="1118"/>
+            <point key="canvasLocation" x="1185" y="1185"/>
         </scene>
         <!--Profile-->
         <scene sceneID="C5C-9q-rZj">
@@ -1101,7 +1096,7 @@
                 </tableViewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="e2I-QJ-Hla" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="1291" y="399"/>
+            <point key="canvasLocation" x="1042" y="508"/>
         </scene>
         <!--Seeker Management-->
         <scene sceneID="Gps-aT-uoa">

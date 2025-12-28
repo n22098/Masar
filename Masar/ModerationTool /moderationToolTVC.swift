@@ -2,17 +2,13 @@ import UIKit
 
 class moderationToolTVC: UITableViewController {
     
-    // MARK: - Outlets
-    @IBOutlet weak var categoryCell: ModerationCell!
-    @IBOutlet weak var reportCell: ModerationCell!
-    @IBOutlet weak var verificationCell: ModerationCell!
-    
+    // MARK: - Properties
     let brandColor = UIColor(red: 98/255, green: 84/255, blue: 243/255, alpha: 1.0)
     
     override func viewDidLoad() {
         super.viewDidLoad()
         setupUI()
-        setupCells()
+        // DO NOT call setupCells() here anymore.
     }
     
     // MARK: - Setup
@@ -36,26 +32,27 @@ class moderationToolTVC: UITableViewController {
         tableView.rowHeight = 80
     }
     
-    private func setupCells() {
-        // نضبط النصوص ونخفي السهم الخارجي هنا 👇
+    // MARK: - Table View Delegate
+    
+    // This is the safest place to configure Static Cells.
+    // It runs right before the cell is drawn on the screen.
+    override func tableView(_ tableView: UITableView, willDisplay cell: UITableViewCell, forRowAt indexPath: IndexPath) {
         
-        if let cell = categoryCell {
-            cell.configure(title: "Category Management")
-            cell.accessoryType = .none // إخفاء السهم الرمادي
+        // Use optional casting (as?) to safely check the cell type
+        if let category = cell as? Categorycell {
+            category.configure(title: "Category Management")
+            category.accessoryType = .none
         }
-        
-        if let cell = reportCell {
-            cell.configure(title: "Report Management")
-            cell.accessoryType = .none // إخفاء السهم الرمادي
+        else if let report = cell as? reportCell {
+            report.configure(title: "Report Management")
+            report.accessoryType = .none
         }
-        
-        if let cell = verificationCell {
-            cell.configure(title: "Verification")
-            cell.accessoryType = .none // إخفاء السهم الرمادي
+        else if let verification = cell as? verificationCell {
+            verification.configure(title: "Verification")
+            verification.accessoryType = .none
         }
     }
     
-    // لإلغاء التحديد عند العودة للصفحة
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
             tableView.deselectRow(at: indexPath, animated: true)
