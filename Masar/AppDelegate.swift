@@ -10,6 +10,11 @@ import FirebaseCore // ١. إضافة مكتبة الفايربيز الأساس
 
 @main
 class AppDelegate: UIResponder, UIApplicationDelegate {
+
+
+
+
+
     
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
         
@@ -17,6 +22,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         FirebaseApp.configure()
         
         // Override point for customization after application launch.
+       
         return true
     }
     
