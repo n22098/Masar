@@ -1,9 +1,14 @@
 import UIKit
+<<<<<<< HEAD
 import FirebaseCore
+=======
+import FirebaseCore // ١. إضافة مكتبة الفايربيز الأساسية
+>>>>>>> fa754bb3a27e79a75e127c4fc270122daa250b0b
 
 @main
 class AppDelegate: UIResponder, UIApplicationDelegate {
 
+<<<<<<< HEAD
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
         
         // Configure Firebase
@@ -60,13 +65,33 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         print("✅ Local test user created!")
     }
 
+=======
+
+
+
+
+    
+    func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
+        
+        // ٢. إضافة كود تهيئة الفايربيز عند تشغيل التطبيق
+        FirebaseApp.configure()
+        
+        // Override point for customization after application launch.
+       
+        return true
+    }
+    
+>>>>>>> fa754bb3a27e79a75e127c4fc270122daa250b0b
     // MARK: UISceneSession Lifecycle
     
     func application(_ application: UIApplication, configurationForConnecting connectingSceneSession: UISceneSession, options: UIScene.ConnectionOptions) -> UISceneConfiguration {
         return UISceneConfiguration(name: "Default Configuration", sessionRole: connectingSceneSession.role)
     }
+<<<<<<< HEAD
 
     func application(_ application: UIApplication, didDiscardSceneSessions sceneSessions: Set<UISceneSession>) {
         // Release resources
     }
+=======
+>>>>>>> fa754bb3a27e79a75e127c4fc270122daa250b0b
 }
