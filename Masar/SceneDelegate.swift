@@ -1,13 +1,26 @@
-//
-//  SceneDelegate.swift
-//  Masar
-//
-
 import UIKit
 
 class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 
     var window: UIWindow?
+
+    private func showMainInterface() {
+        let searchVC = ViewController()
+        let historyVC = UIViewController()
+        let messagesVC = MessagesListViewController()
+        let profileVC = ProfileViewController()
+
+        let tabBarController = UITabBarController()
+        tabBarController.viewControllers = [
+            UINavigationController(rootViewController: searchVC),
+            UINavigationController(rootViewController: historyVC),
+            UINavigationController(rootViewController: messagesVC),
+            UINavigationController(rootViewController: profileVC)
+        ]
+
+        window?.rootViewController = tabBarController
+        window?.makeKeyAndVisible()
+    }
 
     func scene(
         _ scene: UIScene,
@@ -16,14 +29,16 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     ) {
         guard let windowScene = scene as? UIWindowScene else { return }
 
-        // Ensure user is authenticated
+        let window = UIWindow(windowScene: windowScene)
+        self.window = window
+
         AuthService.shared.signInIfNeeded {
-            print("User signed in:", AuthService.shared.currentUserId)
+            DispatchQueue.main.async {
+                self.showMainInterface()
+            }
         }
-
-        window = UIWindow(windowScene: windowScene)
-
-        // MARK: - Tabs
+       
+        // MARK: - Create View Controllers
 
         let searchVC = ViewController()
         let searchNav = UINavigationController(rootViewController: searchVC)
@@ -69,13 +84,11 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         let appearance = UITabBarAppearance()
         appearance.configureWithOpaqueBackground()
         appearance.backgroundColor = .white
-
         appearance.stackedLayoutAppearance.selected.iconColor =
             UIColor(red: 112/255, green: 79/255, blue: 217/255, alpha: 1)
         appearance.stackedLayoutAppearance.selected.titleTextAttributes = [
             .foregroundColor: UIColor(red: 112/255, green: 79/255, blue: 217/255, alpha: 1)
         ]
-
         appearance.stackedLayoutAppearance.normal.iconColor = .systemGray
         appearance.stackedLayoutAppearance.normal.titleTextAttributes = [
             .foregroundColor: UIColor.systemGray
@@ -86,7 +99,12 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
             tabBarController.tabBar.scrollEdgeAppearance = appearance
         }
 
-        window?.rootViewController = tabBarController
-        window?.makeKeyAndVisible()
+        // MARK: - Auth then show UI
+        AuthService.shared.signInIfNeeded {
+            DispatchQueue.main.async {
+                window.rootViewController = tabBarController
+                window.makeKeyAndVisible()
+            }
+        }
     }
 }
