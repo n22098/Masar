@@ -152,7 +152,7 @@ class SignInViewController: UIViewController {
     func navigateToProfile() {
         let storyboard = UIStoryboard(name: "Main", bundle: nil)
         let profileVC = storyboard.instantiateViewController(
-            withIdentifier: "ProfileViewController"
+            withIdentifier: "ProfileTableViewController"
         )
 
         profileVC.modalPresentationStyle = .fullScreen
