@@ -7,10 +7,27 @@
 
 import UIKit
 import FirebaseCore   // ✅ REQUIRED
+import Cloudinary
 
 @main
 class AppDelegate: UIResponder, UIApplicationDelegate {
 
+    class ViewController: UIViewController {
+
+        let cloudName: String = "<your_cloudname>"
+
+        var cloudinary: CLDCloudinary!
+
+        override func viewDidLoad() {
+            super.viewDidLoad()
+            initCloudinary()
+        }
+        private func initCloudinary() {
+            let config = CLDConfiguration(cloudName: cloudName, secure: true)
+            cloudinary = CLDCloudinary(configuration: config)
+        }
+
+    }
     func application(
         _ application: UIApplication,
         didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
