@@ -7,7 +7,6 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		4CCD9C852EEA9DC700B1385B /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 4CCD9C842EEA9DC700B1385B /* GoogleService-Info.plist */; };
 		4CCD9C892EEAA3CC00B1385B /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = 4CCD9C882EEAA3CC00B1385B /* FirebaseAuth */; };
 		4CCD9C8B2EEAA3CC00B1385B /* FirebaseCore in Frameworks */ = {isa = PBXBuildFile; productRef = 4CCD9C8A2EEAA3CC00B1385B /* FirebaseCore */; };
 		4CCD9C8D2EEAA3CC00B1385B /* FirebaseDatabase in Frameworks */ = {isa = PBXBuildFile; productRef = 4CCD9C8C2EEAA3CC00B1385B /* FirebaseDatabase */; };
@@ -15,7 +14,6 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		4CCD9C842EEA9DC700B1385B /* GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
 		507E416D2EE15769002B7336 /* Masar.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Masar.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -58,7 +56,6 @@
 		507E41642EE15769002B7336 = {
 			isa = PBXGroup;
 			children = (
-				4CCD9C842EEA9DC700B1385B /* GoogleService-Info.plist */,
 				507E416F2EE15769002B7336 /* Masar */,
 				507E416E2EE15769002B7336 /* Products */,
 			);
@@ -143,7 +140,6 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				4CCD9C852EEA9DC700B1385B /* GoogleService-Info.plist in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
