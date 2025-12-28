@@ -16,7 +16,11 @@
 					<key>UISceneDelegateClassName</key>
 					<string>$(PRODUCT_MODULE_NAME).SceneDelegate</string>
 					<key>UISceneStoryboardFile</key>
-					<string>Main</string>
+<<<<<<< HEAD
+					<string>Provider</string>
+=======
+					<string>Rating</string>
+>>>>>>> fa754bb3a27e79a75e127c4fc270122daa250b0b
 				</dict>
 			</array>
 		</dict>
