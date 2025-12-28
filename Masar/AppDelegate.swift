@@ -6,14 +6,14 @@
 //
 
 import UIKit
-import FirebaseCore // 1. Add this import
+import FirebaseCore 
 
 @main
 class AppDelegate: UIResponder, UIApplicationDelegate {
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
         
-        // 2. Initialize Firebase before the app fully starts
+        // Initialize Firebase
         FirebaseApp.configure()
         
         return true
@@ -22,6 +22,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     // MARK: UISceneSession Lifecycle
 
     func application(_ application: UIApplication, configurationForConnecting connectingSceneSession: UISceneSession, options: UIScene.ConnectionOptions) -> UISceneConfiguration {
+        // تأكد أن الاسم هنا يطابق ما هو موجود في Info.plist
         return UISceneConfiguration(name: "Default Configuration", sessionRole: connectingSceneSession.role)
     }
 
