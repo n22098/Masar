@@ -1,98 +1,38 @@
 import UIKit
 
-final class MessagesListViewController: UIViewController, UITableViewDelegate {
+final class MessagesListViewController: UIViewController {
 
-<<<<<<< HEAD
-=======
+    // MARK: - Properties
 
-    
     private let tableView = UITableView()
     private var conversations: [Conversation] = []
-    
-    
->>>>>>> 5fc0ec21c6f220f016f76b852eb752b75f53b331
-    private let headerView = UIView()
-    private let headerTitleLabel = UILabel()
-    private let tableView = UITableView(frame: .zero, style: .plain)
 
-<<<<<<< HEAD
-    private var conversations: [Conversation] = SampleConversations.items
-=======
-    private let avatarLabel = UILabel()
-    private let nameLabel = UILabel()
-    private let subtitleLabel = UILabel()
-    private let chevronImageView = UIImageView()
-
-    private let containerView = UIView()
-
-    private let user = User(
-        id: "user_1",
-        name: "Sayed Husain",
-        username: "sayed",
-        profileImageUrl: nil
-    )
-
->>>>>>> 5fc0ec21c6f220f016f76b852eb752b75f53b331
-
+    // MARK: - Lifecycle
 
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .systemBackground
+
         setupHeader()
         setupTableView()
-    }
-    
-    
-    private func loadMockData() {
-        conversations = [
-            Conversation(
-                id: "conversation_1",
-                user: User(
-                    id: "user_sayed",
-                    name: "Sayed Husain",
-                    username: "sayed_h",
-                    profileImageUrl: nil
-                ),
-                lastMessage: "Sure, send me your requirements",
-                lastUpdated: Date()
-            ),
-            Conversation(
-                id: "conversation_2",
-                user: User(
-                    id: "user_aisha",
-                    name: "Aisha Noor",
-                    username: "aisha_noor",
-                    profileImageUrl: nil
-                ),
-                lastMessage: "I’ll update the Figma today",
-                lastUpdated: Date()
-            ),
-            Conversation(
-                id: "conversation_3",
-                user: User(
-                    id: "user_omar",
-                    name: "Omar Khalid",
-                    username: "omar_k",
-                    profileImageUrl: nil
-                ),
-                lastMessage: "API is ready",
-                lastUpdated: Date()
-            )
-
-        ]
+        loadConversations()
     }
 
+    // MARK: - UI Setup
 
     private func setupHeader() {
+        let headerView = UIView()
         headerView.translatesAutoresizingMaskIntoConstraints = false
-        headerView.backgroundColor = UIColor(red: 112/255, green: 79/255, blue: 217/255, alpha: 1.0)
-        view.addSubview(headerView)
+        headerView.backgroundColor = UIColor(red: 112/255, green: 79/255, blue: 217/255, alpha: 1)
 
-        headerTitleLabel.translatesAutoresizingMaskIntoConstraints = false
-        headerTitleLabel.text = "Messages"
-        headerTitleLabel.textColor = .white
-        headerTitleLabel.font = UIFont.systemFont(ofSize: 20, weight: .semibold)
-        headerView.addSubview(headerTitleLabel)
+        let titleLabel = UILabel()
+        titleLabel.text = "Messages"
+        titleLabel.font = .systemFont(ofSize: 20, weight: .semibold)
+        titleLabel.textColor = .white
+        titleLabel.translatesAutoresizingMaskIntoConstraints = false
+
+        headerView.addSubview(titleLabel)
+        view.addSubview(headerView)
 
         NSLayoutConstraint.activate([
             headerView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
@@ -100,186 +40,76 @@ final class MessagesListViewController: UIViewController, UITableViewDelegate {
             headerView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             headerView.heightAnchor.constraint(equalToConstant: 64),
 
-            headerTitleLabel.centerXAnchor.constraint(equalTo: headerView.centerXAnchor),
-            headerTitleLabel.centerYAnchor.constraint(equalTo: headerView.centerYAnchor)
+            titleLabel.centerXAnchor.constraint(equalTo: headerView.centerXAnchor),
+            titleLabel.centerYAnchor.constraint(equalTo: headerView.centerYAnchor)
         ])
     }
 
     private func setupTableView() {
         tableView.translatesAutoresizingMaskIntoConstraints = false
-        tableView.backgroundColor = .white
-        tableView.tableFooterView = UIView()
-        tableView.separatorInset = UIEdgeInsets(top: 0, left: 72, bottom: 0, right: 16)
-
+        tableView.register(ConversationCell.self, forCellReuseIdentifier: ConversationCell.reuseIdentifier)
         tableView.dataSource = self
         tableView.delegate = self
-        tableView.register(ConversationCell.self, forCellReuseIdentifier: ConversationCell.reuseIdentifier)
+        tableView.separatorInset = UIEdgeInsets(top: 0, left: 72, bottom: 0, right: 16)
+        tableView.rowHeight = 76
 
         view.addSubview(tableView)
 
         NSLayoutConstraint.activate([
-<<<<<<< HEAD
-            tableView.topAnchor.constraint(equalTo: headerView.bottomAnchor),
+            tableView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 64),
             tableView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             tableView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             tableView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
-=======
-            backgroundView.topAnchor.constraint(equalTo: headerView.bottomAnchor),
-            backgroundView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            backgroundView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            backgroundView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
-        ])
-
-        containerView.translatesAutoresizingMaskIntoConstraints = false
-        containerView.backgroundColor = .white
-        containerView.isUserInteractionEnabled = true
-        backgroundView.addSubview(containerView)
-
-        let tap = UITapGestureRecognizer(target: self, action: #selector(openChat))
-        containerView.addGestureRecognizer(tap)
-
-        avatarLabel.translatesAutoresizingMaskIntoConstraints = false
-        avatarLabel.text = user.profileImageUrl
-        avatarLabel.font = UIFont.systemFont(ofSize: 36)
-        containerView.addSubview(avatarLabel)
-
-        nameLabel.translatesAutoresizingMaskIntoConstraints = false
-        nameLabel.text = user.name
-        nameLabel.font = UIFont.systemFont(ofSize: 17, weight: .semibold)
-        nameLabel.textColor = .label
-        containerView.addSubview(nameLabel)
-
-        subtitleLabel.translatesAutoresizingMaskIntoConstraints = false
-        subtitleLabel.text = "@\(user.username)"
-        subtitleLabel.font = UIFont.systemFont(ofSize: 14)
-        subtitleLabel.textColor = .secondaryLabel
-        containerView.addSubview(subtitleLabel)
-
-        chevronImageView.translatesAutoresizingMaskIntoConstraints = false
-        chevronImageView.image = UIImage(systemName: "chevron.right")
-        chevronImageView.tintColor = .tertiaryLabel
-        containerView.addSubview(chevronImageView)
-
-        NSLayoutConstraint.activate([
-            containerView.topAnchor.constraint(equalTo: backgroundView.topAnchor, constant: 12),
-            containerView.leadingAnchor.constraint(equalTo: backgroundView.leadingAnchor, constant: 16),
-            containerView.trailingAnchor.constraint(equalTo: backgroundView.trailingAnchor, constant: -16),
-            containerView.heightAnchor.constraint(equalToConstant: 72),
-
-            avatarLabel.centerYAnchor.constraint(equalTo: containerView.centerYAnchor),
-            avatarLabel.leadingAnchor.constraint(equalTo: containerView.leadingAnchor),
-
-            chevronImageView.centerYAnchor.constraint(equalTo: containerView.centerYAnchor),
-            chevronImageView.trailingAnchor.constraint(equalTo: containerView.trailingAnchor),
-
-            nameLabel.leadingAnchor.constraint(equalTo: avatarLabel.trailingAnchor, constant: 12),
-            nameLabel.trailingAnchor.constraint(lessThanOrEqualTo: chevronImageView.leadingAnchor, constant: -8),
-            nameLabel.bottomAnchor.constraint(equalTo: containerView.centerYAnchor, constant: -1),
-
-            subtitleLabel.leadingAnchor.constraint(equalTo: nameLabel.leadingAnchor),
-            subtitleLabel.topAnchor.constraint(equalTo: containerView.centerYAnchor, constant: 1),
-            subtitleLabel.trailingAnchor.constraint(lessThanOrEqualTo: chevronImageView.leadingAnchor, constant: -8)
->>>>>>> 5fc0ec21c6f220f016f76b852eb752b75f53b331
         ])
     }
-    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-            let conversation = conversations[indexPath.row]
 
-<<<<<<< HEAD
-    // Navigation
-    private func openChat(for conversation: Conversation) {
-        // Pass the conversation’s messages to the Chat screen
-        let chatVC = ChatViewController(user: conversation.user, messages: conversation.messages)
-=======
-            let chatVC = ChatViewController(
-                user: conversation.user,
-                messages: []
-            )
+    // MARK: - Data
 
-            navigationController?.pushViewController(chatVC, animated: true)
-        }
-    override func viewWillAppear(_ animated: Bool) {
-        super.viewWillAppear(animated)
-        navigationController?.setNavigationBarHidden(true, animated: false)
-    }
-
-    override func viewWillDisappear(_ animated: Bool) {
-        super.viewWillDisappear(animated)
-        navigationController?.setNavigationBarHidden(false, animated: false)
-    }
-
-    @objc private func openChat() {
-
-        let currentUserId = "current_user"
-        let otherUserId = user.id
-
-        let messages: [Message] = [
-            Message(
-                id: "msg_1",
-                senderId: otherUserId,
-                receiverId: currentUserId,
-                text: "Hello, I need to create a website for my work",
-                imageURL: nil,
-                timestamp: Date()
+    private func loadConversations() {
+        // Replace later with Firestore listener
+        conversations = [
+            Conversation(
+                id: "1",
+                user: User(id: "u1", name: "Sayed Husain", username: "sayed", profileImageUrl: nil),
+                lastMessage: "Sure, send me the details",
+                lastUpdated: Date()
             ),
-            Message(
-                id: "msg_2",
-                senderId: currentUserId,
-                receiverId: otherUserId,
-                text: """
-    Sure, send me your requirement details
-    and I will help you with my template
-    or create new one if you have
-    specific design
-    """, imageURL: nil,
-                timestamp: Date()
-            ),
-            Message(
-                id: "msg_3",
-                senderId: otherUserId,
-                receiverId: currentUserId,
-                text: "Ok Thanks, I will send you after a few hours", imageURL: nil,
-                timestamp: Date()
-            ),
-            Message(
-                id: "msg_4",
-                senderId: currentUserId,
-                receiverId: otherUserId,
-                text: "Thanks!", imageURL: nil,
-                timestamp: Date()
+            Conversation(
+                id: "2",
+                user: User(id: "u2", name: "Aisha Noor", username: "aisha", profileImageUrl: nil),
+                lastMessage: "I'll update the design shortly",
+                lastUpdated: Date()
             )
         ]
-
-        let chatVC = ChatViewController(user: user, messages: messages)
->>>>>>> 5fc0ec21c6f220f016f76b852eb752b75f53b331
-        navigationController?.pushViewController(chatVC, animated: true)
+        tableView.reloadData()
     }
-
 }
 
-// Delegate
+// MARK: - Table Delegate
+
 extension MessagesListViewController: UITableViewDataSource, UITableViewDelegate {
+
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         conversations.count
     }
 
-    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+    func tableView(_ tableView: UITableView,
+                   cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+
         let cell = tableView.dequeueReusableCell(
             withIdentifier: ConversationCell.reuseIdentifier,
             for: indexPath
         ) as! ConversationCell
 
-        let conversation = conversations[indexPath.row]
-        cell.configure(with: conversation.user)
+        cell.configure(with: conversations[indexPath.row])
         return cell
     }
 
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
-        openChat(for: conversations[indexPath.row])
-    }
 
-    func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
-        72
+        let conversation = conversations[indexPath.row]
+        let chatVC = ChatViewController(conversation: conversation)
+        navigationController?.pushViewController(chatVC, animated: true)
     }
 }

@@ -2,8 +2,6 @@
 //  SceneDelegate.swift
 //  Masar
 //
-//  Created by BP-36-201-13 on 05/12/2025.
-//
 
 import UIKit
 
@@ -15,70 +13,45 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         _ scene: UIScene,
         willConnectTo session: UISceneSession,
         options connectionOptions: UIScene.ConnectionOptions
-    )
-    {
-        
-        AuthService.shared.signInIfNeeded {
-            print("Signed in with uid:", AuthService.shared.currentUserId ?? "")
-        }
-
+    ) {
         guard let windowScene = scene as? UIWindowScene else { return }
+
+        // Ensure user is authenticated
+        AuthService.shared.signInIfNeeded {
+            print("User signed in:", AuthService.shared.currentUserId)
+        }
 
         window = UIWindow(windowScene: windowScene)
 
+        // MARK: - Tabs
+
         let searchVC = ViewController()
         let searchNav = UINavigationController(rootViewController: searchVC)
-        searchNav.tabBarItem = UITabBarItem(title: "Search", image: UIImage(systemName: "magnifyingglass"), selectedImage: nil)
-
-        let historyVC = UIViewController()
-        let historyNav = UINavigationController(rootViewController: historyVC)
-        historyNav.tabBarItem = UITabBarItem(title: "History", image: UIImage(systemName: "clock"), selectedImage: nil)
-
-        let messagesVC = MessagesListViewController()
-        let messagesNav = UINavigationController(rootViewController: messagesVC)
-        messagesNav.tabBarItem = UITabBarItem(title: "Messages", image: UIImage(systemName: "message"), selectedImage: nil)
-
-        let profileVC = ProfileViewController()
-        let profileNav = UINavigationController(rootViewController: profileVC)
-        profileNav.tabBarItem = UITabBarItem(title: "Profile", image: UIImage(systemName: "person"), selectedImage: UIImage(systemName: "person.fill"))
-        let providerHubVC = UIViewController()
-        let providerHubNav = UINavigationController(rootViewController: providerHubVC)
-        providerHubNav.tabBarItem = UITabBarItem(
-            title: "Provider Hub",
-            image: UIImage(systemName: "briefcase"),
-            selectedImage: UIImage(systemName: "briefcase.fill")
-        )
         searchNav.tabBarItem = UITabBarItem(
             title: "Search",
             image: UIImage(systemName: "magnifyingglass"),
             selectedImage: UIImage(systemName: "magnifyingglass")
         )
 
+        let historyVC = UIViewController()
+        let historyNav = UINavigationController(rootViewController: historyVC)
         historyNav.tabBarItem = UITabBarItem(
             title: "History",
             image: UIImage(systemName: "clock"),
             selectedImage: UIImage(systemName: "clock.fill")
         )
 
-<<<<<<< HEAD
-        let messagesListVC = MessagesListViewController()
-        let messagesNav = UINavigationController(rootViewController: messagesListVC)
-        messagesNav.setNavigationBarHidden(true, animated: false)
-=======
->>>>>>> 5fc0ec21c6f220f016f76b852eb752b75f53b331
+        let messagesVC = MessagesListViewController()
+        let messagesNav = UINavigationController(rootViewController: messagesVC)
         messagesNav.tabBarItem = UITabBarItem(
             title: "Messages",
             image: UIImage(systemName: "message"),
             selectedImage: UIImage(systemName: "message.fill")
         )
 
-<<<<<<< HEAD
-        let profileVC = UIViewController()
-        profileVC.view.backgroundColor = .systemBackground
-        profileVC.tabBarItem = UITabBarItem(
-=======
+        let profileVC = ProfileViewController()
+        let profileNav = UINavigationController(rootViewController: profileVC)
         profileNav.tabBarItem = UITabBarItem(
->>>>>>> 5fc0ec21c6f220f016f76b852eb752b75f53b331
             title: "Profile",
             image: UIImage(systemName: "person"),
             selectedImage: UIImage(systemName: "person.fill")
@@ -89,20 +62,14 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
             searchNav,
             historyNav,
             messagesNav,
-            providerHubNav,
             profileNav
         ]
-        //background color
-        let tabBackgroundColor = UIColor(
-            red: 250/255,
-                green: 250/255,
-                blue: 250/255,
-                alpha: 1
-        )
 
+        // MARK: - Tab Bar Appearance
         let appearance = UITabBarAppearance()
         appearance.configureWithOpaqueBackground()
         appearance.backgroundColor = .white
+
         appearance.stackedLayoutAppearance.selected.iconColor =
             UIColor(red: 112/255, green: 79/255, blue: 217/255, alpha: 1)
         appearance.stackedLayoutAppearance.selected.titleTextAttributes = [
@@ -114,22 +81,12 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
             .foregroundColor: UIColor.systemGray
         ]
 
-        // Rrmoves top shadow line
-        appearance.shadowColor = nil
-
-        let tabBar = tabBarController.tabBar
-        tabBar.standardAppearance = appearance
-
+        tabBarController.tabBar.standardAppearance = appearance
         if #available(iOS 15.0, *) {
-            tabBar.scrollEdgeAppearance = appearance
+            tabBarController.tabBar.scrollEdgeAppearance = appearance
         }
-        tabBarController.tabBar.isTranslucent = false
-        window?.backgroundColor = tabBackgroundColor
-
-
 
         window?.rootViewController = tabBarController
         window?.makeKeyAndVisible()
     }
-
 }

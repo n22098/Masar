@@ -10,49 +10,68 @@ import UIKit
 final class ChatViewController: UIViewController,
                                UITextFieldDelegate,
                                UIImagePickerControllerDelegate,
-                               UINavigationControllerDelegate {
-
-
+                                UINavigationControllerDelegate {
+    
+    
     private let user: User
+    
     private var messages: [Message]
+    private let conversation: Conversation
     private var inputBottomConstraint: NSLayoutConstraint!
     private var currentUserId: String {
         AuthService.shared.currentUserId ?? ""
     }
-
-
-
-
+    
+    
+    
+    
     private let headerView = UIView()
     private let backButton = UIButton(type: .system)
     private let titleStack = UIStackView()
     private let avatarLabel = UILabel()
     private let nameLabel = UILabel()
     private let subtitleLabel = UILabel()
-
+    
     private let tableView = UITableView(frame: .zero, style: .plain)
-
+    
     private let inputContainer = UIView()
     private let attachButton = UIButton(type: .system)
     private let textField = UITextField()
-    private let sendButton = UIButton(type: .system)
+    private let sendButton: UIButton = {
+        let button = UIButton(type: .system)
+        button.setImage(UIImage(systemName: "paperplane.fill"), for: .normal)
+        button.tintColor = .systemBlue
+        button.translatesAutoresizingMaskIntoConstraints = false
+        return button
+    }()
 
+    
+    init(conversation: Conversation) {
+            self.conversation = conversation
+            self.user = conversation.user
+            self.messages = []
+            super.init(nibName: nil, bundle: nil)
+        }
 
-    init(user: User, messages: [Message]) {
-        self.user = user
-        self.messages = messages
-        super.init(nibName: nil, bundle: nil)
-    }
+        required init?(coder: NSCoder) {
+            fatalError("init(coder:) has not been implemented")
+        }
+  
+    
+    
 
-    required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
 
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
 
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-            self.textField.becomeFirstResponder()
+        if !didAutoFocusOnce {
+            didAutoFocusOnce = true
+            DispatchQueue.main.async { [weak self] in
+                self?.textField.becomeFirstResponder()
+            }
         }
     }
+
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -61,7 +80,8 @@ final class ChatViewController: UIViewController,
         setupTableView()
         setupInputBar()
         scrollToBottom(animated: false)
-        
+        sendButton.addTarget(self, action: #selector(didTapSend), for: .touchUpInside)
+
         ChatService.shared.listenForMessages(
             currentUserId: currentUserId,
             otherUserId: user.id
@@ -88,17 +108,7 @@ final class ChatViewController: UIViewController,
     }
     private var didAutoFocusOnce = false
 
-       override func viewDidAppear(_ animated: Bool) {
-           super.viewDidAppear(animated)
-
-           // Auto-focus the input on first appearance
-           if !didAutoFocusOnce {
-               didAutoFocusOnce = true
-               DispatchQueue.main.async { [weak self] in
-                   self?.textField.becomeFirstResponder()
-               }
-           }
-       }
+       
 
 //generakl layout
     private func setupHeader() {
@@ -281,22 +291,27 @@ final class ChatViewController: UIViewController,
 
     //send keyboard input to chat
     @objc private func didTapSend() {
-        guard
-            let text = textField.text,
-            !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
-            !currentUserId.isEmpty
-        else {
+        print("SEND BUTTON TAPPED") // <- Debug confirmation
+
+        let text = textField.text?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        guard !text.isEmpty else { return }
+
+        let senderId = AuthService.shared.currentUserId
+        guard !senderId.isEmpty else {
+            print("❌ No user logged in")
             return
         }
 
         ChatService.shared.sendMessage(
             text: text,
-            from: currentUserId,
-            to: user.id
+            from: senderId,
+            to: conversation.user.id
         )
 
-        textField.text = nil
+        textField.text = ""
     }
+
+
 
 
     private func scrollToBottom(animated: Bool) {

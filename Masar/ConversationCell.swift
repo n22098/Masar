@@ -64,10 +64,9 @@ final class ConversationCell: UITableViewCell {
         ])
     }
 
-    func configure(with user: User) {
-        avatarLabel.text = user.profileImageUrl
-        nameLabel.text = user.name
-        subtitleLabel.text = "@\(user.username)"
-
+    func configure(with conversation: Conversation) {
+        nameLabel.text = conversation.user.name
+        subtitleLabel.text = conversation.lastMessage
     }
+
 }
