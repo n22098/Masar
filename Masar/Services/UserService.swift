@@ -23,46 +23,28 @@ final class UserService {
             .document(currentUserId)
             .getDocument { snapshot, _ in
 
-                guard
-                    let data = snapshot?.data(),
-                    let name = data["name"] as? String,
-                    let username = data["username"] as? String
-                else {
+                guard let data = snapshot?.data(),
+                      let name = data["name"] as? String else {
                     completion(nil)
                     return
                 }
 
+                // نملأ البيانات بناءً على المودل الجديد
                 let user = User(
                     id: self.currentUserId,
                     name: name,
-                    username: username,
-                    profileImageUrl: nil
+                    email: data["email"] as? String ?? "", // جلب الإيميل
+                    phone: data["phone"] as? String ?? "", // جلب الهاتف
+                    profileImageName: data["profileImageUrl"] as? String // ربط رابط الصورة
                 )
 
                 completion(user)
             }
     }
-    func updateUsername(_ username: String) {
+    
+    // تحديث البيانات (نحدث الإيميل لأن اليوزرزنيم غير موجود في المودل)
+    func updateEmail(_ email: String) {
         guard let uid = Auth.auth().currentUser?.uid else { return }
-
-        Firestore.firestore()
-            .collection("users")
-            .document(uid)
-            .updateData([
-                "username": username
-            ])
-    }
-
-
-    func updateProfile(name: String, username: String, avatarEmoji: String) {
-        guard !currentUserId.isEmpty else { return }
-
-        db.collection("users")
-            .document(currentUserId)
-            .updateData([
-                "name": name,
-                "username": username,
-                "avatarEmoji": avatarEmoji
-            ])
+        Firestore.firestore().collection("users").document(uid).updateData(["email": email])
     }
 }

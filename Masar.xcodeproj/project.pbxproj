@@ -13,6 +13,7 @@
 		0C0E586F2F02C03000DD26F4 /* FirebaseMessaging in Frameworks */ = {isa = PBXBuildFile; productRef = 0C0E586E2F02C03000DD26F4 /* FirebaseMessaging */; };
 		0C0E58712F02C03700DD26F4 /* FirebaseAuthCombine-Community in Frameworks */ = {isa = PBXBuildFile; productRef = 0C0E58702F02C03700DD26F4 /* FirebaseAuthCombine-Community */; };
 		0C0E58742F02C07C00DD26F4 /* Cloudinary in Frameworks */ = {isa = PBXBuildFile; productRef = 0C0E58732F02C07C00DD26F4 /* Cloudinary */; };
+		D23145CA2F03391800080A6F /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = D23145C82F03391800080A6F /* Localizable.strings */; };
 		D3A73EA72EF06C9200DF628A /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = D3A73EA62EF06C9200DF628A /* FirebaseAuth */; };
 		D3A73EA92EF06C9200DF628A /* FirebaseFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = D3A73EA82EF06C9200DF628A /* FirebaseFirestore */; };
 		DE69E8CF2EFD461100F1AF96 /* FirebaseDatabase in Frameworks */ = {isa = PBXBuildFile; productRef = DE69E8CE2EFD461100F1AF96 /* FirebaseDatabase */; };
@@ -21,6 +22,8 @@
 
 /* Begin PBXFileReference section */
 		507E416D2EE15769002B7336 /* Masar.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Masar.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		D23145C92F03391800080A6F /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/Localizable.strings; sourceTree = "<group>"; };
+		D23145CB2F03393100080A6F /* ar */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ar; path = ar.lproj/Localizable.strings; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -75,6 +78,7 @@
 		507E41642EE15769002B7336 = {
 			isa = PBXGroup;
 			children = (
+				D23145C82F03391800080A6F /* Localizable.strings */,
 				507E416F2EE15769002B7336 /* Masar */,
 				0C0E58672F02C01B00DD26F4 /* Frameworks */,
 				507E416E2EE15769002B7336 /* Products */,
@@ -145,6 +149,7 @@
 			knownRegions = (
 				en,
 				Base,
+				ar,
 			);
 			mainGroup = 507E41642EE15769002B7336;
 			minimizedProjectReferenceProxies = 1;
@@ -167,6 +172,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D23145CA2F03391800080A6F /* Localizable.strings in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -181,6 +187,18 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXVariantGroup section */
+		D23145C82F03391800080A6F /* Localizable.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				D23145C92F03391800080A6F /* en */,
+				D23145CB2F03393100080A6F /* ar */,
+			);
+			name = Localizable.strings;
+			sourceTree = "<group>";
+		};
+/* End PBXVariantGroup section */
 
 /* Begin XCBuildConfiguration section */
 		507E41812EE1576A002B7336 /* Debug */ = {
@@ -244,6 +262,7 @@
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
@@ -307,6 +326,7 @@
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";

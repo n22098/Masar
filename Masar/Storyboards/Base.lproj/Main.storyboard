@@ -100,7 +100,6 @@
                     <connections>
                         <outlet property="emailTextField" destination="D0D-SL-d4T" id="9Bk-Uc-4xJ"/>
                         <outlet property="passwordTextField" destination="KeN-gI-xM3" id="G1m-1r-sO6"/>
-                        <outlet property="signInButton" destination="bwv-H6-16F" id="VIW-Yd-ik9"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="dkx-z0-nzr" sceneMemberID="firstResponder"/>
@@ -514,7 +513,7 @@
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <stackView opaque="NO" contentMode="scaleToFill" fixedFrame="YES" axis="vertical" distribution="fillProportionally" spacing="15" translatesAutoresizingMaskIntoConstraints="NO" id="uUD-be-zCm">
-                                <rect key="frame" x="30" y="202" width="114.33333333333331" height="297.66666666666669"/>
+                                <rect key="frame" x="30" y="202.00000000000003" width="114.33333333333331" height="297.66666666666674"/>
                                 <subviews>
                                     <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="person.fill" catalog="system" translatesAutoresizingMaskIntoConstraints="NO" id="vVV-tl-Hbp">
                                         <rect key="frame" x="0.0" y="1.6666666666666661" width="114.33333333333333" height="17"/>

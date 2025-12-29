@@ -5,25 +5,61 @@ class ProfileTableViewController: UITableViewController {
 
     let brandColor = UIColor(red: 98/255, green: 84/255, blue: 243/255, alpha: 1.0)
     let lightBg = UIColor(red: 248/255, green: 248/255, blue: 252/255, alpha: 1.0)
+    
+    // قائمة العناصر بالترتيب الصحيح (مع الترجمة)
+    var menuItems: [String] {
+        return [
+            NSLocalizedString("Personal Information", comment: ""),
+            NSLocalizedString("Privacy and Policy", comment: ""),
+            NSLocalizedString("About", comment: ""),
+            NSLocalizedString("Report an Issue", comment: ""),
+            NSLocalizedString("Reset Password", comment: ""),
+            NSLocalizedString("Delete Account", comment: ""),
+            NSLocalizedString("Log Out", comment: ""),
+            NSLocalizedString("Dark Mode", comment: ""),
+            NSLocalizedString("Language", comment: "")
+        ]
+    }
+    
+    let menuIcons = [
+        "person.circle",
+        "lock.shield",
+        "info.circle",
+        "exclamationmark.bubble",
+        "key",
+        "trash",
+        "arrow.right.square",
+        "moon.fill",
+        "globe"
+    ]
 
     override func viewDidLoad() {
         super.viewDidLoad()
         setupNavigationBar()
         setupTableView()
+        loadDarkModePreference()
     }
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         setupNavigationBar()
+        tableView.reloadData() // ريلود للغة
+    }
+    
+    // تحميل تفضيلات Dark Mode عند فتح التطبيق
+    func loadDarkModePreference() {
+        let isDarkMode = UserDefaults.standard.bool(forKey: "isDarkMode")
+        applyDarkMode(isDarkMode)
     }
 
     func setupTableView() {
         tableView.backgroundColor = lightBg
-        // لا نحتاج لإعدادات الخلايا هنا لأنها موجودة في الستوري بورد
+        tableView.register(UITableViewCell.self, forCellReuseIdentifier: "MenuCell")
+        tableView.register(SwitchCell.self, forCellReuseIdentifier: "SwitchCell")
     }
 
     func setupNavigationBar() {
-        title = "Profile"
+        title = NSLocalizedString("Profile", comment: "")
         navigationController?.navigationBar.prefersLargeTitles = true
         
         let appearance = UINavigationBarAppearance()
@@ -42,12 +78,42 @@ class ProfileTableViewController: UITableViewController {
         navigationController?.navigationBar.tintColor = .white
     }
     
-    // ---------------------------------------------------------
-    // ❌ تم حذف دوال DataSource (numberOfSections, numberOfRows, cellForRow)
-    // لكي يظهر تصميم الستوري بورد (Static Cells)
-    // ---------------------------------------------------------
+    // MARK: - Table View Data Source
+    override func numberOfSections(in tableView: UITableView) -> Int {
+        return 1
+    }
     
-    // MARK: - Header (الأيقونة العلوية)
+    override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        return menuItems.count
+    }
+    
+    override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        // Dark Mode cell with switch
+        if indexPath.row == 7 {
+            let cell = tableView.dequeueReusableCell(withIdentifier: "SwitchCell", for: indexPath) as! SwitchCell
+            cell.configure(title: menuItems[indexPath.row], icon: menuIcons[indexPath.row], color: brandColor)
+            cell.switchToggled = { [weak self] isOn in
+                self?.darkModeToggled(isOn: isOn)
+            }
+            return cell
+        }
+        
+        // Regular menu cells
+        let cell = tableView.dequeueReusableCell(withIdentifier: "MenuCell", for: indexPath)
+        
+        var content = cell.defaultContentConfiguration()
+        content.text = menuItems[indexPath.row]
+        content.image = UIImage(systemName: menuIcons[indexPath.row])
+        content.imageProperties.tintColor = brandColor
+        
+        cell.contentConfiguration = content
+        cell.accessoryType = .disclosureIndicator
+        cell.backgroundColor = .systemBackground
+        
+        return cell
+    }
+    
+    // MARK: - Header
     override func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
         let headerView = UIView()
         headerView.backgroundColor = .clear
@@ -85,9 +151,12 @@ class ProfileTableViewController: UITableViewController {
         return 120
     }
     
-    // MARK: - TableView Delegate (التعامل مع الضغطات)
+    override func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
+        return 55
+    }
+    
+    // MARK: - Table View Delegate
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        // تأكد أن ترتيب الـ Cases يطابق ترتيب الخلايا في الستوري بورد
         switch indexPath.row {
         case 0:
             navigateToPersonalInfo()
@@ -100,18 +169,17 @@ class ProfileTableViewController: UITableViewController {
         case 4:
             navigateToResetPassword()
         case 5:
-            break // Dark Mode toggle handled by switch inside cell
-        case 6:
-            showLanguageOptions()
-        case 7:
             showDeleteAccountAlert()
-        case 8:
+        case 6:
             showLogOutAlert()
+        case 7:
+            break // Dark Mode - handled by switch
+        case 8:
+            showLanguageOptions()
         default:
             break
         }
         
-        // إلغاء التحديد لجمالية الأنيميشن
         tableView.deselectRow(at: indexPath, animated: true)
     }
     
@@ -149,18 +217,28 @@ class ProfileTableViewController: UITableViewController {
         present(alert, animated: true)
     }
     
-    // MARK: - Dark Mode & Language Actions
-    // ملاحظة: لكي يعمل هذا، يجب ربط الـ Switch في الستوري بورد بهذا الآكشن
-    @IBAction func darkModeToggled(_ sender: UISwitch) {
-        UserDefaults.standard.set(sender.isOn, forKey: "isDarkMode")
-        
-        if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene {
-            windowScene.windows.forEach { window in
-                window.overrideUserInterfaceStyle = sender.isOn ? .dark : .light
-            }
-        }
+    // MARK: - Dark Mode
+    func darkModeToggled(isOn: Bool) {
+        UserDefaults.standard.set(isOn, forKey: "isDarkMode")
+        applyDarkMode(isOn)
     }
     
+    func applyDarkMode(_ isOn: Bool) {
+        // تطبيق Dark Mode على جميع النوافذ في التطبيق
+        UIApplication.shared.connectedScenes
+            .compactMap { $0 as? UIWindowScene }
+            .flatMap { $0.windows }
+            .forEach { window in
+                UIView.transition(with: window, duration: 0.3, options: .transitionCrossDissolve, animations: {
+                    window.overrideUserInterfaceStyle = isOn ? .dark : .light
+                })
+            }
+        
+        // تحديث الواجهة الحالية
+        tableView.reloadData()
+    }
+    
+    // MARK: - Language
     func showLanguageOptions() {
         let alert = UIAlertController(
             title: "Choose Language",
@@ -169,11 +247,11 @@ class ProfileTableViewController: UITableViewController {
         )
         
         alert.addAction(UIAlertAction(title: "English", style: .default) { [weak self] _ in
-            self?.changeLanguage(to: "English")
+            self?.changeLanguage(to: "en", displayName: "English")
         })
         
         alert.addAction(UIAlertAction(title: "العربية (Arabic)", style: .default) { [weak self] _ in
-            self?.changeLanguage(to: "Arabic")
+            self?.changeLanguage(to: "ar", displayName: "Arabic")
         })
         
         alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
@@ -181,18 +259,113 @@ class ProfileTableViewController: UITableViewController {
         present(alert, animated: true)
     }
     
-    func changeLanguage(to language: String) {
-        UserDefaults.standard.set(language, forKey: "appLanguage")
+    func changeLanguage(to languageCode: String, displayName: String) {
+        // حفظ اللغة
+        UserDefaults.standard.set([languageCode], forKey: "AppleLanguages")
+        UserDefaults.standard.set(languageCode, forKey: "appLanguage")
+        UserDefaults.standard.synchronize()
         
+        // رسالة تأكيد
         let alert = UIAlertController(
             title: "Language Changed",
-            message: "The app language has been changed to \(language). Please restart the app for changes to take full effect.",
+            message: "The app language has been changed to \(displayName). The app will restart now.",
             preferredStyle: .alert
         )
+        
         alert.addAction(UIAlertAction(title: "OK", style: .default) { [weak self] _ in
-            self?.tableView.reloadData()
+            self?.restartApp()
         })
+        
         present(alert, animated: true)
+    }
+    
+    func restartApp() {
+        // إعادة تشغيل التطبيق من البداية
+        guard let window = UIApplication.shared.windows.first else { return }
+        
+        let storyboard = UIStoryboard(name: "Main", bundle: nil)
+        
+        // تحقق إذا المستخدم مسجل دخول
+        if Auth.auth().currentUser != nil {
+            // المستخدم مسجل دخول، ارجع للستوري بورد المناسب
+            if let userType = UserDefaults.standard.string(forKey: "userType") {
+                let targetStoryboard = UIStoryboard(name: userType, bundle: nil)
+                if let rootVC = targetStoryboard.instantiateInitialViewController() {
+                    window.rootViewController = rootVC
+                }
+            }
+        } else {
+            // المستخدم مو مسجل دخول، ارجع لصفحة تسجيل الدخول
+            let signInVC = storyboard.instantiateViewController(withIdentifier: "SignInViewController")
+            window.rootViewController = signInVC
+        }
+        
+        UIView.transition(with: window, duration: 0.5, options: .transitionCrossDissolve, animations: nil)
+    }
+    
+    // MARK: - Delete Account
+    func showDeleteAccountAlert() {
+        let alert = UIAlertController(
+            title: "Delete Account",
+            message: "Are you sure you want to permanently delete your account? This action cannot be undone.",
+            preferredStyle: .alert
+        )
+        
+        alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
+        
+        alert.addAction(UIAlertAction(title: "Delete", style: .destructive) { [weak self] _ in
+            self?.deleteAccount()
+        })
+        
+        present(alert, animated: true)
+    }
+    
+    func deleteAccount() {
+        guard let user = Auth.auth().currentUser else { return }
+        
+        user.delete { [weak self] error in
+            if let error = error {
+                self?.showAlert("Failed to delete account: \(error.localizedDescription)")
+            } else {
+                self?.goToSignIn()
+            }
+        }
+    }
+    
+    // MARK: - Log Out
+    func showLogOutAlert() {
+        let alert = UIAlertController(
+            title: "Log Out",
+            message: "Do you want to log out?",
+            preferredStyle: .alert
+        )
+
+        alert.addAction(UIAlertAction(title: "No", style: .cancel))
+
+        alert.addAction(UIAlertAction(title: "Yes", style: .destructive) { [weak self] _ in
+            do {
+                try Auth.auth().signOut()
+                self?.goToSignIn()
+            } catch {
+                self?.showAlert("Failed to log out. Please try again.")
+            }
+        })
+
+        present(alert, animated: true)
+    }
+
+    // MARK: - Navigation to Sign In
+    func goToSignIn() {
+        let storyboard = UIStoryboard(name: "Main", bundle: nil)
+        let signInVC = storyboard.instantiateViewController(withIdentifier: "SignInViewController")
+
+        if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+           let sceneDelegate = windowScene.delegate as? SceneDelegate,
+           let window = sceneDelegate.window {
+
+            window.rootViewController = signInVC
+            UIView.transition(with: window, duration: 0.3, options: .transitionCrossDissolve, animations: nil, completion: nil)
+        }
     }
     
     // MARK: - Scrollable Alert
@@ -205,7 +378,7 @@ class ProfileTableViewController: UITableViewController {
             sheet.prefersGrabberVisible = true
         }
         
-        contentVC.view.backgroundColor = .white // أو استخدام لون النظام للداكن والفاتح
+        contentVC.view.backgroundColor = .systemBackground
         
         let titleLabel = UILabel()
         titleLabel.text = title
@@ -217,7 +390,7 @@ class ProfileTableViewController: UITableViewController {
         let textView = UITextView()
         textView.text = message
         textView.font = UIFont.systemFont(ofSize: 15)
-        textView.textColor = .darkGray
+        textView.textColor = .label
         textView.isEditable = false
         textView.isScrollEnabled = true
         textView.backgroundColor = .clear
@@ -335,74 +508,6 @@ class ProfileTableViewController: UITableViewController {
         Phone: +973-39871234
         """
     }
-    
-    func showDeleteAccountAlert() {
-        let alert = UIAlertController(
-            title: "Delete Account",
-            message: "Are you sure you want to permanently delete your account? This action cannot be undone.",
-            preferredStyle: .alert
-        )
-        
-        alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
-        
-        alert.addAction(UIAlertAction(title: "Delete", style: .destructive) { [weak self] _ in
-            self?.deleteAccount()
-        })
-        
-        present(alert, animated: true)
-    }
-    
-    func deleteAccount() {
-        guard let user = Auth.auth().currentUser else { return }
-        
-        user.delete { [weak self] error in
-            if let error = error {
-                self?.showAlert("Failed to delete account: \(error.localizedDescription)")
-            } else {
-                self?.goToSignIn()
-            }
-        }
-    }
-    
-    func showLogOutAlert() {
-        let alert = UIAlertController(
-            title: "Log Out",
-            message: "Do you want to log out?",
-            preferredStyle: .alert
-        )
-
-        alert.addAction(UIAlertAction(title: "No", style: .cancel))
-
-        alert.addAction(UIAlertAction(title: "Yes", style: .destructive) { [weak self] _ in
-            do {
-                try Auth.auth().signOut()
-                self?.goToSignIn()
-            } catch {
-                self?.showAlert("Failed to log out. Please try again.")
-            }
-        })
-
-        present(alert, animated: true)
-    }
-
-    // MARK: - Navigation to Sign In
-    func goToSignIn() {
-        // تأكد أن "Main" هو اسم ملف الستوري بورد الذي يحتوي على صفحة الدخول
-        let storyboard = UIStoryboard(name: "Main", bundle: nil)
-        
-        // تأكد أن "SignInViewController" هو الـ Storyboard ID لصفحة الدخول
-        let signInVC = storyboard.instantiateViewController(withIdentifier: "SignInViewController")
-
-        if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
-           let sceneDelegate = windowScene.delegate as? SceneDelegate,
-           let window = sceneDelegate.window {
-
-            window.rootViewController = signInVC
-            
-            // أنيميشن بسيط للانتقال
-            UIView.transition(with: window, duration: 0.3, options: .transitionCrossDissolve, animations: nil, completion: nil)
-        }
-    }
 
     // MARK: - Alert Helper
     func showAlert(_ message: String) {
@@ -413,5 +518,67 @@ class ProfileTableViewController: UITableViewController {
         )
         alert.addAction(UIAlertAction(title: "OK", style: .default))
         present(alert, animated: true)
+    }
+}
+
+// MARK: - Custom Switch Cell
+class SwitchCell: UITableViewCell {
+    
+    private let iconImageView = UIImageView()
+    private let titleLabel = UILabel()
+    private let switchControl = UISwitch()
+    
+    var switchToggled: ((Bool) -> Void)?
+    
+    override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
+        super.init(style: style, reuseIdentifier: reuseIdentifier)
+        setupViews()
+    }
+    
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+    
+    private func setupViews() {
+        iconImageView.contentMode = .scaleAspectFit
+        iconImageView.translatesAutoresizingMaskIntoConstraints = false
+        contentView.addSubview(iconImageView)
+        
+        titleLabel.font = UIFont.systemFont(ofSize: 17)
+        titleLabel.translatesAutoresizingMaskIntoConstraints = false
+        contentView.addSubview(titleLabel)
+        
+        switchControl.addTarget(self, action: #selector(switchValueChanged), for: .valueChanged)
+        switchControl.translatesAutoresizingMaskIntoConstraints = false
+        contentView.addSubview(switchControl)
+        
+        NSLayoutConstraint.activate([
+            iconImageView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
+            iconImageView.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
+            iconImageView.widthAnchor.constraint(equalToConstant: 28),
+            iconImageView.heightAnchor.constraint(equalToConstant: 28),
+            
+            titleLabel.leadingAnchor.constraint(equalTo: iconImageView.trailingAnchor, constant: 12),
+            titleLabel.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
+            
+            switchControl.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
+            switchControl.centerYAnchor.constraint(equalTo: contentView.centerYAnchor)
+        ])
+        
+        selectionStyle = .none
+    }
+    
+    func configure(title: String, icon: String, color: UIColor) {
+        titleLabel.text = title
+        iconImageView.image = UIImage(systemName: icon)
+        iconImageView.tintColor = color
+        switchControl.onTintColor = color
+        
+        let isDarkMode = UserDefaults.standard.bool(forKey: "isDarkMode")
+        switchControl.isOn = isDarkMode
+    }
+    
+    @objc private func switchValueChanged() {
+        switchToggled?(switchControl.isOn)
     }
 }

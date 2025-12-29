@@ -6,67 +6,32 @@
 //
 
 import UIKit
-<<<<<<< HEAD
-import Firebase
-
-=======
-import FirebaseCore   // ✅ REQUIRED
+import FirebaseCore
 import Cloudinary
->>>>>>> origin/main
 
 @main
 class AppDelegate: UIResponder, UIApplicationDelegate {
 
-    class ViewController: UIViewController {
-
-        let cloudName: String = "<your_cloudname>"
-
-        var cloudinary: CLDCloudinary!
-
-        override func viewDidLoad() {
-            super.viewDidLoad()
-            initCloudinary()
-        }
-        private func initCloudinary() {
-            let config = CLDConfiguration(cloudName: cloudName, secure: true)
-            cloudinary = CLDCloudinary(configuration: config)
-        }
-
-    }
-    func application(
-        _ application: UIApplication,
-        didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
-    ) -> Bool {
-
-        FirebaseApp.configure()   // ✅ REQUIRED (Step 6)
-
-<<<<<<< HEAD
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
+        
+        // تهيئة Firebase
         FirebaseApp.configure()
-
-        // Override point for customization after application launch.
-=======
->>>>>>> origin/main
+        
+        // تحميل اللغة المحفوظة
+        if let language = UserDefaults.standard.string(forKey: "appLanguage") {
+            UserDefaults.standard.set([language], forKey: "AppleLanguages")
+            UserDefaults.standard.synchronize()
+        }
+        
         return true
     }
 
     // MARK: UISceneSession Lifecycle
-    func application(
-        _ application: UIApplication,
-        configurationForConnecting connectingSceneSession: UISceneSession,
-        options: UIScene.ConnectionOptions
-    ) -> UISceneConfiguration {
-
-        return UISceneConfiguration(
-            name: "Default Configuration",
-            sessionRole: connectingSceneSession.role
-        )
+    func application(_ application: UIApplication, configurationForConnecting connectingSceneSession: UISceneSession, options: UIScene.ConnectionOptions) -> UISceneConfiguration {
+        return UISceneConfiguration(name: "Default Configuration", sessionRole: connectingSceneSession.role)
     }
 
-    func application(
-        _ application: UIApplication,
-        didDiscardSceneSessions sceneSessions: Set<UISceneSession>
-    ) {
-        // No changes needed
+    func application(_ application: UIApplication, didDiscardSceneSessions sceneSessions: Set<UISceneSession>) {
+        // Called when the user discards a scene session.
     }
 }

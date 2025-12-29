@@ -66,17 +66,29 @@ final class MessagesListViewController: UIViewController {
     // MARK: - Data
 
     private func loadConversations() {
-        // Replace later with Firestore listener
+        // تم تحديث البيانات لتتوافق مع User struct الجديد (بدون username)
         conversations = [
             Conversation(
                 id: "1",
-                user: User(id: "u1", name: "Sayed Husain", username: "sayed", profileImageUrl: nil),
+                user: User(
+                    id: "u1",
+                    name: "Sayed Husain",
+                    email: "sayed@example.com",
+                    phone: "12345678",
+                    profileImageName: nil
+                ),
                 lastMessage: "Sure, send me the details",
                 lastUpdated: Date()
             ),
             Conversation(
                 id: "2",
-                user: User(id: "u2", name: "Aisha Noor", username: "aisha", profileImageUrl: nil),
+                user: User(
+                    id: "u2",
+                    name: "Aisha Noor",
+                    email: "aisha@example.com",
+                    phone: "87654321",
+                    profileImageName: nil
+                ),
                 lastMessage: "I'll update the design shortly",
                 lastUpdated: Date()
             )
@@ -93,21 +105,14 @@ extension MessagesListViewController: UITableViewDataSource, UITableViewDelegate
         conversations.count
     }
 
-    func tableView(_ tableView: UITableView,
-                   cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-
-        let cell = tableView.dequeueReusableCell(
-            withIdentifier: ConversationCell.reuseIdentifier,
-            for: indexPath
-        ) as! ConversationCell
-
+    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        let cell = tableView.dequeueReusableCell(withIdentifier: ConversationCell.reuseIdentifier, for: indexPath) as! ConversationCell
         cell.configure(with: conversations[indexPath.row])
         return cell
     }
 
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
-
         let conversation = conversations[indexPath.row]
         let chatVC = ChatViewController(conversation: conversation)
         navigationController?.pushViewController(chatVC, animated: true)
