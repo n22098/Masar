@@ -342,19 +342,6 @@ Masar/
 
 ---
 
-## License
-
-[Add your license here - e.g., MIT, Apache 2.0, or Proprietary]
-
----
-
-## Contact
-
-For questions or support, please contact:
-- Email: [your-email]
-- GitHub: [your-github-username]
-
----
 
 **Last Updated**: December 2025  
 **Version**: 1.0.0  
