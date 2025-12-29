@@ -8,7 +8,7 @@ iOS application that connects service seekers with service providers across vari
 
 ## GitHub Repository
 
-[Project Repository Link - Add Your Link Here]
+[Project Repository Link - https://github.com/n22098/Masar]
 
 ---
 
