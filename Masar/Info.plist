@@ -15,10 +15,18 @@
                     <string>Default Configuration</string>
                     <key>UISceneDelegateClassName</key>
                     <string>$(PRODUCT_MODULE_NAME).SceneDelegate</string>
+<<<<<<< HEAD
+=======
+                    <key>UISceneStoryboardFile</key>
+                    <string>Main</string>
+>>>>>>> origin/main
                 </dict>
             </array>
         </dict>
     </dict>
+<<<<<<< HEAD
 
+=======
+>>>>>>> origin/main
 </dict>
 </plist>
