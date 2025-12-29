@@ -235,7 +235,6 @@ iOS application that connects service seekers with service providers across vari
 - If packages fail to resolve, go to File > Packages > Reset Package Caches
 - Ensure GoogleService-Info.plist is properly added to the project
 - Verify simulator is set to iPhone 16 Pro with iOS 18.5
-- Check that minimum deployment target is set to iOS 15.0 (supports iOS 15.0+)
 - Ensure Xcode 16.4 is installed and up to date
 
 ---
