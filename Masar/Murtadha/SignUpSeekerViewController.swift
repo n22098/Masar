@@ -117,6 +117,8 @@ class SignUpSeekerViewController: UIViewController, UITextFieldDelegate {
 
     @IBAction func switchBtn(_ sender: UISwitch) {
         guard sender.isOn else { return }
+        
+        // التحقق من صحة المدخلات قبل الانتقال
         guard validateInputs() else {
             sender.setOn(false, animated: true)
             return
@@ -125,8 +127,10 @@ class SignUpSeekerViewController: UIViewController, UITextFieldDelegate {
         let name = nameTextField.text!.trimmingCharacters(in: .whitespacesAndNewlines)
         let email = emailTextField.text!.trimmingCharacters(in: .whitespacesAndNewlines)
         let phone = phoneNumberTextField.text!.trimmingCharacters(in: .whitespacesAndNewlines)
+        let username = usernameTextField.text!.trimmingCharacters(in: .whitespacesAndNewlines) // ✅ Capture Username
+        let password = passwordTextField.text!
 
-        checkIfUserDataExists(email: email, username: usernameTextField.text!, phone: phone) { exists in
+        checkIfUserDataExists(email: email, username: username, phone: phone) { exists in
             if exists {
                 self.showAlert("Email, Username, or Phone Number is already in use.")
                 sender.setOn(false, animated: true)
@@ -139,9 +143,12 @@ class SignUpSeekerViewController: UIViewController, UITextFieldDelegate {
                 return
             }
 
+            // تمرير البيانات للصفحة التالية
             providerVC.userName = name
             providerVC.userEmail = email
             providerVC.userPhone = phone
+            providerVC.userUsername = username // ✅ Pass Username
+            providerVC.userPassword = password
 
             self.navigationController?.pushViewController(providerVC, animated: true)
         }
@@ -150,12 +157,18 @@ class SignUpSeekerViewController: UIViewController, UITextFieldDelegate {
     // MARK: - Navigation
     
     func showSuccessAndRedirect() {
-        let alert = UIAlertController(title: "Success!", message: "Account created successfully. Please sign in.", preferredStyle: .alert)
+        let alert = UIAlertController(title: "Success!", message: "Account created successfully.", preferredStyle: .alert)
         let okAction = UIAlertAction(title: "OK", style: .default) { _ in
-            if let nav = self.navigationController {
-                nav.popToRootViewController(animated: true)
-            } else {
-                self.dismiss(animated: true, completion: nil)
+            
+            // الانتقال مباشرة إلى Seeker Storyboard
+            let storyboard = UIStoryboard(name: "Seeker", bundle: nil)
+            if let mainVC = storyboard.instantiateInitialViewController() {
+                if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+                   let sceneDelegate = windowScene.delegate as? SceneDelegate,
+                   let window = sceneDelegate.window {
+                    window.rootViewController = mainVC
+                    UIView.transition(with: window, duration: 0.3, options: .transitionCrossDissolve, animations: nil, completion: nil)
+                }
             }
         }
         alert.addAction(okAction)

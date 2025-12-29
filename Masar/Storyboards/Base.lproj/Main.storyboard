@@ -69,7 +69,7 @@
                                                 <state key="normal" title="Button"/>
                                                 <buttonConfiguration key="configuration" style="gray" title="Sign in"/>
                                                 <connections>
-                                                    <action selector="SignInBtn:" destination="BYZ-38-t0r" eventType="touchUpInside" id="XGM-Ai-vhe"/>
+                                                    <action selector="signInPressed:" destination="BYZ-38-t0r" eventType="touchUpInside" id="Vzh-BU-vHJ"/>
                                                 </connections>
                                             </button>
                                         </subviews>
@@ -98,8 +98,9 @@
                     </view>
                     <navigationItem key="navigationItem" title="Sign In" id="P47-WG-UvI"/>
                     <connections>
+                        <outlet property="emailTextField" destination="D0D-SL-d4T" id="9Bk-Uc-4xJ"/>
                         <outlet property="passwordTextField" destination="KeN-gI-xM3" id="G1m-1r-sO6"/>
-                        <outlet property="usernameTextField" destination="D0D-SL-d4T" id="BZx-JY-pGC"/>
+                        <outlet property="signInButton" destination="bwv-H6-16F" id="VIW-Yd-ik9"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="dkx-z0-nzr" sceneMemberID="firstResponder"/>
@@ -210,7 +211,6 @@
                                         <connections>
                                             <action selector="signUpBtn:" destination="9zy-Hs-HoV" eventType="touchUpInside" id="3Md-8Y-44u"/>
                                             <action selector="signUpBtn:" destination="kFI-yE-roE" eventType="touchUpInside" id="9wi-jM-Ch8"/>
-                                            <segue destination="nvW-pi-8l6" kind="show" id="4QZ-AN-NI7"/>
                                         </connections>
                                     </button>
                                 </subviews>
@@ -277,7 +277,7 @@
                 <placeholder placeholderIdentifier="IBFirstResponder" id="nqK-VT-L7Z" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
                 <exit id="9zy-Hs-HoV" userLabel="Exit" sceneMemberID="exit"/>
             </objects>
-            <point key="canvasLocation" x="1542.7480916030534" y="-73.239436619718319"/>
+            <point key="canvasLocation" x="1541" y="-83"/>
         </scene>
         <!--Forget Password-->
         <scene sceneID="RGY-wH-B0p">
@@ -319,23 +319,7 @@
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="LQa-Je-cjD" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="2363" y="-73"/>
-        </scene>
-        <!--Navigation Controller-->
-        <scene sceneID="jSp-6G-J1l">
-            <objects>
-                <navigationController id="rT5-7k-DSf" sceneMemberID="viewController">
-                    <navigationBar key="navigationBar" contentMode="scaleToFill" id="EgC-l1-eSt">
-                        <rect key="frame" x="0.0" y="118" width="393" height="44"/>
-                        <autoresizingMask key="autoresizingMask"/>
-                    </navigationBar>
-                    <connections>
-                        <segue destination="5yL-94-N4g" kind="relationship" relationship="rootViewController" id="SNQ-jf-GRF"/>
-                    </connections>
-                </navigationController>
-                <placeholder placeholderIdentifier="IBFirstResponder" id="c4e-X6-rJn" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
-            </objects>
-            <point key="canvasLocation" x="4987" y="148"/>
+            <point key="canvasLocation" x="2399" y="-83"/>
         </scene>
         <!--Profile-->
         <scene sceneID="AAi-LK-14Q">
@@ -633,7 +617,7 @@
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" spacing="20" translatesAutoresizingMaskIntoConstraints="NO" id="Z8F-sh-ndR">
-                                <rect key="frame" x="30" y="316" width="333" height="142"/>
+                                <rect key="frame" x="30" y="213" width="333" height="142"/>
                                 <subviews>
                                     <textField opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="248" contentHorizontalAlignment="left" contentVerticalAlignment="center" borderStyle="roundedRect" placeholder="Enter Old Password" textAlignment="natural" minimumFontSize="17" translatesAutoresizingMaskIntoConstraints="NO" id="L6c-Zg-kkJ">
                                         <rect key="frame" x="0.0" y="0.0" width="333" height="34"/>
@@ -1050,16 +1034,6 @@
                 <placeholder placeholderIdentifier="IBFirstResponder" id="KfB-3K-bAm" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
             <point key="canvasLocation" x="2547.3282442748091" y="714.78873239436621"/>
-        </scene>
-        <!--Seeker-->
-        <scene sceneID="aV1-a3-tTK">
-            <objects>
-                <viewControllerPlaceholder storyboardName="Seeker" id="nvW-pi-8l6" sceneMemberID="viewController">
-                    <navigationItem key="navigationItem" id="6Ef-Kn-jRS"/>
-                </viewControllerPlaceholder>
-                <placeholder placeholderIdentifier="IBFirstResponder" id="z10-Lw-x7Z" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
-            </objects>
-            <point key="canvasLocation" x="1908" y="349"/>
         </scene>
         <!--Navigation Controller-->
         <scene sceneID="SIJ-ql-Z6e">

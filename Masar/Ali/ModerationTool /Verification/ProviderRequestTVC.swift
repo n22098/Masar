@@ -1,6 +1,6 @@
 import UIKit
-import QuickLook
-
+import SafariServices // لفتح الروابط (صور/PDF)
+import FirebaseFirestore
 
 class ProviderRequestTVC: UITableViewController {
     
@@ -13,154 +13,163 @@ class ProviderRequestTVC: UITableViewController {
     @IBOutlet weak var statusLabel: UILabel!
     
     // MARK: - Properties
-    var documentURLs: [URL] = []
+    var requestUID: String? // رقم المستخدم القادم من الصفحة السابقة
+    let db = Firestore.firestore()
     
-    // بيانات تجريبية
-    var sampleRequest = ProviderRequest(
-        name: "Jane Doe",
-        email: "jane.doe@example.com",
-        phone: "+1 (555) 123-4567",
-        category: "Graphic Design",
-        skillLevel: "Expert / 5+ Years",
-        status: "Pending Review"
-    )
+    // لتخزين الروابط القادمة من الفايربيس
+    var idCardLink: String?
+    var certificateLink: String?
+    var portfolioLink: String?
     
     // MARK: - Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
         setupUI()
-        setupMockDocuments()
+        
+        if let uid = requestUID {
+            fetchRequestDetails(uid: uid)
+        }
     }
     
     private func setupUI() {
-        // إعداد النصوص من البيانات
-        providerNameLabel?.text = sampleRequest.name
-        emailLabel?.text = sampleRequest.email
-        phoneLabel?.text = sampleRequest.phone
-        categoryLabel?.text = sampleRequest.category
-        skillsLevelLabel?.text = sampleRequest.skillLevel
-        
-        // تحديث لون وحالة النص
-        updateStatusUI(status: sampleRequest.status)
-        
-        // إعداد الجدول
         tableView.tableFooterView = UIView()
+        // تفريغ الحقول لحين التحميل
+        providerNameLabel.text = "Loading..."
+        emailLabel.text = ""
+        phoneLabel.text = ""
+        categoryLabel.text = ""
+        skillsLevelLabel.text = ""
+        statusLabel.text = ""
     }
     
-    // دالة مساعدة لتحديث لون الحالة
-    private func updateStatusUI(status: String) {
-        statusLabel?.text = status
-        
-        switch status {
-        case "Approved":
-            statusLabel?.textColor = .systemGreen
-        case "Rejected":
-            statusLabel?.textColor = .systemRed
-        default:
-            statusLabel?.textColor = .systemOrange
-        }
-    }
-    
-    private func setupMockDocuments() {
-        // أسماء ملفات PDF في المشروع
-        let fileNames = ["id_sample", "certificate_sample", "portfolio_sample"]
-        
-        documentURLs = fileNames.compactMap { name in
-            Bundle.main.url(forResource: name, withExtension: "pdf")
-        }
-        
-        // استخدام ملف احتياطي في حال عدم وجود الملفات المحددة
-        if documentURLs.isEmpty {
-            if let fallback = Bundle.main.url(forResource: "sample", withExtension: "pdf") {
-                documentURLs = [fallback, fallback, fallback]
+    // جلب التفاصيل الحية
+    private func fetchRequestDetails(uid: String) {
+        db.collection("provider_requests").document(uid).addSnapshotListener { snapshot, error in
+            if let error = error {
+                print("Error: \(error.localizedDescription)")
+                return
             }
+            
+            guard let data = snapshot?.data() else { return }
+            
+            self.providerNameLabel.text = data["name"] as? String
+            self.emailLabel.text = data["email"] as? String
+            self.phoneLabel.text = data["phone"] as? String
+            self.categoryLabel.text = data["category"] as? String
+            self.skillsLevelLabel.text = data["skillLevel"] as? String
+            
+            let status = data["status"] as? String ?? "pending"
+            self.updateStatusUI(status: status)
+            
+            // حفظ الروابط
+            self.idCardLink = data["idCardURL"] as? String
+            self.certificateLink = data["certificateURL"] as? String
+            self.portfolioLink = data["portfolioURL"] as? String
         }
     }
     
-    // MARK: - IBActions (Approve / Reject Logic)
+    private func updateStatusUI(status: String) {
+        statusLabel.text = status.capitalized
+        
+        switch status.lowercased() {
+        case "approved":
+            statusLabel.textColor = .systemGreen
+        case "rejected":
+            statusLabel.textColor = .systemRed
+        default:
+            statusLabel.textColor = .systemOrange
+        }
+    }
+    
+    // MARK: - Actions (Approve / Reject Logic)
     
     @IBAction func approveTapped(_ sender: UIButton) {
-        // إظهار رسالة تأكيد القبول
         showAlert(title: "Confirm Approval",
-                  message: "Are you sure you want to approve this provider?",
+                  message: "Approve this provider?",
                   actionTitle: "Approve",
-                  actionStyle: .default) { [weak self] in
-            // ✅ الآن هذا السطر سيعمل لأن status أصبحت var
-            self?.sampleRequest.status = "Approved"
-            self?.updateStatusUI(status: "Approved")
+                  actionStyle: .default) {
+            self.updateRequestStatus(status: "approved")
         }
     }
     
     @IBAction func rejectTapped(_ sender: UIButton) {
-        // إظهار رسالة تأكيد الرفض
         showAlert(title: "Confirm Rejection",
-                  message: "Are you sure you want to reject this provider?",
+                  message: "Reject this provider?",
                   actionTitle: "Reject",
-                  actionStyle: .destructive) { [weak self] in
-            // ✅ الآن هذا السطر سيعمل لأن status أصبحت var
-            self?.sampleRequest.status = "Rejected"
-            self?.updateStatusUI(status: "Rejected")
+                  actionStyle: .destructive) {
+            self.updateRequestStatus(status: "rejected")
         }
     }
     
-    // MARK: - Helper Alert Function
-    private func showAlert(title: String, message: String, actionTitle: String, actionStyle: UIAlertAction.Style, completion: @escaping () -> Void) {
+    // تحديث الحالة في الفايربيس
+    private func updateRequestStatus(status: String) {
+        guard let uid = requestUID else { return }
         
-        let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
+        let batch = db.batch()
         
-        // زر الإلغاء
-        alert.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: nil))
+        // 1. تحديث حالة الطلب
+        let requestRef = db.collection("provider_requests").document(uid)
+        batch.updateData(["status": status], forDocument: requestRef)
         
-        // زر التأكيد
-        alert.addAction(UIAlertAction(title: actionTitle, style: actionStyle, handler: { _ in
-            completion()
-        }))
+        // 2. إذا تم القبول، نحدث حالة المستخدم في جدول Users ليصبح Provider
+        if status == "approved" {
+            let userRef = db.collection("users").document(uid)
+            batch.updateData([
+                "role": "provider",
+                "providerRequestStatus": "approved"
+            ], forDocument: userRef)
+        } else if status == "rejected" {
+             let userRef = db.collection("users").document(uid)
+             batch.updateData([
+                 "providerRequestStatus": "rejected"
+             ], forDocument: userRef)
+        }
         
-        present(alert, animated: true, completion: nil)
+        // تنفيذ التحديثات
+        batch.commit { error in
+            if let error = error {
+                print("Error updating status: \(error)")
+            } else {
+                print("Successfully updated status to \(status)")
+                self.navigationController?.popViewController(animated: true)
+            }
+        }
     }
     
-    // MARK: - Document View Actions
+    // MARK: - Document Viewing (Opening URLs)
     
     @IBAction func viewIDCardTapped(_ sender: UIButton) {
-        showPreview(for: 0)
+        openLink(idCardLink)
     }
     
     @IBAction func viewCertificateTapped(_ sender: UIButton) {
-        showPreview(for: 1)
+        openLink(certificateLink)
     }
     
     @IBAction func viewPortfolioTapped(_ sender: UIButton) {
-        showPreview(for: 2)
+        openLink(portfolioLink)
     }
     
-    // MARK: - Table View Delegate
-    override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        tableView.deselectRow(at: indexPath, animated: true)
-    }
-    
-    private func showPreview(for index: Int) {
-        guard index < documentURLs.count else {
-            let alert = UIAlertController(title: "No Document", message: "This document is not available for preview.", preferredStyle: .alert)
+    private func openLink(_ urlString: String?) {
+        guard let urlString = urlString, let url = URL(string: urlString) else {
+            let alert = UIAlertController(title: "No Document", message: "Document link is missing.", preferredStyle: .alert)
             alert.addAction(UIAlertAction(title: "OK", style: .default))
             present(alert, animated: true)
             return
         }
         
-        let previewController = QLPreviewController()
-        previewController.dataSource = self
-        previewController.currentPreviewItemIndex = index
-        present(previewController, animated: true)
-    }
-}
-
-// MARK: - QLPreviewControllerDataSource
-extension ProviderRequestTVC: QLPreviewControllerDataSource {
-    
-    func numberOfPreviewItems(in controller: QLPreviewController) -> Int {
-        return documentURLs.count
+        // فتح الرابط في متصفح سفاري داخل التطبيق
+        let safariVC = SFSafariViewController(url: url)
+        present(safariVC, animated: true)
     }
     
-    func previewController(_ controller: QLPreviewController, previewItemAt index: Int) -> QLPreviewItem {
-        return documentURLs[index] as QLPreviewItem
+    // MARK: - Helpers
+    private func showAlert(title: String, message: String, actionTitle: String, actionStyle: UIAlertAction.Style, completion: @escaping () -> Void) {
+        let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: nil))
+        alert.addAction(UIAlertAction(title: actionTitle, style: actionStyle, handler: { _ in
+            completion()
+        }))
+        present(alert, animated: true)
     }
 }

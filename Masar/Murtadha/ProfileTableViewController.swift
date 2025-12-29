@@ -19,9 +19,7 @@ class ProfileTableViewController: UITableViewController {
 
     func setupTableView() {
         tableView.backgroundColor = lightBg
-        tableView.separatorStyle = .none
-        tableView.contentInset = UIEdgeInsets(top: 24, left: 0, bottom: 24, right: 0)
-        tableView.rowHeight = 60
+        // لا نحتاج لإعدادات الخلايا هنا لأنها موجودة في الستوري بورد
     }
 
     func setupNavigationBar() {
@@ -44,158 +42,12 @@ class ProfileTableViewController: UITableViewController {
         navigationController?.navigationBar.tintColor = .white
     }
     
-    // MARK: - TableView DataSource
-    override func numberOfSections(in tableView: UITableView) -> Int {
-        return 1
-    }
+    // ---------------------------------------------------------
+    // ❌ تم حذف دوال DataSource (numberOfSections, numberOfRows, cellForRow)
+    // لكي يظهر تصميم الستوري بورد (Static Cells)
+    // ---------------------------------------------------------
     
-    override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return 9 // Personal Info, Privacy, About, Report, Reset Password, Dark Mode, Language, Delete Account, Log Out
-    }
-    
-    override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = UITableViewCell(style: .default, reuseIdentifier: "ProfileCell")
-        cell.backgroundColor = .clear
-        cell.selectionStyle = .none
-        
-        let cardView = UIView()
-        cardView.backgroundColor = .white
-        cardView.layer.cornerRadius = 12
-        cardView.layer.shadowColor = UIColor.black.cgColor
-        cardView.layer.shadowOpacity = 0.05
-        cardView.layer.shadowOffset = CGSize(width: 0, height: 2)
-        cardView.layer.shadowRadius = 8
-        cardView.translatesAutoresizingMaskIntoConstraints = false
-        cell.contentView.addSubview(cardView)
-        
-        let titleLabel = UILabel()
-        titleLabel.font = UIFont.systemFont(ofSize: 16, weight: .medium)
-        titleLabel.textColor = .black
-        titleLabel.translatesAutoresizingMaskIntoConstraints = false
-        
-        cardView.addSubview(titleLabel)
-        
-        // Set titles and accessories based on row
-        switch indexPath.row {
-        case 0:
-            titleLabel.text = "Personal Information"
-            let arrowImageView = createArrowImageView()
-            cardView.addSubview(arrowImageView)
-            setupArrowConstraints(arrowImageView, in: cardView)
-            
-        case 1:
-            titleLabel.text = "Privacy and Policy"
-            let arrowImageView = createArrowImageView()
-            cardView.addSubview(arrowImageView)
-            setupArrowConstraints(arrowImageView, in: cardView)
-            
-        case 2:
-            titleLabel.text = "About"
-            let arrowImageView = createArrowImageView()
-            cardView.addSubview(arrowImageView)
-            setupArrowConstraints(arrowImageView, in: cardView)
-            
-        case 3:
-            titleLabel.text = "Report an Issue"
-            let arrowImageView = createArrowImageView()
-            cardView.addSubview(arrowImageView)
-            setupArrowConstraints(arrowImageView, in: cardView)
-            
-        case 4:
-            titleLabel.text = "Reset Password"
-            let arrowImageView = createArrowImageView()
-            cardView.addSubview(arrowImageView)
-            setupArrowConstraints(arrowImageView, in: cardView)
-            
-        case 5:
-            titleLabel.text = "Dark Mode"
-            let toggleSwitch = UISwitch()
-            toggleSwitch.onTintColor = brandColor
-            toggleSwitch.isOn = UserDefaults.standard.bool(forKey: "isDarkMode")
-            toggleSwitch.addTarget(self, action: #selector(darkModeToggled(_:)), for: .valueChanged)
-            toggleSwitch.translatesAutoresizingMaskIntoConstraints = false
-            cardView.addSubview(toggleSwitch)
-            
-            NSLayoutConstraint.activate([
-                toggleSwitch.trailingAnchor.constraint(equalTo: cardView.trailingAnchor, constant: -20),
-                toggleSwitch.centerYAnchor.constraint(equalTo: cardView.centerYAnchor)
-            ])
-            
-        case 6:
-            titleLabel.text = "Language"
-            let languageLabel = UILabel()
-            let currentLang = UserDefaults.standard.string(forKey: "appLanguage") ?? "English"
-            languageLabel.text = currentLang
-            languageLabel.font = UIFont.systemFont(ofSize: 15, weight: .regular)
-            languageLabel.textColor = brandColor
-            languageLabel.translatesAutoresizingMaskIntoConstraints = false
-            cardView.addSubview(languageLabel)
-            
-            let arrowImageView = createArrowImageView()
-            cardView.addSubview(arrowImageView)
-            
-            NSLayoutConstraint.activate([
-                languageLabel.trailingAnchor.constraint(equalTo: arrowImageView.leadingAnchor, constant: -10),
-                languageLabel.centerYAnchor.constraint(equalTo: cardView.centerYAnchor),
-                
-                arrowImageView.trailingAnchor.constraint(equalTo: cardView.trailingAnchor, constant: -20),
-                arrowImageView.centerYAnchor.constraint(equalTo: cardView.centerYAnchor),
-                arrowImageView.widthAnchor.constraint(equalToConstant: 12),
-                arrowImageView.heightAnchor.constraint(equalToConstant: 20)
-            ])
-            
-        case 7:
-            titleLabel.text = "Delete Account"
-            titleLabel.textColor = .red
-            let arrowImageView = createArrowImageView()
-            arrowImageView.tintColor = .red
-            cardView.addSubview(arrowImageView)
-            setupArrowConstraints(arrowImageView, in: cardView)
-            
-        case 8:
-            titleLabel.text = "Log Out"
-            titleLabel.textColor = .red
-            let arrowImageView = createArrowImageView()
-            arrowImageView.tintColor = .red
-            cardView.addSubview(arrowImageView)
-            setupArrowConstraints(arrowImageView, in: cardView)
-            
-        default:
-            break
-        }
-        
-        NSLayoutConstraint.activate([
-            cardView.topAnchor.constraint(equalTo: cell.contentView.topAnchor, constant: 6),
-            cardView.leadingAnchor.constraint(equalTo: cell.contentView.leadingAnchor, constant: 16),
-            cardView.trailingAnchor.constraint(equalTo: cell.contentView.trailingAnchor, constant: -16),
-            cardView.bottomAnchor.constraint(equalTo: cell.contentView.bottomAnchor, constant: -6),
-            
-            titleLabel.leadingAnchor.constraint(equalTo: cardView.leadingAnchor, constant: 20),
-            titleLabel.centerYAnchor.constraint(equalTo: cardView.centerYAnchor)
-        ])
-        
-        return cell
-    }
-    
-    // Helper methods for creating UI elements
-    func createArrowImageView() -> UIImageView {
-        let arrowImageView = UIImageView()
-        arrowImageView.image = UIImage(systemName: "chevron.right")
-        arrowImageView.tintColor = .lightGray
-        arrowImageView.contentMode = .scaleAspectFit
-        arrowImageView.translatesAutoresizingMaskIntoConstraints = false
-        return arrowImageView
-    }
-    
-    func setupArrowConstraints(_ arrowImageView: UIImageView, in cardView: UIView) {
-        NSLayoutConstraint.activate([
-            arrowImageView.trailingAnchor.constraint(equalTo: cardView.trailingAnchor, constant: -20),
-            arrowImageView.centerYAnchor.constraint(equalTo: cardView.centerYAnchor),
-            arrowImageView.widthAnchor.constraint(equalToConstant: 12),
-            arrowImageView.heightAnchor.constraint(equalToConstant: 20)
-        ])
-    }
-    
+    // MARK: - Header (الأيقونة العلوية)
     override func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
         let headerView = UIView()
         headerView.backgroundColor = .clear
@@ -233,8 +85,9 @@ class ProfileTableViewController: UITableViewController {
         return 120
     }
     
-    // MARK: - TableView Delegate
+    // MARK: - TableView Delegate (التعامل مع الضغطات)
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        // تأكد أن ترتيب الـ Cases يطابق ترتيب الخلايا في الستوري بورد
         switch indexPath.row {
         case 0:
             navigateToPersonalInfo()
@@ -247,7 +100,7 @@ class ProfileTableViewController: UITableViewController {
         case 4:
             navigateToResetPassword()
         case 5:
-            break // Dark Mode toggle handled by switch
+            break // Dark Mode toggle handled by switch inside cell
         case 6:
             showLanguageOptions()
         case 7:
@@ -257,6 +110,9 @@ class ProfileTableViewController: UITableViewController {
         default:
             break
         }
+        
+        // إلغاء التحديد لجمالية الأنيميشن
+        tableView.deselectRow(at: indexPath, animated: true)
     }
     
     // MARK: - Navigation
@@ -294,22 +150,13 @@ class ProfileTableViewController: UITableViewController {
     }
     
     // MARK: - Dark Mode & Language Actions
-    @objc func darkModeToggled(_ sender: UISwitch) {
+    // ملاحظة: لكي يعمل هذا، يجب ربط الـ Switch في الستوري بورد بهذا الآكشن
+    @IBAction func darkModeToggled(_ sender: UISwitch) {
         UserDefaults.standard.set(sender.isOn, forKey: "isDarkMode")
         
-        if sender.isOn {
-            // Enable dark mode
-            if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene {
-                windowScene.windows.forEach { window in
-                    window.overrideUserInterfaceStyle = .dark
-                }
-            }
-        } else {
-            // Disable dark mode
-            if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene {
-                windowScene.windows.forEach { window in
-                    window.overrideUserInterfaceStyle = .light
-                }
+        if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene {
+            windowScene.windows.forEach { window in
+                window.overrideUserInterfaceStyle = sender.isOn ? .dark : .light
             }
         }
     }
@@ -337,14 +184,12 @@ class ProfileTableViewController: UITableViewController {
     func changeLanguage(to language: String) {
         UserDefaults.standard.set(language, forKey: "appLanguage")
         
-        // Show confirmation alert
         let alert = UIAlertController(
             title: "Language Changed",
             message: "The app language has been changed to \(language). Please restart the app for changes to take full effect.",
             preferredStyle: .alert
         )
         alert.addAction(UIAlertAction(title: "OK", style: .default) { [weak self] _ in
-            // Reload the table to update the language label
             self?.tableView.reloadData()
         })
         present(alert, animated: true)
@@ -352,7 +197,6 @@ class ProfileTableViewController: UITableViewController {
     
     // MARK: - Scrollable Alert
     func showScrollableAlert(title: String, message: String) {
-        // Create a custom view controller for displaying long text
         let contentVC = UIViewController()
         contentVC.modalPresentationStyle = .pageSheet
         
@@ -361,9 +205,8 @@ class ProfileTableViewController: UITableViewController {
             sheet.prefersGrabberVisible = true
         }
         
-        contentVC.view.backgroundColor = .white
+        contentVC.view.backgroundColor = .white // أو استخدام لون النظام للداكن والفاتح
         
-        // Title label
         let titleLabel = UILabel()
         titleLabel.text = title
         titleLabel.font = UIFont.systemFont(ofSize: 20, weight: .bold)
@@ -371,7 +214,6 @@ class ProfileTableViewController: UITableViewController {
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
         contentVC.view.addSubview(titleLabel)
         
-        // Text view for scrollable content
         let textView = UITextView()
         textView.text = message
         textView.font = UIFont.systemFont(ofSize: 15)
@@ -383,7 +225,6 @@ class ProfileTableViewController: UITableViewController {
         textView.translatesAutoresizingMaskIntoConstraints = false
         contentVC.view.addSubview(textView)
         
-        // Close button
         let closeButton = UIButton(type: .system)
         closeButton.setTitle("Close", for: .normal)
         closeButton.titleLabel?.font = UIFont.systemFont(ofSize: 17, weight: .semibold)
@@ -512,7 +353,6 @@ class ProfileTableViewController: UITableViewController {
     }
     
     func deleteAccount() {
-        // Delete user from Firebase Auth
         guard let user = Auth.auth().currentUser else { return }
         
         user.delete { [weak self] error in
@@ -547,17 +387,20 @@ class ProfileTableViewController: UITableViewController {
 
     // MARK: - Navigation to Sign In
     func goToSignIn() {
+        // تأكد أن "Main" هو اسم ملف الستوري بورد الذي يحتوي على صفحة الدخول
         let storyboard = UIStoryboard(name: "Main", bundle: nil)
-        let signInVC = storyboard.instantiateViewController(
-            withIdentifier: "SignInViewController"
-        )
+        
+        // تأكد أن "SignInViewController" هو الـ Storyboard ID لصفحة الدخول
+        let signInVC = storyboard.instantiateViewController(withIdentifier: "SignInViewController")
 
         if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
            let sceneDelegate = windowScene.delegate as? SceneDelegate,
            let window = sceneDelegate.window {
 
             window.rootViewController = signInVC
-            window.makeKeyAndVisible()
+            
+            // أنيميشن بسيط للانتقال
+            UIView.transition(with: window, duration: 0.3, options: .transitionCrossDissolve, animations: nil, completion: nil)
         }
     }
 

@@ -21,24 +21,24 @@ class SampleData {
         Provider(fullName: "Omar Khaled", email: "omar@provider.com", phone: "555666", username: "okhaled", status: "Active", imageName: "provider3", roleType: "Provider"),
         Provider(fullName: "Linda Brown", email: "linda@provider.com", phone: "777888", username: "lbrown", status: "Ban", imageName: "provider4", roleType: "Provider")
     ]
-    static func getTestProviders() -> [ServiceProviderModel] {
-            return [
-                ServiceProviderModel(
-                    id: "1", name: "Amin Altajer", role: "Computer Repair",
-                    imageName: "it1", rating: 4.8, skills: ["Hardware"],
-                    availability: "9am-5pm", location: "Isa Town", phone: "123"
-                ),
-                ServiceProviderModel(
-                    id: "4", name: "Kashmala Saleem", role: "Math Teacher",
-                    imageName: "t1", rating: 5.0, skills: ["Math"],
-                    availability: "4pm-8pm", location: "Manama", phone: "456"
-                ),
-                ServiceProviderModel(
-                    id: "6", name: "Osama Hasan", role: "UI/UX Designer",
-                    imageName: "d1", rating: 4.6, skills: ["Design"],
-                    availability: "Flexible", location: "Riffa", phone: "789"
-                )
-            ]
-        }
+   // static func getTestProviders() -> [ServiceProviderModel] {
+//            return [
+//                ServiceProviderModel(
+//                    id: "1", name: "Amin Altajer", role: "Computer Repair",
+//                    imageName: "it1", rating: 4.8, skills: ["Hardware"],
+//                    availability: "9am-5pm", location: "Isa Town", phone: "123"
+//                ),
+//                ServiceProviderModel(
+//                    id: "4", name: "Kashmala Saleem", role: "Math Teacher",
+//                    imageName: "t1", rating: 5.0, skills: ["Math"],
+//                    availability: "4pm-8pm", location: "Manama", phone: "456"
+//                ),
+//                ServiceProviderModel(
+//                    id: "6", name: "Osama Hasan", role: "UI/UX Designer",
+//                    imageName: "d1", rating: 4.6, skills: ["Design"],
+//                    availability: "Flexible", location: "Riffa", phone: "789"
+//                )
+//            ]
+//        }
 
 }

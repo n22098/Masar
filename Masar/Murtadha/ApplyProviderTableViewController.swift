@@ -5,10 +5,10 @@ import FirebaseFirestore
 import Cloudinary
 
 class ApplyProviderTableViewController: UITableViewController,
-                                       UIImagePickerControllerDelegate,
-                                       UINavigationControllerDelegate,
-                                       UIDocumentPickerDelegate,
-                                       UITextViewDelegate {
+                                      UIImagePickerControllerDelegate,
+                                      UINavigationControllerDelegate,
+                                      UIDocumentPickerDelegate,
+                                      UITextViewDelegate {
 
     // MARK: - Outlets
     @IBOutlet weak var nameLabel: UILabel!
@@ -24,22 +24,28 @@ class ApplyProviderTableViewController: UITableViewController,
     @IBOutlet weak var workPortfolioUpload: UILabel!
     @IBOutlet weak var certificateUpload: UILabel!
 
-    // MARK: - Cloudinary
+    // MARK: - Cloudinary Config
+    // Ensure these match your Dashboard exactly
     private let cloudName = "dsjx9ehz2"
     private let apiKey = "598938434737516"
     private let apiSecret = "0Eyox42LzqrMjwvxpPbqx2SNk5Y"
+    private let uploadPreset = "ml_default" // ✅ Must be Unsigned in Dashboard
 
     private var cloudinary: CLDCloudinary!
 
-    // MARK: - Data
+    // MARK: - Data from Previous Screen
     var userName: String?
     var userEmail: String?
     var userPhone: String?
+    var userUsername: String? // ✅ Username passed from Sign Up
+    var userPassword: String?
 
+    // MARK: - Local Data
     private var categories: [String] = []
     private var selectedCategory: String?
     private var selectedSkill: String?
 
+    // Local File URLs
     private var idCardURL: URL?
     private var portfolioURL: URL?
     private var certificateURL: URL?
@@ -66,7 +72,7 @@ class ApplyProviderTableViewController: UITableViewController,
         cloudinary = CLDCloudinary(configuration: config)
     }
 
-    // MARK: - UI
+    // MARK: - UI Setup
     private func setupUI() {
         title = "Apply as Provider"
         registerBtn.isEnabled = true
@@ -92,7 +98,7 @@ class ApplyProviderTableViewController: UITableViewController,
         }
     }
 
-    // MARK: - TextView Placeholder
+    // MARK: - TextView Delegate
     func textViewDidBeginEditing(_ textView: UITextView) {
         if textView.textColor == .placeholderText {
             textView.text = ""
@@ -107,28 +113,21 @@ class ApplyProviderTableViewController: UITableViewController,
         }
     }
 
-    // MARK: - Categories
+    // MARK: - Fetch Data
     private func fetchCategoriesFromAdmin() {
-        Firestore.firestore()
-            .collection("categories")
-            .getDocuments { snapshot, _ in
-                self.categories = snapshot?.documents.compactMap {
-                    $0["name"] as? String
-                } ?? []
-
-                let actions = self.categories.map { category in
-                    UIAction(title: category) { _ in
-                        self.selectedCategory = category
-                        self.categoryMenu.setTitle(category, for: .normal)
-                    }
+        Firestore.firestore().collection("categories").getDocuments { snapshot, _ in
+            self.categories = snapshot?.documents.compactMap { $0["name"] as? String } ?? []
+            let actions = self.categories.map { category in
+                UIAction(title: category) { _ in
+                    self.selectedCategory = category
+                    self.categoryMenu.setTitle(category, for: .normal)
                 }
-
-                self.categoryMenu.menu = UIMenu(children: actions)
-                self.categoryMenu.showsMenuAsPrimaryAction = true
             }
+            self.categoryMenu.menu = UIMenu(children: actions)
+            self.categoryMenu.showsMenuAsPrimaryAction = true
+        }
     }
 
-    // MARK: - Skills
     private func setupSkillMenu() {
         let levels = ["Beginner", "Intermediate", "Advanced", "Expert"]
         let actions = levels.map { level in
@@ -141,7 +140,7 @@ class ApplyProviderTableViewController: UITableViewController,
         skillLevelMenu.showsMenuAsPrimaryAction = true
     }
 
-    // MARK: - Upload
+    // MARK: - File Upload Selection
     private func setupLabelTaps() {
         idUpload.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(idTapped)))
         workPortfolioUpload.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(portfolioTapped)))
@@ -172,20 +171,18 @@ class ApplyProviderTableViewController: UITableViewController,
         present(alert, animated: true)
     }
 
-    func documentPicker(_ controller: UIDocumentPickerViewController,
-                        didPickDocumentsAt urls: [URL]) {
+    // MARK: - Document & Image Pickers
+    func documentPicker(_ controller: UIDocumentPickerViewController, didPickDocumentsAt urls: [URL]) {
         if let url = urls.first {
             handleFile(url)
         }
     }
 
-    func imagePickerController(_ picker: UIImagePickerController,
-                               didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey : Any]) {
+    func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey : Any]) {
         picker.dismiss(animated: true)
-
         if let image = info[.originalImage] as? UIImage,
            let data = image.jpegData(compressionQuality: 0.7) {
-
+            
             let tempURL = FileManager.default.temporaryDirectory
                 .appendingPathComponent(UUID().uuidString + ".jpg")
             try? data.write(to: tempURL)
@@ -212,25 +209,46 @@ class ApplyProviderTableViewController: UITableViewController,
         }
     }
 
-    // MARK: - Submit
+    // MARK: - MAIN SUBMIT ACTION
     @IBAction func registerTapped(_ sender: UIBarButtonItem) {
-
+        
         if let errorMessage = validateForm() {
             showAlert(errorMessage, title: "Missing Information")
             return
         }
 
-        let uid = Auth.auth().currentUser?.uid ??
-        userEmail!.replacingOccurrences(of: "@", with: "_at_")
-            .replacingOccurrences(of: ".", with: "_")
-
         registerBtn.isEnabled = false
-
-        let loading = UIAlertController(title: nil, message: "Uploading documents...\nPlease wait", preferredStyle: .alert)
+        let loading = UIAlertController(title: nil, message: "Creating Account & Uploading...", preferredStyle: .alert)
         present(loading, animated: true)
+        
+        guard let email = userEmail, let password = userPassword else {
+            loading.dismiss(animated: true)
+            showAlert("User data missing", title: "Error")
+            return
+        }
 
+        // 1. Create User in Firebase Auth
+        Auth.auth().createUser(withEmail: email, password: password) { authResult, error in
+            if let error = error {
+                loading.dismiss(animated: true)
+                self.registerBtn.isEnabled = true
+                self.showAlert(error.localizedDescription, title: "Auth Error")
+                return
+            }
+
+            guard let uid = authResult?.user.uid else { return }
+            
+            // 2. Start Uploading Files to Cloudinary
+            self.uploadFiles(uid: uid, loadingAlert: loading)
+        }
+    }
+
+    // MARK: - Upload Logic
+    private func uploadFiles(uid: String, loadingAlert: UIAlertController) {
+        
         let group = DispatchGroup()
-        var uploaded: [String: String] = [:]
+        var uploadedUrls: [String: String] = [:]
+        var uploadError = false
 
         let files = [
             ("idCardURL", idCardURL),
@@ -241,40 +259,78 @@ class ApplyProviderTableViewController: UITableViewController,
         for (key, fileURL) in files {
             guard let fileURL = fileURL else { continue }
             group.enter()
-
-            let params = CLDUploadRequestParams()
-            params.setFolder("provider_applications/\(uid)")
-
-            let ext = fileURL.pathExtension.lowercased()
-            if ext == "pdf" {
-                params.setResourceType(.raw)
-            } else {
-                params.setResourceType(.image)
+            
+            // Check if PDF to handle security permissions
+            let isPDF = fileURL.pathExtension.lowercased() == "pdf"
+            var isAccessing = false
+            if isPDF {
+                isAccessing = fileURL.startAccessingSecurityScopedResource()
             }
-
-            let data = try! Data(contentsOf: fileURL)
-
-            cloudinary.createUploader().signedUpload(data: data, params: params) { result, _ in
-                if let url = result?.secureUrl ?? result?.url {
-                    uploaded[key] = url
+            
+            do {
+                let data = try Data(contentsOf: fileURL)
+                
+                // Upload to Cloudinary
+                cloudinary.createUploader().upload(data: data, uploadPreset: uploadPreset) { result, error in
+                    
+                    // Release security access
+                    if isPDF && isAccessing {
+                        fileURL.stopAccessingSecurityScopedResource()
+                    }
+                    
+                    // ✅ CRITICAL: Get the Secure URL (HTTPS)
+                    if let url = result?.secureUrl {
+                        uploadedUrls[key] = url
+                        print("✅ Uploaded \(key): \(url)")
+                    } else {
+                        print("❌ Error uploading \(key): \(error?.localizedDescription ?? "Unknown")")
+                        uploadError = true
+                    }
+                    group.leave()
                 }
+            } catch {
+                print("❌ Failed to read file data: \(error)")
+                uploadError = true
                 group.leave()
             }
         }
 
         group.notify(queue: .main) {
-            loading.dismiss(animated: true) {
-                self.saveRequest(uid: uid, urls: uploaded)
+            if uploadError {
+                loadingAlert.dismiss(animated: true)
+                self.registerBtn.isEnabled = true
+                self.showAlert("Failed to upload some documents. Check internet/permissions.", title: "Upload Error")
+            } else {
+                // 3. Save URLs and User Data to Firestore
+                self.saveRequest(uid: uid, urls: uploadedUrls, loadingAlert: loadingAlert)
             }
         }
     }
 
-    // MARK: - Firestore
-    private func saveRequest(uid: String, urls: [String: String]) {
+    // MARK: - Firestore Saving
+    private func saveRequest(uid: String, urls: [String: String], loadingAlert: UIAlertController) {
 
         let bioText = tellUsTxt.textColor == .placeholderText ? "" : tellUsTxt.text ?? ""
+        
+        let batch = Firestore.firestore().batch()
+        
+        // 1. User Document
+        let userRef = Firestore.firestore().collection("users").document(uid)
+        let userData: [String: Any] = [
+            "uid": uid,
+            "name": self.userName ?? "",
+            "username": self.userUsername ?? "", // ✅ Saving Username
+            "email": self.userEmail ?? "",
+            "phone": self.userPhone ?? "",
+            "role": "seeker",
+            "providerRequestStatus": "pending",
+            "createdAt": FieldValue.serverTimestamp()
+        ]
+        batch.setData(userData, forDocument: userRef)
 
-        let data: [String: Any] = [
+        // 2. Provider Request Document (with URLs)
+        let requestRef = Firestore.firestore().collection("provider_requests").document(uid)
+        let requestData: [String: Any] = [
             "uid": uid,
             "name": userName ?? "",
             "email": userEmail ?? "",
@@ -282,38 +338,34 @@ class ApplyProviderTableViewController: UITableViewController,
             "category": selectedCategory ?? "",
             "skillLevel": selectedSkill ?? "",
             "bio": bioText,
-            "idCardURL": urls["idCardURL"] ?? "",
-            "portfolioURL": urls["portfolioURL"] ?? "",
-            "certificateURL": urls["certificateURL"] ?? "",
+            "idCardURL": urls["idCardURL"] ?? "",         // ✅ Full HTTPS URL
+            "portfolioURL": urls["portfolioURL"] ?? "",   // ✅ Full HTTPS URL
+            "certificateURL": urls["certificateURL"] ?? "", // ✅ Full HTTPS URL
             "status": "pending",
             "createdAt": FieldValue.serverTimestamp()
         ]
+        batch.setData(requestData, forDocument: requestRef)
 
-        Firestore.firestore()
-            .collection("provider_requests")
-            .document(uid)
-            .setData(data) { _ in
+        batch.commit { error in
+            loadingAlert.dismiss(animated: true)
+            if let error = error {
+                self.registerBtn.isEnabled = true
+                self.showAlert(error.localizedDescription, title: "Database Error")
+            } else {
                 self.showSuccessAlert()
             }
+        }
     }
 
-    // MARK: - Success Alert (formatted)
+    // MARK: - Helpers
     private func showSuccessAlert() {
         let alert = UIAlertController(
             title: "Request Submitted Successfully ✓",
-            message: """
-            Your account is still active as a Seeker.
-
-            Your request to become a Provider has been sent successfully and is currently under review by our admin team.
-
-            Once your request is approved, your provider features will be activated automatically.
-
-            Thank you for your patience.
-            """,
+            message: "Your request is under review. You can login as a Seeker for now.",
             preferredStyle: .alert
         )
 
-        alert.addAction(UIAlertAction(title: "OK", style: .default) { _ in
+        alert.addAction(UIAlertAction(title: "Go to Login", style: .default) { _ in
             self.navigateToSignIn()
         })
 
@@ -321,8 +373,15 @@ class ApplyProviderTableViewController: UITableViewController,
     }
 
     private func navigateToSignIn() {
-        if let vc = storyboard?.instantiateViewController(withIdentifier: "SignInViewController") {
-            navigationController?.setViewControllers([vc], animated: true)
+        if let nav = self.navigationController {
+            nav.popToRootViewController(animated: true)
+        } else {
+            if let vc = storyboard?.instantiateViewController(withIdentifier: "SignInViewController") {
+                 if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+                    let delegate = windowScene.delegate as? SceneDelegate {
+                     delegate.window?.rootViewController = vc
+                 }
+            }
         }
     }
 
@@ -332,7 +391,6 @@ class ApplyProviderTableViewController: UITableViewController,
         present(alert, animated: true)
     }
 
-    // MARK: - Validation
     private func validateForm() -> String? {
         if selectedCategory == nil { return "Please select a category" }
         if selectedSkill == nil { return "Please select your skill level" }
