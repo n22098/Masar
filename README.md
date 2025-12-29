@@ -257,3 +257,102 @@ Masar is an iOS service booking application that connects service seekers with s
 - iPad support expands user base
 - Animations improve perceived performance
 - Skeleton loading better than spinners
+
+---
+
+## How to Use the App
+
+### Installation and Setup
+
+**Requirements:**
+- Xcode 15.0 or later
+- iOS 15.0 or higher
+- macOS Ventura or later
+- Active internet connection
+
+**Setup Steps:**
+1. Open the project file (Masar.xcodeproj) in Xcode
+2. Configure Firebase by adding GoogleService-Info.plist to the project
+3. Install dependencies via Swift Package Manager
+4. Select target device or simulator
+5. Build and run the project (Command + R)
+
+---
+
+### User Guide
+
+#### For Service Seekers
+
+**Registration and Login:**
+- Launch the app and select "Register as Seeker"
+- Complete the multi-step registration form with required information
+- Verify email address through the verification link
+- Log in with registered credentials
+
+**Finding and Booking Services:**
+- Browse available service providers from the Home tab
+- Use search and filter options to narrow down results by category, location, or rating
+- View provider profiles to check ratings, reviews, and availability
+- Select a service package and choose date/time for booking
+- Add service location and any special requirements
+- Submit booking request and wait for provider confirmation
+
+**Managing Requests:**
+- View all booking requests in the Messages tab
+- Track request status (Pending, Approved, Rejected, Completed, Cancelled)
+- Communicate with providers through the in-app messaging system
+- Cancel requests if needed through the cancellation dialog
+- Rate and review completed services
+
+#### For Service Providers
+
+**Registration and Verification:**
+- Register as a provider with business and service information
+- Submit required credentials for verification
+- Wait for admin approval before offering services
+
+**Managing Services:**
+- Add and edit service offerings with pricing and descriptions
+- Set availability calendar with working hours and days
+- View booking requests and respond with approval or rejection
+- Track earnings and performance through the analytics dashboard
+- Communicate with seekers through messaging
+
+**Handling Bookings:**
+- Receive notifications for new booking requests
+- Review seeker information and service details
+- Approve or reject requests with optional reasons
+- Mark services as completed after fulfillment
+
+---
+
+### Technical Information
+
+**Project Structure:**
+The project is built using UIKit with Storyboard for interface design, following the MVVM architecture pattern. Key technical components include:
+
+**UI Implementation:**
+- Storyboard-based interface design for main screens
+- Programmatic UI for dynamic components
+- Custom views and reusable components
+- Auto Layout for responsive design across devices
+
+**Backend Integration:**
+- Firebase Authentication for user management
+- Cloud Firestore for real-time data storage
+- Firebase Storage and Cloudinary for image handling
+- Firebase Cloud Messaging for push notifications
+
+**Key Features:**
+- Real-time messaging with Firestore listeners
+- Location services using MapKit
+- Calendar integration for scheduling
+- Image upload with compression and optimization
+- Push notifications for booking updates
+
+**Development Notes:**
+- Minimum deployment target: iOS 15.0
+- Built with Swift 5.9+
+- Uses Swift Package Manager for dependencies
+- Follows Apple Human Interface Guidelines
+- Implements accessibility features for inclusive design
