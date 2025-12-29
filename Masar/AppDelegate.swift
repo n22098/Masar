@@ -6,8 +6,13 @@
 //
 
 import UIKit
+<<<<<<< HEAD
+import Firebase
+
+=======
 import FirebaseCore   // ✅ REQUIRED
 import Cloudinary
+>>>>>>> origin/main
 
 @main
 class AppDelegate: UIResponder, UIApplicationDelegate {
@@ -35,6 +40,13 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
         FirebaseApp.configure()   // ✅ REQUIRED (Step 6)
 
+<<<<<<< HEAD
+    func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
+        FirebaseApp.configure()
+
+        // Override point for customization after application launch.
+=======
+>>>>>>> origin/main
         return true
     }
 
