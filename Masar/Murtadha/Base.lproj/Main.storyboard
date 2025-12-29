@@ -210,6 +210,7 @@
                                         <connections>
                                             <action selector="signUpBtn:" destination="9zy-Hs-HoV" eventType="touchUpInside" id="3Md-8Y-44u"/>
                                             <action selector="signUpBtn:" destination="kFI-yE-roE" eventType="touchUpInside" id="9wi-jM-Ch8"/>
+                                            <segue destination="nvW-pi-8l6" kind="show" id="4QZ-AN-NI7"/>
                                         </connections>
                                     </button>
                                 </subviews>
@@ -529,7 +530,7 @@
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <stackView opaque="NO" contentMode="scaleToFill" fixedFrame="YES" axis="vertical" distribution="fillProportionally" spacing="15" translatesAutoresizingMaskIntoConstraints="NO" id="uUD-be-zCm">
-                                <rect key="frame" x="30" y="202" width="114.33333333333331" height="297.66666666666663"/>
+                                <rect key="frame" x="30" y="202" width="114.33333333333331" height="297.66666666666669"/>
                                 <subviews>
                                     <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="person.fill" catalog="system" translatesAutoresizingMaskIntoConstraints="NO" id="vVV-tl-Hbp">
                                         <rect key="frame" x="0.0" y="1.6666666666666661" width="114.33333333333333" height="17"/>
@@ -1049,6 +1050,16 @@
                 <placeholder placeholderIdentifier="IBFirstResponder" id="KfB-3K-bAm" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
             <point key="canvasLocation" x="2547.3282442748091" y="714.78873239436621"/>
+        </scene>
+        <!--Seeker-->
+        <scene sceneID="aV1-a3-tTK">
+            <objects>
+                <viewControllerPlaceholder storyboardName="Seeker" id="nvW-pi-8l6" sceneMemberID="viewController">
+                    <navigationItem key="navigationItem" id="6Ef-Kn-jRS"/>
+                </viewControllerPlaceholder>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="z10-Lw-x7Z" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="1908" y="349"/>
         </scene>
         <!--Navigation Controller-->
         <scene sceneID="SIJ-ql-Z6e">
