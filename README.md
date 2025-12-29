@@ -1,358 +1,364 @@
 # Masar - Service Booking Platform
 
-## 📱 Overview
+iOS application that connects service seekers with service providers across various categories including IT Solutions, Teaching, Digital Services, and more.
 
-Masar is an iOS service booking application that connects service seekers with service providers across various categories including IT Solutions, Teaching, Digital Services, and more. The app provides a comprehensive platform for booking, managing, and tracking service requests.
-
----
-
-## 🎨 Design vs Implementation: Key Changes
+**Development Environment**: Xcode 16.4 | iOS 18.5 | Tested on iPhone 16 Pro Simulator
 
 ---
 
-### 1. Authentication Flow
+## GitHub Repository
 
-#### Login Screen
-
-**Figma Design:**
-- Clean, centered layout with Masar logo
-- Username and password fields
-- Single "Login" button
-- "Register or Create" and "Forgot password?" links
-
-**Implementation Changes:**
-- ✅ Maintained the clean design aesthetic
-- ⚠️ Added email validation - Real-time email format validation for better UX
-- ⚠️ Added loading states - Loading indicator during authentication
-- ⚠️ Enhanced error handling - Specific error messages for different failure scenarios (invalid credentials, network issues, etc.)
-
-**Reason for Changes:**
-- Email validation prevents API calls with invalid data
-- Loading states improve user feedback
-- Detailed error messages help users understand and resolve issues
+[Project Repository Link - Add Your Link Here]
 
 ---
 
-#### Registration Flow
+## Group Members
 
-**Figma Design:**
-- Multi-step registration for seekers
-- Fields: Full Name, Phone Number, Date of Birth, Gender, CPR, Username, Password
-- Progress indication through multiple screens
-
-**Implementation Changes:**
-- ✅ Implemented multi-step form as designed
-- ⚠️ Added real-time field validation - Validates each field as user types
-- ⚠️ Added password strength indicator - Visual feedback for password security
-- ⚠️ Changed CPR field validation - Added format checking for Bahraini CPR numbers
-- ⚠️ Added phone number formatting - Automatic formatting with country code (+973)
-
-**Reason for Changes:**
-- Real-time validation reduces form abandonment
-- Password strength indicator improves security
-- Format validation ensures data consistency in backend
+| Name | Student ID | Role |
+|------|------------|------|
+| Ali Alhawaj | 202201219 | Developer |
+| Hamed Ahmed | 202201226 | Tester |
+| Yusuf Mahdi | 202201323 | Developer |
+| Murtadha Sarhan | 202203868 | Tester  |
+| Naser Rabaiaan | 202201259 | Tester  |
+| Mohamed Abdali | 202304651 | Developer |
 
 ---
 
-### 2. Navigation Structure
+## Main Features
 
-**Figma Design:**
-- Bottom tab navigation with 4 tabs: Home, Search, Messages, Account
+### Developer Features
+- **User Authentication System**
+  - Multi-step registration for seekers and providers
+  - Email/password login with validation
+  - Password reset functionality
+  - Email verification
 
-**Implementation Changes:**
-- ✅ Maintained 4-tab structure
-- ⚠️ Added notification badges - Red dot indicators for unread messages and requests
-- ⚠️ Enhanced tab icons - More recognizable SF Symbols instead of custom icons
-- ⚠️ Added haptic feedback - Tactile feedback when switching tabs
+- **Service Discovery**
+  - Browse service providers by category
+  - Advanced search and filtering (location, price, rating)
+  - Service provider ratings and reviews
+  - Real-time availability indicators
+  - Favorites functionality
 
-**Reason for Changes:**
-- Notification badges provide at-a-glance updates
-- SF Symbols ensure consistency with iOS design language
-- Haptic feedback improves user experience on supported devices
+- **Booking System**
+  - Calendar integration for scheduling
+  - Location selection with map integration
+  - Package selection with price estimation
+  - Two-step booking confirmation
+  - Request management (approve, reject, cancel)
 
----
+- **Messaging System**
+  - Real-time chat between seekers and providers
+  - Image sharing (camera and photo library)
+  - Typing indicators
+  - Message status (delivered/read receipts)
+  - Push notifications for new messages
 
-### 3. Services Discovery
+- **Account Management**
+  - Profile editing with image upload and cropping
+  - Personal information management
+  - Password change functionality
+  - Notification settings
+  - Account deletion with confirmation
 
-**Figma Design:**
-- Grid layout showing service providers with avatars
-- Categories: IT Solutions, Teaching, Digital Services
-- Search bar at top
-- Filter by: All Services, Teaching, Digital Services
+- **Provider-Specific Features**
+  - Service management (add, edit, remove services)
+  - Availability calendar with working hours
+  - Booking analytics dashboard
+  - Earnings summary
+  - Multi-step verification process
 
-**Implementation Changes:**
-- ✅ Maintained grid layout concept
-- ⚠️ Changed to list view - Switched from grid to scrollable list for better information display
-- ⚠️ Added service provider ratings - Star ratings visible on cards
-- ⚠️ Added availability indicators - Green/red status dots showing real-time availability
-- ⚠️ Enhanced search functionality - Added filters for location, price range, and ratings
-- ⚠️ Added "Favorites" feature - Heart icon to save favorite providers
-
-**Reason for Changes:**
-- List view allows more information per provider
-- Ratings help users make informed decisions
-- Availability indicators reduce booking failures
-- Enhanced search improves discoverability
-- Favorites feature requested by beta testers
-
----
-
-### 4. Booking Flow
-
-**Figma Design:**
-- Simple booking screen showing provider details
-- Package selection
-- "Request" button
-
-**Implementation Changes:**
-- ⚠️ Added calendar integration - Date/time picker for scheduling
-- ⚠️ Added location selector - Map integration for service location
-- ⚠️ Added notes field - Text area for additional requirements
-- ⚠️ Added price estimation - Real-time price calculation based on selections
-- ⚠️ Changed booking confirmation - Two-step confirmation to prevent accidental bookings
-
-**Reason for Changes:**
-- Calendar integration essential for scheduling services
-- Location picker prevents address miscommunication
-- Notes field addresses common user requests
-- Price transparency builds trust
-- Two-step confirmation reduces cancellations
+### Tester Features
+- Request history with status tracking
+- Pull-to-refresh functionality
+- Status filters for requests
+- Expandable request details
+- Empty state handling
+- Error message validation
+- Loading state indicators
 
 ---
 
-### 5. Request History
+## Extra Features
 
-**Figma Design:**
-- List of requests showing provider name, service type, date, and price
-- Status indicators (Upcoming, Completed, Rejected, Cancelled)
-- Simple card layout
-
-**Implementation Changes:**
-- ✅ Maintained card-based layout
-- ⚠️ Added pull-to-refresh - Gesture to refresh request list
-- ⚠️ Added status filters - Quick filter buttons for request status
-- ⚠️ Added "Cancel Request" dialog - Confirmation dialog with reason selection
-- ⚠️ Changed empty state - Added illustration and helpful text instead of just icon
-- ⚠️ Added request details expansion - Tap to expand for full details without navigation
-
-**Reason for Changes:**
-- Pull-to-refresh is expected iOS behavior
-- Filters help users find specific requests quickly
-- Cancel dialog prevents accidental cancellations
-- Better empty state improves first-time user experience
-- Expandable cards reduce navigation steps
+- **Dark Mode Support** - System-wide dark mode compatibility
+- **Accessibility Features** - VoiceOver support and Dynamic Type
+- **iPad Optimization** - Adaptive layouts for larger screens
+- **Haptic Feedback** - Tactile responses for user interactions
+- **Skeleton Loading** - Placeholder content while data loads
+- **Notification Badges** - Visual indicators for unread items
 
 ---
 
-### 6. Messaging System
+## Design Changes
 
-**Figma Design:**
-- Chat interface showing conversation with provider
-- Text input at bottom
-- Simple message bubbles
+### From Figma to Implementation
 
-**Implementation Changes:**
-- ✅ Maintained chat bubble design
-- ⚠️ Added image sharing - Camera and photo library integration
-- ⚠️ Added typing indicators - "Provider is typing..." notification
-- ⚠️ Added message status - Delivered/Read receipts
-- ⚠️ Added push notifications - Real-time message notifications
-- ⚠️ Changed message timestamps - Grouped by date with relative times
+**1. Authentication Flow**
+- Added real-time email and field validation
+- Added password strength indicator
+- Added CPR format checking for Bahraini numbers
+- Added phone number auto-formatting (+973)
+- Enhanced error handling with specific messages
 
-**Reason for Changes:**
-- Image sharing essential for service discussions
-- Typing indicators improve conversation flow
-- Read receipts set expectations
-- Push notifications ensure timely responses
-- Timestamp grouping improves readability
+**2. Navigation Structure**
+- Added notification badges for unread items
+- Enhanced tab icons using SF Symbols
+- Added haptic feedback on tab switches
 
----
+**3. Services Discovery**
+- Changed from grid to list view for better information display
+- Added star ratings visible on cards
+- Added real-time availability indicators
+- Enhanced search with location, price, and rating filters
+- Added favorites feature
 
-### 7. Account Management
+**4. Booking Flow**
+- Added calendar integration for date/time selection
+- Added map integration for location selection
+- Added notes field for special requirements
+- Added real-time price calculation
+- Changed to two-step confirmation process
 
-**Figma Design:**
-- Profile screen with user avatar
-- Personal information display
-- Options: Personal Information, Privacy and Policy, About, Logout, Delete Account
+**5. Request History**
+- Added pull-to-refresh gesture
+- Added status filter buttons
+- Added cancel request dialog with reason selection
+- Enhanced empty state with illustrations
+- Added expandable cards for details
 
-**Implementation Changes:**
-- ✅ Maintained menu structure
-- ⚠️ Added profile picture upload - Camera/gallery picker with image cropping
-- ⚠️ Added edit profile inline - Direct editing instead of separate screen
-- ⚠️ Changed delete account flow - Added warning dialog with consequences
-- ⚠️ Added "Change Password" - Security feature not in original design
-- ⚠️ Added notification settings - Toggle for push notification preferences
+**6. Messaging System**
+- Added image sharing capability
+- Added typing indicators
+- Added message delivery and read receipts
+- Added push notifications
+- Changed timestamps to grouped by date
 
-**Reason for Changes:**
-- Profile picture upload personalizes the app
-- Inline editing reduces navigation steps
-- Delete warning prevents accidental account loss
-- Password change is security best practice
-- Notification settings address user control needs
+**7. Account Management**
+- Added profile picture upload with cropping
+- Changed to inline editing instead of separate screens
+- Added delete account warning dialog
+- Added change password feature
+- Added notification settings toggle
 
----
+**8. Provider Features**
+- Added analytics dashboard
+- Added earnings summary
+- Enhanced verification to multi-step process
+- Added service editing capabilities
+- Added availability calendar
 
-### 8. Provider-Specific Features
-
-**Figma Design:**
-- Provider Management screen
-- List of providers with names and roles
-- About button for each provider
-
-**Implementation Changes:**
-- ⚠️ Added provider analytics - Dashboard showing booking stats
-- ⚠️ Added earnings summary - Financial overview for providers
-- ⚠️ Changed provider approval - Multi-step verification process
-- ⚠️ Added service editing - Providers can add/edit/remove services
-- ⚠️ Added availability calendar - Providers can set working hours
-
-**Reason for Changes:**
-- Analytics help providers understand their performance
-- Earnings summary essential for provider business tracking
-- Enhanced verification ensures service quality
-- Service editing gives providers control
-- Availability calendar reduces booking conflicts
+**9. Technical Enhancements**
+- Implemented Firebase backend (Authentication, Firestore, Storage)
+- Added Cloudinary for image optimization
+- Implemented Firebase Analytics and Crashlytics
+- Added Firebase Performance monitoring
+- Added dark mode support
+- Implemented accessibility features
+- Optimized for iPad
 
 ---
 
-### 9. Technical Implementation Changes
+## Libraries and Packages
 
-#### Backend Integration
+### Firebase SDK
+- **FirebaseAuth** - User authentication
+- **FirebaseFirestore** - Real-time database
+- **FirebaseStorage** - File and image storage
+- **FirebaseAnalytics** - User behavior tracking
+- **FirebaseCrashlytics** - Crash reporting
+- **FirebasePerformance** - Performance monitoring
+- **FirebaseRemoteConfig** - Dynamic configuration
+- **FirebaseMessaging** - Push notifications
 
-**Original Plan (Implied by Figma):**
-- Simple REST API calls
-- Basic authentication
+### Third-Party Libraries
+- **Cloudinary** - Image optimization and CDN delivery
 
-**Actual Implementation:**
-- ✅ Firebase Authentication - Secure email/password and social auth
-- ✅ Firestore Database - Real-time data synchronization
-- ✅ Firebase Storage - Scalable image and file storage
-- ✅ Cloudinary Integration - Advanced image optimization and CDN delivery
-- ✅ Firebase Analytics - User behavior tracking
-- ✅ Firebase Crashlytics - Crash reporting and debugging
-- ✅ Firebase Performance - Performance monitoring
-- ✅ Firebase Remote Config - Dynamic feature flags
+### Native Frameworks
+- UIKit - User interface components
+- MapKit - Location services and maps
+- PhotosUI - Photo library access
+- AVFoundation - Camera functionality
 
-**Reason for Changes:**
-- Firebase provides enterprise-grade scalability
-- Firestore enables real-time features (live chat, notifications)
-- Cloudinary optimizes images automatically
-- Analytics crucial for product decisions
-- Crashlytics essential for production stability
-
----
-
-#### UI/UX Enhancements
-
-**Not in Figma Design:**
-- ⚠️ Dark mode support - System-wide dark mode compatibility
-- ⚠️ Accessibility features - VoiceOver support, Dynamic Type
-- ⚠️ iPad optimization - Adaptive layouts for larger screens
-- ⚠️ Animations - Smooth transitions between screens
-- ⚠️ Skeleton loading - Placeholder content while loading
-
-**Reason for Changes:**
-- Dark mode expected by modern iOS users
-- Accessibility ensures inclusive design
-- iPad support expands user base
-- Animations improve perceived performance
-- Skeleton loading better than spinners
+### Dependency Management
+- Swift Package Manager
 
 ---
 
-## How to Use the App
+## Project Setup
 
-### Installation and Setup
-
-**Requirements:**
-- Xcode 15.0 or later
-- iOS 15.0 or higher
+### Prerequisites
+- Xcode 16.4 or later
 - macOS Ventura or later
+- iOS 18.5 SDK
+- iPhone 16 Pro simulator
 - Active internet connection
+- Firebase account
 
-**Setup Steps:**
-1. Open the project file (Masar.xcodeproj) in Xcode
-2. Configure Firebase by adding GoogleService-Info.plist to the project
-3. Install dependencies via Swift Package Manager
-4. Select target device or simulator
-5. Build and run the project (Command + R)
+### Installation Steps
 
----
+1. **Clone the Repository**
+   ```bash
+   git clone [repository-url]
+   cd Masar
+   ```
 
-### User Guide
+2. **Open Project**
+   ```bash
+   open Masar.xcodeproj
+   ```
 
-#### For Service Seekers
+3. **Configure Firebase**
+   - Download `GoogleService-Info.plist` from Firebase Console
+   - Add the file to the project root directory
+   - Ensure it's included in the Masar target
 
-**Registration and Login:**
-- Launch the app and select "Register as Seeker"
-- Complete the multi-step registration form with required information
-- Verify email address through the verification link
-- Log in with registered credentials
+4. **Install Dependencies**
+   - Dependencies will automatically resolve via Swift Package Manager
+   - Wait for package resolution to complete in Xcode
 
-**Finding and Booking Services:**
-- Browse available service providers from the Home tab
-- Use search and filter options to narrow down results by category, location, or rating
-- View provider profiles to check ratings, reviews, and availability
-- Select a service package and choose date/time for booking
-- Add service location and any special requirements
-- Submit booking request and wait for provider confirmation
+5. **Configure Cloudinary (Optional)**
+   - Open `Constants.swift`
+   - Add your Cloudinary credentials:
+     ```swift
+     static let cloudinaryCloudName = "your-cloud-name"
+     static let cloudinaryApiKey = "your-api-key"
+     ```
 
-**Managing Requests:**
-- View all booking requests in the Messages tab
-- Track request status (Pending, Approved, Rejected, Completed, Cancelled)
-- Communicate with providers through the in-app messaging system
-- Cancel requests if needed through the cancellation dialog
-- Rate and review completed services
+6. **Build and Run**
+   - Select iPhone 16 Pro simulator from the device menu
+   - Press Command + R to build and run
+   - Wait for the app to launch on simulator
 
-#### For Service Providers
-
-**Registration and Verification:**
-- Register as a provider with business and service information
-- Submit required credentials for verification
-- Wait for admin approval before offering services
-
-**Managing Services:**
-- Add and edit service offerings with pricing and descriptions
-- Set availability calendar with working hours and days
-- View booking requests and respond with approval or rejection
-- Track earnings and performance through the analytics dashboard
-- Communicate with seekers through messaging
-
-**Handling Bookings:**
-- Receive notifications for new booking requests
-- Review seeker information and service details
-- Approve or reject requests with optional reasons
-- Mark services as completed after fulfillment
+### Troubleshooting
+- If packages fail to resolve, go to File > Packages > Reset Package Caches
+- Ensure GoogleService-Info.plist is properly added to the project
+- Verify simulator is set to iPhone 16 Pro with iOS 18.5
+- Check that minimum deployment target is set to iOS 15.0 (supports iOS 15.0+)
+- Ensure Xcode 16.4 is installed and up to date
 
 ---
 
-### Technical Information
+## Testing Environment
 
-**Project Structure:**
-The project is built using UIKit with Storyboard for interface design, following the MVVM architecture pattern. Key technical components include:
+### Development Tools
+- **Xcode Version**: 16.4
+- **iOS Version**: 18.5
+- **Swift Version**: 5.9+
 
-**UI Implementation:**
-- Storyboard-based interface design for main screens
-- Programmatic UI for dynamic components
-- Custom views and reusable components
-- Auto Layout for responsive design across devices
+### Simulators Used for Testing
+- **Primary Simulator**: iPhone 16 Pro (iOS 18.5)
+- **Additional Testing**: iPad Pro (6th generation) for iPad optimization
 
-**Backend Integration:**
-- Firebase Authentication for user management
-- Cloud Firestore for real-time data storage
-- Firebase Storage and Cloudinary for image handling
-- Firebase Cloud Messaging for push notifications
+### Testing Configuration
+- All testing performed on iPhone 16 Pro simulator
+- iOS deployment target: 18.5
+- Tested features include authentication, booking, messaging, and all user workflows
 
-**Key Features:**
-- Real-time messaging with Firestore listeners
-- Location services using MapKit
-- Calendar integration for scheduling
-- Image upload with compression and optimization
-- Push notifications for booking updates
+---
 
-**Development Notes:**
-- Minimum deployment target: iOS 15.0
-- Built with Swift 5.9+
-- Uses Swift Package Manager for dependencies
-- Follows Apple Human Interface Guidelines
-- Implements accessibility features for inclusive design
+## Admin Login Credentials
+
+### Admin Account
+- **Email**: admin@masar.com
+- **Password**: Admin1234!
+
+### Test Accounts
+
+**Service Seeker:**
+- **Email**: seeker@masar.com
+- **Password**: Test1234!
+
+**Service Provider:**
+- **Email**: provider@masar.com
+- **Password**: Test1234!
+
+---
+
+## Project Architecture
+
+### Design Pattern
+- **MVVM** (Model-View-ViewModel)
+- Storyboard-based UI with programmatic components
+
+### Project Structure
+```
+Masar/
+├── Models/              # Data models
+├── Views/               # Storyboards and custom views
+├── ViewModels/          # Business logic layer
+├── Services/            # Firebase and API services
+├── Utilities/           # Helper functions and extensions
+└── Resources/           # Assets and configuration files
+```
+
+### Key Technologies
+- **UI Framework**: UIKit with Storyboard
+- **Architecture**: MVVM
+- **Backend**: Firebase
+- **Image Handling**: Firebase Storage + Cloudinary
+- **Notifications**: Firebase Cloud Messaging
+- **Analytics**: Firebase Analytics
+- **Crash Reporting**: Firebase Crashlytics
+
+---
+
+## Features Overview
+
+### For Service Seekers
+1. Register and create seeker account
+2. Browse and search service providers
+3. Filter by category, location, price, and rating
+4. View provider profiles with ratings and reviews
+5. Book services with calendar and location selection
+6. Track booking requests and status
+7. Communicate with providers via in-app chat
+8. Rate and review completed services
+9. Save favorite providers
+
+### For Service Providers
+1. Register as service provider
+2. Complete verification process
+3. Add and manage service offerings
+4. Set availability calendar
+5. Receive and respond to booking requests
+6. View analytics and earnings
+7. Communicate with seekers
+8. Mark services as completed
+
+---
+
+
+
+## Future Enhancements
+
+- Payment integration (Apple Pay, Credit Cards)
+- Arabic language support with RTL layout
+- Video call support for remote services
+- Service provider verification badges
+- Advanced geographic radius search
+- Calendar synchronization with iCloud
+- Recurring booking functionality
+
+---
+
+## License
+
+[Add your license here - e.g., MIT, Apache 2.0, or Proprietary]
+
+---
+
+## Contact
+
+For questions or support, please contact:
+- Email: [your-email]
+- GitHub: [your-github-username]
+
+---
+
+**Last Updated**: December 2025  
+**Version**: 1.0.0  
+**Developed with**: Xcode 16.4, iOS 18.5  
+**Tested on**: iPhone 16 Pro Simulator  
+**Minimum iOS**: 18.5
