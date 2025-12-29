@@ -116,57 +116,58 @@ final class ChatViewController: UIViewController,
         headerView.backgroundColor = UIColor(red: 112/255, green: 79/255, blue: 217/255, alpha: 1.0)
         view.addSubview(headerView)
 
+        // Add subviews
+        headerView.addSubview(backButton)
+        headerView.addSubview(avatarLabel)
+        headerView.addSubview(titleStack)
+        
+        // Configure subviews
         backButton.translatesAutoresizingMaskIntoConstraints = false
         backButton.setImage(UIImage(systemName: "chevron.left"), for: .normal)
         backButton.tintColor = .white
         backButton.addTarget(self, action: #selector(didTapBack), for: .touchUpInside)
-        headerView.addSubview(backButton)
-        
 
         avatarLabel.translatesAutoresizingMaskIntoConstraints = false
         avatarLabel.text = user.profileImageUrl
         avatarLabel.font = UIFont.systemFont(ofSize: 32)
         
-        headerView.addSubview(avatarLabel)
-
         titleStack.translatesAutoresizingMaskIntoConstraints = false
         titleStack.axis = .vertical
         titleStack.spacing = 2
-        headerView.addSubview(titleStack)
         
-
         nameLabel.text = user.name
         nameLabel.textColor = .white
         nameLabel.font = UIFont.systemFont(ofSize: 16, weight: .semibold)
-         
 
         subtitleLabel.text = "@\(user.username)"
         subtitleLabel.textColor = UIColor(white: 1, alpha: 0.8)
         subtitleLabel.font = UIFont.systemFont(ofSize: 13)
-
-        
         
         titleStack.addArrangedSubview(nameLabel)
         titleStack.addArrangedSubview(subtitleLabel)
 
+        // --- UPDATED CONSTRAINTS ---
         NSLayoutConstraint.activate([
-            headerView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
+            // 1. Pin Header to absolute top of the screen to cover status bar
+            headerView.topAnchor.constraint(equalTo: view.topAnchor),
             headerView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             headerView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            headerView.heightAnchor.constraint(equalToConstant: 72),
+            // Remove fixed height of 72 to allow dynamic sizing based on safe area
+            headerView.bottomAnchor.constraint(equalTo: titleStack.bottomAnchor, constant: 12),
 
+            // 2. Pin Content relative to Safe Area (so it's not hidden by notch)
+            backButton.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 8),
             backButton.leadingAnchor.constraint(equalTo: headerView.leadingAnchor, constant: 8),
-            backButton.centerYAnchor.constraint(equalTo: headerView.centerYAnchor),
             backButton.widthAnchor.constraint(equalToConstant: 44),
             backButton.heightAnchor.constraint(equalToConstant: 44),
 
+            // Align Avatar with Back Button
+            avatarLabel.centerYAnchor.constraint(equalTo: backButton.centerYAnchor),
             avatarLabel.leadingAnchor.constraint(equalTo: backButton.trailingAnchor, constant: 4),
-            avatarLabel.centerYAnchor.constraint(equalTo: headerView.centerYAnchor),
 
-            
-            
+            // Align Title Stack with Back Button
+            titleStack.centerYAnchor.constraint(equalTo: backButton.centerYAnchor),
             titleStack.leadingAnchor.constraint(equalTo: avatarLabel.trailingAnchor, constant: 8),
-            titleStack.centerYAnchor.constraint(equalTo: headerView.centerYAnchor),
             titleStack.trailingAnchor.constraint(lessThanOrEqualTo: headerView.trailingAnchor, constant: -16)
         ])
     }
@@ -200,9 +201,9 @@ final class ChatViewController: UIViewController,
         textField.delegate = self
         textField.isUserInteractionEnabled = true
         //keyboard;
-        let tap = UITapGestureRecognizer(target: self, action: #selector(focusTextField))
-        tap.cancelsTouchesInView = false
-        inputContainer.addGestureRecognizer(tap)
+        //let tap = UITapGestureRecognizer(target: self, action: #selector(focusTextField))
+        //tap.cancelsTouchesInView = false
+       // inputContainer.addGestureRecognizer(tap)
 
         inputContainer.isUserInteractionEnabled = true
 
