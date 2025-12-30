@@ -159,7 +159,7 @@
                         <sections>
                             <tableViewSection id="dpO-lR-lKT">
                                 <cells>
-                                    <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" preservesSuperviewLayoutMargins="YES" selectionStyle="default" indentationWidth="10" rowHeight="533" id="2Zh-hO-WlU">
+                                    <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" preservesSuperviewLayoutMargins="YES" selectionStyle="default" indentationWidth="10" rowHeight="533" id="2Zh-hO-WlU" customClass="ServiceItemCell" customModule="Masar" customModuleProvider="target">
                                         <rect key="frame" x="0.0" y="50" width="393" height="533"/>
                                         <autoresizingMask key="autoresizingMask"/>
                                         <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" preservesSuperviewLayoutMargins="YES" insetsLayoutMarginsFromSafeArea="NO" tableViewCell="2Zh-hO-WlU" id="F8u-8g-iua">
@@ -2328,7 +2328,7 @@
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <stackView opaque="NO" contentMode="scaleToFill" fixedFrame="YES" axis="vertical" distribution="fillProportionally" spacing="15" translatesAutoresizingMaskIntoConstraints="NO" id="MJ2-td-9I8">
-                                <rect key="frame" x="30" y="202" width="114.33333333333331" height="297.66666666666663"/>
+                                <rect key="frame" x="30" y="202" width="114.33333333333331" height="297.66666666666669"/>
                                 <subviews>
                                     <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="person.fill" catalog="system" translatesAutoresizingMaskIntoConstraints="NO" id="h8N-Sd-BDR">
                                         <rect key="frame" x="0.0" y="1.6666666666666661" width="114.33333333333333" height="17"/>
@@ -2424,7 +2424,7 @@
         </scene>
     </scenes>
     <inferredMetricsTieBreakers>
-        <segue reference="DUf-Ku-gRu"/>
+        <segue reference="9iO-hL-XsA"/>
     </inferredMetricsTieBreakers>
     <resources>
         <image name="arrow.up.arrow.down" catalog="system" width="128" height="97"/>

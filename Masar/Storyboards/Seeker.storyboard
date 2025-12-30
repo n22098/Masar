@@ -546,7 +546,7 @@
                         <sections>
                             <tableViewSection id="F7N-VO-ZgY">
                                 <cells>
-                                    <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" preservesSuperviewLayoutMargins="YES" selectionStyle="default" indentationWidth="10" rowHeight="533" id="C92-Yp-qzP">
+                                    <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" preservesSuperviewLayoutMargins="YES" selectionStyle="default" indentationWidth="10" rowHeight="533" id="C92-Yp-qzP" customClass="ServiceCell" customModule="Masar" customModuleProvider="target">
                                         <rect key="frame" x="0.0" y="50" width="393" height="533"/>
                                         <autoresizingMask key="autoresizingMask"/>
                                         <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" preservesSuperviewLayoutMargins="YES" insetsLayoutMarginsFromSafeArea="NO" tableViewCell="C92-Yp-qzP" id="uwa-xM-Qma">
@@ -670,6 +670,12 @@
                                                 </button>
                                             </subviews>
                                         </tableViewCellContentView>
+                                        <connections>
+                                            <outlet property="bookingButton" destination="bL7-6S-QAz" id="3Eb-0t-i6R"/>
+                                            <outlet property="detailsLabel" destination="fg8-Bz-E6j" id="4XE-uK-ony"/>
+                                            <outlet property="priceLabel" destination="deU-Zm-KcH" id="W4G-ym-e0o"/>
+                                            <outlet property="serviceNameLabel" destination="MeJ-5n-hou" id="HV8-ny-oMM"/>
+                                        </connections>
                                     </tableViewCell>
                                 </cells>
                             </tableViewSection>
@@ -864,7 +870,7 @@
                                             </constraints>
                                         </tableViewCellContentView>
                                     </tableViewCell>
-                                    <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" preservesSuperviewLayoutMargins="YES" selectionStyle="default" indentationWidth="10" reuseIdentifier="Service Item" rowHeight="103" id="UYq-fi-RuV">
+                                    <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" preservesSuperviewLayoutMargins="YES" selectionStyle="default" indentationWidth="10" reuseIdentifier="Service Item" rowHeight="103" id="UYq-fi-RuV" customClass="ServiceItemCell" customModule="Masar" customModuleProvider="target">
                                         <rect key="frame" x="0.0" y="344" width="393" height="103"/>
                                         <autoresizingMask key="autoresizingMask"/>
                                         <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" preservesSuperviewLayoutMargins="YES" insetsLayoutMarginsFromSafeArea="NO" tableViewCell="UYq-fi-RuV" id="Kbh-9k-3ge">
@@ -898,6 +904,10 @@
                                                 <constraint firstAttribute="trailingMargin" secondItem="sjY-ee-I7L" secondAttribute="trailing" id="vt2-AG-sCx"/>
                                             </constraints>
                                         </tableViewCellContentView>
+                                        <connections>
+                                            <outlet property="priceLabel" destination="w60-hm-KFd" id="jut-ck-fgy"/>
+                                            <outlet property="serviceNameLabel" destination="Qes-vi-GTT" id="coz-iI-Mc8"/>
+                                        </connections>
                                     </tableViewCell>
                                 </cells>
                             </tableViewSection>
@@ -1768,7 +1778,7 @@
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <stackView opaque="NO" contentMode="scaleToFill" fixedFrame="YES" axis="vertical" distribution="fillProportionally" spacing="15" translatesAutoresizingMaskIntoConstraints="NO" id="NuO-yl-wBS">
-                                <rect key="frame" x="30" y="202.00000000000003" width="114.33333333333331" height="297.66666666666674"/>
+                                <rect key="frame" x="30" y="202" width="114.33333333333331" height="297.66666666666663"/>
                                 <subviews>
                                     <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="person.fill" catalog="system" translatesAutoresizingMaskIntoConstraints="NO" id="1ii-1f-HtM">
                                         <rect key="frame" x="0.0" y="1.6666666666666661" width="114.33333333333333" height="17"/>
