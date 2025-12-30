@@ -54,13 +54,21 @@ class SignInViewController: UIViewController, UITextFieldDelegate {
 
     private func firebaseLogin(email: String, password: String) {
         Auth.auth().signIn(withEmail: email, password: password) { _, error in
-            if let error = error {
-                self.showAlert(error.localizedDescription)
+            if error != nil {
+                // Here we triggered the custom alert instead of the system error
+                self.showLoginError()
                 return
             }
             // فحص الرول والتوجيه بعد نجاح تسجيل الدخول
             self.checkUserRoleAndRedirect()
         }
+    }
+
+    // New function to match the requested design exactly
+    private func showLoginError() {
+        let alert = UIAlertController(title: "Login Error", message: "The provided credentials are incorrect.", preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: "Try Again", style: .default))
+        present(alert, animated: true)
     }
 
     private func checkUserRoleAndRedirect() {

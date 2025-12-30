@@ -4,7 +4,11 @@ import FirebaseAuth
 class ProfileTableViewController: UITableViewController {
 
     let brandColor = UIColor(red: 98/255, green: 84/255, blue: 243/255, alpha: 1.0)
-    let lightBg = UIColor(red: 248/255, green: 248/255, blue: 252/255, alpha: 1.0)
+    
+    // 🔥 FIXED: Now this color automatically changes between Light and Dark mode
+    let lightBg = UIColor { traitCollection in
+        return traitCollection.userInterfaceStyle == .dark ? .systemBackground : UIColor(red: 248/255, green: 248/255, blue: 252/255, alpha: 1.0)
+    }
     
     // قائمة العناصر بالترتيب الصحيح (مع الترجمة)
     var menuItems: [String] {
@@ -53,6 +57,7 @@ class ProfileTableViewController: UITableViewController {
     }
 
     func setupTableView() {
+        // This will now respect the dynamic color
         tableView.backgroundColor = lightBg
         tableView.register(UITableViewCell.self, forCellReuseIdentifier: "MenuCell")
         tableView.register(SwitchCell.self, forCellReuseIdentifier: "SwitchCell")
@@ -95,6 +100,8 @@ class ProfileTableViewController: UITableViewController {
             cell.switchToggled = { [weak self] isOn in
                 self?.darkModeToggled(isOn: isOn)
             }
+            // Ensure cell background adapts
+            cell.backgroundColor = .secondarySystemGroupedBackground
             return cell
         }
         
@@ -108,7 +115,8 @@ class ProfileTableViewController: UITableViewController {
         
         cell.contentConfiguration = content
         cell.accessoryType = .disclosureIndicator
-        cell.backgroundColor = .systemBackground
+        // Use system colors so they turn black in dark mode
+        cell.backgroundColor = .secondarySystemGroupedBackground
         
         return cell
     }
@@ -225,17 +233,20 @@ class ProfileTableViewController: UITableViewController {
     
     func applyDarkMode(_ isOn: Bool) {
         // تطبيق Dark Mode على جميع النوافذ في التطبيق
-        UIApplication.shared.connectedScenes
-            .compactMap { $0 as? UIWindowScene }
-            .flatMap { $0.windows }
-            .forEach { window in
-                UIView.transition(with: window, duration: 0.3, options: .transitionCrossDissolve, animations: {
-                    window.overrideUserInterfaceStyle = isOn ? .dark : .light
-                })
-            }
-        
-        // تحديث الواجهة الحالية
-        tableView.reloadData()
+        // 🔥 Ensure UI updates on Main Thread
+        DispatchQueue.main.async {
+            UIApplication.shared.connectedScenes
+                .compactMap { $0 as? UIWindowScene }
+                .flatMap { $0.windows }
+                .forEach { window in
+                    UIView.transition(with: window, duration: 0.3, options: .transitionCrossDissolve, animations: {
+                        window.overrideUserInterfaceStyle = isOn ? .dark : .light
+                    })
+                }
+            
+            // تحديث الواجهة الحالية
+            self.tableView.reloadData()
+        }
     }
     
     // MARK: - Language
@@ -439,7 +450,7 @@ class ProfileTableViewController: UITableViewController {
         At Masar, we believe in the power of community — where people can share their skills, offer their services, and connect with others who need them. Our mobile application is designed to make it easier for individuals in the Kingdom of Bahrain to find, offer, and exchange local skills and services in a convenient and trustworthy way.
         
         Our Mission
-        Empower individuals and small service providers by giving them a platform to showcase their talents and connect with people who need their expertise. Whether you're a handyman, tutor, designer, or mechanic, Masar helps you reach those who need your help quickly and easily.
+        Empower individuals and small service providers by giving them a platform to showcase their talents and connect with people who need their expertise. Whether you're a handyman, tutor, designer, or mechanic, Masar helps you reach those who need their help quickly and easily.
         
         What We Offer
         

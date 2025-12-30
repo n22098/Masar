@@ -53,7 +53,6 @@ class SearchTableViewController: UITableViewController {
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-        // تحديث التقييمات عند الرجوع للصفحة
         tableView.reloadData()
     }
     
@@ -412,14 +411,7 @@ class ProviderTableCell: UITableViewCell {
         return label
     }()
     
-    private let ratingLabel: UILabel = {
-        let label = UILabel()
-        label.font = UIFont.systemFont(ofSize: 13, weight: .medium)
-        label.textColor = UIColor(red: 255/255, green: 149/255, blue: 0/255, alpha: 1)
-        label.text = "⭐️ 0.0"
-        label.translatesAutoresizingMaskIntoConstraints = false
-        return label
-    }()
+    // ❌ REMOVED: ratingLabel
     
     private let viewButton: UIButton = {
         let btn = UIButton(type: .system)
@@ -448,7 +440,7 @@ class ProviderTableCell: UITableViewCell {
         containerView.addSubview(avatarImageView)
         containerView.addSubview(nameLabel)
         containerView.addSubview(roleLabel)
-        containerView.addSubview(ratingLabel)
+        // ❌ REMOVED: containerView.addSubview(ratingLabel)
         containerView.addSubview(viewButton)
         
         NSLayoutConstraint.activate([
@@ -469,8 +461,7 @@ class ProviderTableCell: UITableViewCell {
             roleLabel.topAnchor.constraint(equalTo: nameLabel.bottomAnchor, constant: 2),
             roleLabel.leadingAnchor.constraint(equalTo: nameLabel.leadingAnchor),
             
-            ratingLabel.topAnchor.constraint(equalTo: roleLabel.bottomAnchor, constant: 4),
-            ratingLabel.leadingAnchor.constraint(equalTo: nameLabel.leadingAnchor),
+            // ❌ REMOVED: Constraints for ratingLabel
             
             viewButton.centerYAnchor.constraint(equalTo: containerView.centerYAnchor),
             viewButton.trailingAnchor.constraint(equalTo: containerView.trailingAnchor, constant: -12),
@@ -483,21 +474,7 @@ class ProviderTableCell: UITableViewCell {
         nameLabel.text = provider.name
         roleLabel.text = provider.role
         
-        // 🔥 جلب التقييم الحقيقي من Firebase
-        if let parentVC = parentViewController {
-            parentVC.fetchAverageRating(for: provider.id) { [weak self] average, count in
-                DispatchQueue.main.async {
-                    if count > 0 {
-                        self?.ratingLabel.text = String(format: "⭐️ %.1f", average)
-                    } else {
-                        self?.ratingLabel.text = "⭐️ 0.0"
-                    }
-                }
-            }
-        } else {
-            // القيمة الافتراضية
-            ratingLabel.text = "⭐️ \(provider.rating)"
-        }
+        // ❌ REMOVED: Rating fetching logic
         
         if let image = UIImage(named: provider.imageName) {
             avatarImageView.image = image

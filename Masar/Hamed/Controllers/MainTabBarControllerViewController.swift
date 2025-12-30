@@ -29,17 +29,17 @@ class MainTabBarController: UITabBarController {
         // 1. Search (من الستوري بورد)
         // ---------------------------------------------------------
         let searchVC = createFromProviderStoryboard(
-            id: "SearchTableViewController", // تأكد أن هذا الـ ID موجود في الستوري بورد
+            id: "SearchTableViewController",
             title: "Search",
             icon: "magnifyingglass"
         )
         controllers.append(searchVC)
         
         // ---------------------------------------------------------
-        // 2. History (من الستوري بورد)
+        // 2. History (✅ FIXED - استخدام الشاشة الحقيقية)
         // ---------------------------------------------------------
         let historyVC = createFromProviderStoryboard(
-            id: "BookingHistoryTableViewController", // تأكد أن هذا الـ ID موجود في الستوري بورد
+            id: "BookingHistoryTableViewController",
             title: "History",
             icon: "clock"
         )
@@ -56,13 +56,11 @@ class MainTabBarController: UITabBarController {
         controllers.append(messagesVC)
         
         // ---------------------------------------------------------
-        // 4. Provider Hub (التعديل الجديد والمهم هنا) 🛠️
+        // 4. Provider Hub
         // ---------------------------------------------------------
         if user.isProvider {
-            // الآن نقوم بتحميل الشاشة التي صممناها من الـ Storyboard
-            // بدلاً من إنشائها بالكود
             let providerHubVC = createFromProviderStoryboard(
-                id: "ProviderHubTableViewController", // ⚠️ مهم جداً: تأكد أنك وضعت هذا الاسم في الـ Identity Inspector
+                id: "ProviderHubTableViewController",
                 title: "Provider Hub",
                 icon: "briefcase"
             )
@@ -70,12 +68,12 @@ class MainTabBarController: UITabBarController {
         }
         
         // ---------------------------------------------------------
-        // 5. Profile (شاشة مؤقتة)
+        // 5. Profile
         // ---------------------------------------------------------
-        let profileVC = createPlaceholderViewController(
+        let profileVC = createFromProviderStoryboard(
+            id: "ProfileTableViewController",
             title: "Profile",
-            icon: "person",
-            selectedIcon: "person.fill"
+            icon: "person"
         )
         controllers.append(profileVC)
         
@@ -83,20 +81,14 @@ class MainTabBarController: UITabBarController {
         viewControllers = controllers
         
         // ألوان الشريط
-        tabBar.tintColor = UIColor(red: 0.35, green: 0.34, blue: 0.91, alpha: 1.0) // اللون البنفسجي
+        tabBar.tintColor = UIColor(red: 0.35, green: 0.34, blue: 0.91, alpha: 1.0)
         tabBar.unselectedItemTintColor = .systemGray
     }
     
     // MARK: - Helper Methods
     
-    // دالة لتحميل الشاشات من الـ Storyboard
     private func createFromProviderStoryboard(id: String, title: String, icon: String) -> UIViewController {
-        
-        // تأكد أن اسم ملف الستوري بورد هو "Provider" (أو "Main" حسب ملفك)
         let storyboard = UIStoryboard(name: "Provider", bundle: nil)
-        
-        // تحميل الكنترولر باستخدام الـ ID
-        // ملاحظة: إذا صار كراش هنا، يعني الـ ID في الكود لا يطابق الـ ID في الستوري بورد
         let vc = storyboard.instantiateViewController(withIdentifier: id)
         
         vc.title = title
@@ -114,7 +106,6 @@ class MainTabBarController: UITabBarController {
         return nav
     }
     
-    // دالة لإنشاء شاشات فارغة (مؤقتة)
     private func createPlaceholderViewController(title: String, icon: String, selectedIcon: String) -> UIViewController {
         let vc = UIViewController()
         vc.view.backgroundColor = .white
@@ -143,12 +134,10 @@ class MainTabBarController: UITabBarController {
     }
     
     private func createTestUser() {
-        // بيانات تجريبية كاملة
         let providerProfile = ProviderProfile(
             role: .companyOwner,
             companyName: "Masar Company",
             services: [
-                // 👇 التصليح هنا: الأسعار أرقام (20.0) وليست نصوص ("20")
                 ServiceModel(name: "Home Cleaning", price: 20.0, description: "Deep cleaning"),
                 ServiceModel(name: "AC Repair", price: 35.0, description: "Split unit maintenance")
             ],

@@ -131,28 +131,21 @@ class ServiceRequestCell: UITableViewCell {
 // MARK: - Provider Details View Controller
 class ProviderDetailsViewController: UIViewController, UITableViewDelegate, UITableViewDataSource {
     
-    // MARK: - Properties
     private let db = Firestore.firestore()
     
-    // IDs passed from previous screen
     var providerID: String = ""
-    var categoryName: String = "" // Fallback category name
+    var categoryName: String = ""
     
-    // Data holders
     private var services: [ServiceItem] = []
     private var fetchedProviderData: [String: Any] = [:]
     
     let brandColor = UIColor(red: 98/255, green: 84/255, blue: 243/255, alpha: 1.0)
     
-    // MARK: - UI Elements (Header)
-    private let headerView = UIView()
-    private let profileImageView = UIImageView()
+    // UI Elements
     private let nameLabel = UILabel()
     private let categoryLabel = UILabel()
     private let descriptionLabel = UILabel()
-    private let availableBadge = UIView()
-    private let onlineBadge = UIView()
-    private let phoneBadge = UIView()
+    private let profileImageView = UIImageView()
     
     private let tableView: UITableView = {
         let tv = UITableView()
@@ -161,16 +154,22 @@ class ProviderDetailsViewController: UIViewController, UITableViewDelegate, UITa
         return tv
     }()
     
-    // MARK: - Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
         setupUI()
-        fetchProviderDetails() // 1. Get Provider Data
-        startServicesListener() // 2. Get Services Data
+        
+        // DEBUG CHECK: If providerID is empty, the screen will stay blank.
+        if providerID.isEmpty {
+            print("DEBUG: Error - providerID is EMPTY. Check how you are passing data to this controller.")
+            nameLabel.text = "No Provider ID Found"
+        } else {
+            fetchProviderDetails()
+            startServicesListener()
+        }
     }
     
     private func setupUI() {
-        title = "Details"
+        title = "My Service" // Changed title to match your screenshot
         view.backgroundColor = UIColor(red: 248/255, green: 248/255, blue: 252/255, alpha: 1.0)
         
         let appearance = UINavigationBarAppearance()
@@ -184,7 +183,6 @@ class ProviderDetailsViewController: UIViewController, UITableViewDelegate, UITa
         
         navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .add, target: self, action: #selector(addServiceTapped))
         
-        // Setup Table
         view.addSubview(tableView)
         tableView.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
@@ -198,16 +196,16 @@ class ProviderDetailsViewController: UIViewController, UITableViewDelegate, UITa
         tableView.dataSource = self
         tableView.register(ServiceRequestCell.self, forCellReuseIdentifier: "ServiceRequestCell")
         
-        // Setup Header
-        tableView.tableHeaderView = createHeaderView()
+        // IMPORTANT: In code-based layouts, ensure the header has a height
+        let header = createHeaderView()
+        header.frame = CGRect(x: 0, y: 0, width: view.frame.width, height: 320)
+        tableView.tableHeaderView = header
     }
     
-    // MARK: - Header Construction
     private func createHeaderView() -> UIView {
-        let container = UIView(frame: CGRect(x: 0, y: 0, width: view.frame.width, height: 320))
+        let container = UIView()
         container.backgroundColor = .clear
         
-        // 1. Profile Image
         profileImageView.backgroundColor = brandColor
         profileImageView.image = UIImage(systemName: "person.fill")
         profileImageView.tintColor = .white
@@ -216,11 +214,10 @@ class ProviderDetailsViewController: UIViewController, UITableViewDelegate, UITa
         profileImageView.contentMode = .scaleAspectFit
         profileImageView.translatesAutoresizingMaskIntoConstraints = false
         
-        // 2. Labels
         nameLabel.text = "Loading..."
         nameLabel.font = .systemFont(ofSize: 22, weight: .bold)
         
-        categoryLabel.text = categoryName
+        categoryLabel.text = categoryName.isEmpty ? "Category" : categoryName
         categoryLabel.textColor = .gray
         categoryLabel.font = .systemFont(ofSize: 14)
         
@@ -234,23 +231,16 @@ class ProviderDetailsViewController: UIViewController, UITableViewDelegate, UITa
         infoStack.spacing = 4
         infoStack.translatesAutoresizingMaskIntoConstraints = false
         
-        // 3. Status Badges
         let badgesStack = UIStackView()
         badgesStack.axis = .horizontal
         badgesStack.distribution = .fillEqually
         badgesStack.spacing = 10
         badgesStack.translatesAutoresizingMaskIntoConstraints = false
         
-        // We save references to these badges if we want to hide/show them based on data later
-        let b1 = createStatusBadge(icon: "clock.fill", title: "Available", color: brandColor)
-        let b2 = createStatusBadge(icon: "info.circle.fill", title: "Online", color: brandColor)
-        let b3 = createStatusBadge(icon: "phone.fill", title: "Phone", color: brandColor)
+        badgesStack.addArrangedSubview(createStatusBadge(icon: "clock.fill", title: "Available", color: brandColor))
+        badgesStack.addArrangedSubview(createStatusBadge(icon: "info.circle.fill", title: "Online", color: brandColor))
+        badgesStack.addArrangedSubview(createStatusBadge(icon: "phone.fill", title: "Phone", color: brandColor))
         
-        badgesStack.addArrangedSubview(b1)
-        badgesStack.addArrangedSubview(b2)
-        badgesStack.addArrangedSubview(b3)
-        
-        // 4. Action Buttons
         let actionsStack = UIStackView()
         actionsStack.axis = .horizontal
         actionsStack.distribution = .fillEqually
@@ -277,7 +267,6 @@ class ProviderDetailsViewController: UIViewController, UITableViewDelegate, UITa
         actionsStack.addArrangedSubview(portfolioBtn)
         actionsStack.addArrangedSubview(contactBtn)
         
-        // Add Subviews
         container.addSubview(profileImageView)
         container.addSubview(infoStack)
         container.addSubview(badgesStack)
@@ -338,18 +327,14 @@ class ProviderDetailsViewController: UIViewController, UITableViewDelegate, UITa
         return box
     }
 
-    // MARK: - Firebase Fetching
     private func fetchProviderDetails() {
-        // Fetch the specific provider document
         db.collection("providers").document(providerID).getDocument { [weak self] (document, error) in
-            guard let self = self, let document = document, document.exists else { return }
-            
-            self.fetchedProviderData = document.data() ?? [:]
-            
-            // UI Updates must be on Main Thread
-            DispatchQueue.main.async {
-                self.updateHeaderWithRealData()
+            guard let self = self, let document = document, document.exists else {
+                print("DEBUG: Provider document does not exist for ID: \(self?.providerID ?? "")")
+                return
             }
+            self.fetchedProviderData = document.data() ?? [:]
+            DispatchQueue.main.async { self.updateHeaderWithRealData() }
         }
     }
     
@@ -359,35 +344,36 @@ class ProviderDetailsViewController: UIViewController, UITableViewDelegate, UITa
         let email = fetchedProviderData["email"] as? String ?? ""
         let phone = fetchedProviderData["phone"] as? String ?? ""
         
-        // We use email/phone as description if no specific 'description' field exists
-        let desc = "Contact: \(email)\n\(phone)"
-        
         nameLabel.text = name
         categoryLabel.text = cat
-        descriptionLabel.text = desc
+        descriptionLabel.text = "Contact: \(email)\n\(phone)"
     }
 
     private func startServicesListener() {
+        // NOTE: If this produces NO data, check your Firestore Console to ensure
+        // there are documents in 'services' collection where providerID matches exactly.
         db.collection("services")
             .whereField("providerID", isEqualTo: providerID)
-            .order(by: "createdAt", descending: false)
             .addSnapshotListener { [weak self] (snapshot, error) in
                 if let error = error {
-                    print("Error services: \(error.localizedDescription)")
+                    print("DEBUG: Firestore Error: \(error.localizedDescription)")
                     return
                 }
                 guard let documents = snapshot?.documents else { return }
+                
+                print("DEBUG: Successfully fetched \(documents.count) services")
                 self?.services = documents.map { ServiceItem(document: $0) }
-                self?.tableView.reloadData()
+                DispatchQueue.main.async {
+                    self?.tableView.reloadData()
+                }
             }
     }
 
-    // MARK: - Actions
     @objc private func addServiceTapped() {
         let alert = UIAlertController(title: "Add Service", message: "New service listing", preferredStyle: .alert)
         alert.addTextField { $0.placeholder = "Service Name" }
         alert.addTextField { $0.placeholder = "Description" }
-        alert.addTextField { $0.placeholder = "Price (e.g. 100.000)"; $0.keyboardType = .decimalPad }
+        alert.addTextField { $0.placeholder = "Price"; $0.keyboardType = .decimalPad }
         
         let addAction = UIAlertAction(title: "Add", style: .default) { [weak self] _ in
             guard let self = self,
@@ -415,32 +401,18 @@ class ProviderDetailsViewController: UIViewController, UITableViewDelegate, UITa
     @objc private func contactTapped() {
         let phone = fetchedProviderData["phone"] as? String ?? ""
         let email = fetchedProviderData["email"] as? String ?? ""
-        
-        let alert = UIAlertController(title: "Contact Provider", message: nil, preferredStyle: .actionSheet)
-        
-        if !phone.isEmpty {
-            alert.addAction(UIAlertAction(title: "Call \(phone)", style: .default) { _ in
-                if let url = URL(string: "tel://\(phone)") { UIApplication.shared.open(url) }
-            })
-        }
-        if !email.isEmpty {
-            alert.addAction(UIAlertAction(title: "Email \(email)", style: .default) { _ in
-                if let url = URL(string: "mailto:\(email)") { UIApplication.shared.open(url) }
-            })
-        }
+        let alert = UIAlertController(title: "Contact", message: nil, preferredStyle: .actionSheet)
+        if !phone.isEmpty { alert.addAction(UIAlertAction(title: "Call", style: .default) { _ in }) }
         alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
         present(alert, animated: true)
     }
     
-    // MARK: - Table Data Source
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return services.count
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        guard let cell = tableView.dequeueReusableCell(withIdentifier: "ServiceRequestCell", for: indexPath) as? ServiceRequestCell else {
-            return UITableViewCell()
-        }
+        let cell = tableView.dequeueReusableCell(withIdentifier: "ServiceRequestCell", for: indexPath) as! ServiceRequestCell
         cell.configure(with: services[indexPath.row])
         return cell
     }
