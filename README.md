@@ -69,6 +69,15 @@ iOS application that connects service seekers with service providers across vari
   - Earnings summary
   - Multi-step verification process
 
+- **Admin Features**
+  - Comprehensive user management system
+  - Seeker management with detailed profile views
+  - Provider management with verification controls
+  - Service category management
+  - Booking oversight with status monitoring
+  - Account suspension and deletion capabilities
+
+
 ### Tester Features
 - Request history with status tracking
 - Pull-to-refresh functionality
