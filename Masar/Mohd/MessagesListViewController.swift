@@ -4,33 +4,33 @@ import FirebaseAuth
 
 final class MessagesListViewController: UIViewController {
 
-    // MARK: - Properties
-
     private let tableView = UITableView()
-    // سنستخدم هذا المتغير لتخزين بيانات المزودين وعرضهم كأنهم محادثات
     private var conversations: [Conversation] = []
-    
-    private let db = Firestore.firestore()
 
-    // MARK: - Lifecycle
+    private let db = Firestore.firestore()
+    private var listener: ListenerRegistration?
 
     override func viewDidLoad() {
         super.viewDidLoad()
+
+        print("✅ MessagesListViewController OPENED")   // مهم حتى نتأكد هذا الـVC هو اللي ينفتح
         view.backgroundColor = .systemBackground
 
         setupHeader()
         setupTableView()
-        
-        // استدعاء الدالة لجلب المزودين
-        fetchAllProviders()
+
+        loadMessagesScreen()
     }
-    
-    // MARK: - UI Setup
+
+    override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+        // listener?.remove()
+    }
 
     private func setupHeader() {
         let headerView = UIView()
         headerView.translatesAutoresizingMaskIntoConstraints = false
-        headerView.backgroundColor = UIColor(red: 112/255, green: 79/255, blue: 217/255, alpha: 1) // اللون البنفسجي
+        headerView.backgroundColor = UIColor(red: 112/255, green: 79/255, blue: 217/255, alpha: 1)
 
         let titleLabel = UILabel()
         titleLabel.text = "Messages"
@@ -70,18 +70,153 @@ final class MessagesListViewController: UIViewController {
         ])
     }
 
-    // MARK: - Firebase Data Logic
-    
+    // MARK: - Role based loading (provider -> conversations, seeker -> providers)
+
+    private func loadMessagesScreen() {
+        guard let currentUid = Auth.auth().currentUser?.uid else {
+            print("❌ No user logged in")
+            return
+        }
+
+        // نحاول نجيب role بأكثر من طريقة (حتى لو docID مو هو uid)
+        resolveUserRole(currentUid: currentUid) { [weak self] role in
+            guard let self = self else { return }
+            print("👤 role = \(role)")
+
+            if role.lowercased() == "provider" {
+                self.startListeningForConversations(currentUid: currentUid)
+            } else {
+                self.fetchAllProviders() // نفس منطقك القديم للسيكر
+            }
+        }
+    }
+
+    private func resolveUserRole(currentUid: String, completion: @escaping (String) -> Void) {
+        // 1) إذا docID = uid
+        db.collection("users").document(currentUid).getDocument { [weak self] doc, _ in
+            if let data = doc?.data() {
+                let role =
+                    (data["role"] as? String) ??
+                    (data["Role"] as? String) ??
+                    (data["userType"] as? String) ??
+                    (data["type"] as? String) ?? ""
+                if !role.isEmpty {
+                    completion(role)
+                    return
+                }
+            }
+
+            guard let self = self else { return }
+
+            // 2) إذا uid مخزون كحقل
+            self.db.collection("users")
+                .whereField("uid", isEqualTo: currentUid)
+                .limit(to: 1)
+                .getDocuments { snap, _ in
+                    if let data = snap?.documents.first?.data() {
+                        let role =
+                            (data["role"] as? String) ??
+                            (data["Role"] as? String) ??
+                            (data["userType"] as? String) ??
+                            (data["type"] as? String) ?? ""
+                        completion(role)
+                    } else {
+                        completion("") // ما لقينا role
+                    }
+                }
+        }
+    }
+
+    // MARK: - Provider: listen conversations
+
+    private func startListeningForConversations(currentUid: String) {
+        print("🔍 Provider: Fetching conversations for UID: \(currentUid)")
+
+        listener = db.collection("conversations")
+            .whereField("participants", arrayContains: currentUid)
+            .addSnapshotListener { [weak self] snapshot, error in
+                guard let self = self else { return }
+
+                if let error = error {
+                    print("❌ Error fetching conversations: \(error.localizedDescription)")
+                    return
+                }
+
+                guard let documents = snapshot?.documents else { return }
+                print("✅ Found \(documents.count) conversations")
+
+                var newConversations: [Conversation] = []
+                let group = DispatchGroup()
+
+                for doc in documents {
+                    let data = doc.data()
+                    let conversationId = doc.documentID
+
+                    let lastMessageText =
+                        (data["lastMessage"] as? String) ??
+                        (data["LastMessage"] as? String) ?? ""
+
+                    let ts =
+                        (data["lastUpdated"] as? Timestamp) ??
+                        (data["updatedAt"] as? Timestamp)
+
+                    let lastUpdatedDate = ts?.dateValue() ?? Date()
+
+                    let participants = data["participants"] as? [String] ?? []
+                    guard let otherUserId = participants.first(where: { $0 != currentUid }) else { continue }
+
+                    group.enter()
+                    self.db.collection("users").document(otherUserId).getDocument { userSnap, _ in
+                        defer { group.leave() }
+
+                        var userName = "Unknown"
+                        var userEmail = ""
+                        var userPhone = ""
+                        var userImage: String? = nil
+
+                        if let userData = userSnap?.data() {
+                            userName = userData["name"] as? String ?? "Unknown"
+                            userEmail = userData["email"] as? String ?? ""
+                            userPhone = userData["phone"] as? String ?? ""
+                            userImage = userData["profileImage"] as? String
+                        }
+
+                        let otherUser = User(
+                            id: otherUserId,
+                            name: userName,
+                            email: userEmail,
+                            phone: userPhone,
+                            profileImageName: userImage
+                        )
+
+                        let conv = Conversation(
+                            id: conversationId,
+                            user: otherUser,
+                            lastMessage: lastMessageText,
+                            lastUpdated: lastUpdatedDate
+                        )
+
+                        newConversations.append(conv)
+                    }
+                }
+
+                group.notify(queue: .main) {
+                    self.conversations = newConversations.sorted(by: { $0.lastUpdated > $1.lastUpdated })
+                    self.tableView.reloadData()
+                }
+            }
+    }
+
+    // MARK: - Seeker: your original providers list
+
     private func fetchAllProviders() {
-        // التأكد من أن المستخدم مسجل دخول حتى لا نعرضه لنفسه (اختياري)
         let currentUid = Auth.auth().currentUser?.uid ?? ""
 
-        // جلب جميع المستخدمين الذين لديهم الدور "provider"
         db.collection("users")
             .whereField("role", isEqualTo: "provider")
             .getDocuments { [weak self] snapshot, error in
                 guard let self = self else { return }
-                
+
                 if let error = error {
                     print("Error fetching providers: \(error)")
                     return
@@ -97,51 +232,43 @@ final class MessagesListViewController: UIViewController {
                 for doc in documents {
                     let data = doc.data()
                     let uid = data["uid"] as? String ?? doc.documentID
-                    
-                    // عدم عرض المستخدم لنفسه إذا كان هو أيضاً provider
                     if uid == currentUid { continue }
 
                     let name = data["name"] as? String ?? "Unknown Provider"
                     let email = data["email"] as? String ?? ""
                     let phone = data["phone"] as? String ?? ""
-                    
-                    // إنشاء كائن المستخدم
+
                     let providerUser = User(
                         id: uid,
                         name: name,
                         email: email,
                         phone: phone,
-                        profileImageName: nil // يمكنك إضافة رابط الصورة إذا توفر في الفايربيس
+                        profileImageName: nil
                     )
-                    
-                    // إنشاء كائن محادثة وهمي لكي يظهر في القائمة
+
                     let conversationItem = Conversation(
-                        id: uid, // نستخدم نفس ايدي المستخدم كـ ايدي للمحادثة مؤقتاً
+                        id: uid,
                         user: providerUser,
-                        lastMessage: "Tap to start chatting", // رسالة افتراضية
+                        lastMessage: "Tap to start chatting",
                         lastUpdated: Date()
                     )
-                    
+
                     fetchedList.append(conversationItem)
                 }
 
                 DispatchQueue.main.async {
                     self.conversations = fetchedList
                     self.tableView.reloadData()
-                    
-                    // طباعة للتأكد في الكونسول
                     print("✅ Fetched \(fetchedList.count) providers from Firebase")
                 }
             }
     }
 }
 
-// MARK: - Table Delegate
-
 extension MessagesListViewController: UITableViewDataSource, UITableViewDelegate {
 
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return conversations.count
+        conversations.count
     }
 
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
@@ -153,8 +280,6 @@ extension MessagesListViewController: UITableViewDataSource, UITableViewDelegate
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
         let conversation = conversations[indexPath.row]
-        
-        // الانتقال لشاشة الشات عند الضغط
         let chatVC = ChatViewController(conversation: conversation)
         navigationController?.pushViewController(chatVC, animated: true)
     }

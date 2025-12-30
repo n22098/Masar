@@ -12,35 +12,86 @@ class SignUpSeekerViewController: UIViewController, UITextFieldDelegate {
     @IBOutlet weak var passwordTextField: UITextField!
     @IBOutlet weak var confirmPasswordTextField: UITextField!
     @IBOutlet weak var applyAsProviderSwitch: UISwitch!
+    
+    // 👇 اربط العناصر الجديدة
+    @IBOutlet weak var signUpButton: UIButton!
+    @IBOutlet weak var logoImageView: UIImageView!
 
     let db = Firestore.firestore()
+    private let brandColor = UIColor(red: 98/255, green: 84/255, blue: 243/255, alpha: 1.0)
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        
-        // Setup text field delegates for animations
         setupDelegates()
-        
-        // Initialize the eye icons
         setupPasswordToggle(for: passwordTextField)
         setupPasswordToggle(for: confirmPasswordTextField)
+        setupProfessionalUI()
     }
 
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         applyAsProviderSwitch.setOn(false, animated: false)
     }
-
-    // MARK: - Keyboard & Delegate Setup
     
+    // MARK: - 🎨 Professional UI
+    private func setupProfessionalUI() {
+        view.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(dismissKeyboard)))
+        view.backgroundColor = .systemBackground
+
+        // تصميم الحقول
+        styleTextField(nameTextField, iconName: "person")
+        styleTextField(emailTextField, iconName: "envelope")
+        styleTextField(phoneNumberTextField, iconName: "phone")
+        styleTextField(usernameTextField, iconName: "at")
+        styleTextField(passwordTextField, iconName: "lock")
+        styleTextField(confirmPasswordTextField, iconName: "lock.shield")
+        
+        // زر التسجيل
+        if let btn = signUpButton {
+            btn.backgroundColor = brandColor
+            btn.setTitle("Sign Up", for: .normal)
+            btn.setTitleColor(.white, for: .normal)
+            btn.titleLabel?.font = UIFont.systemFont(ofSize: 18, weight: .bold)
+            btn.layer.cornerRadius = 14
+            btn.layer.shadowColor = brandColor.cgColor
+            btn.layer.shadowOpacity = 0.4
+            btn.layer.shadowOffset = CGSize(width: 0, height: 4)
+            btn.layer.shadowRadius = 8
+        }
+        
+        // زر التبديل
+        applyAsProviderSwitch.onTintColor = brandColor
+        
+        // الشعار
+        logoImageView?.contentMode = .scaleAspectFit
+    }
+    
+    private func styleTextField(_ textField: UITextField, iconName: String) {
+        textField.layer.cornerRadius = 12
+        textField.layer.borderWidth = 1
+        textField.layer.borderColor = UIColor.systemGray5.cgColor
+        textField.backgroundColor = UIColor.systemGray6.withAlphaComponent(0.4)
+        textField.textColor = .label
+        
+        let iconContainer = UIView(frame: CGRect(x: 0, y: 0, width: 45, height: 50))
+        let iconView = UIImageView(frame: CGRect(x: 12, y: 14, width: 22, height: 22))
+        iconView.image = UIImage(systemName: iconName)
+        iconView.tintColor = brandColor
+        iconView.contentMode = .scaleAspectFit
+        iconContainer.addSubview(iconView)
+        
+        textField.leftView = iconContainer
+        textField.leftViewMode = .always
+    }
+    
+    @objc func dismissKeyboard() { view.endEditing(true) }
+
+    // MARK: - Logic (كما هو) 👇
     private func setupDelegates() {
         let textFields = [nameTextField, emailTextField, phoneNumberTextField, usernameTextField, passwordTextField, confirmPasswordTextField]
-        
         for (index, textField) in textFields.enumerated() {
             textField?.delegate = self
-            textField?.tag = index // Tagging them in order
-            
-            // Set keyboard return key type
+            textField?.tag = index
             if textField == confirmPasswordTextField {
                 textField?.returnKeyType = .go
             } else {
@@ -49,29 +100,22 @@ class SignUpSeekerViewController: UIViewController, UITextFieldDelegate {
         }
     }
 
-    // This function handles the "Next" animation
     func textFieldShouldReturn(_ textField: UITextField) -> Bool {
         let nextTag = textField.tag + 1
-        
         if let nextResponder = self.view.viewWithTag(nextTag) as? UITextField {
-            // Animate moving to next field
             nextResponder.becomeFirstResponder()
         } else {
-            // If it's the last field, trigger the sign up action
             textField.resignFirstResponder()
             signUpBtn(UIButton())
         }
         return true
     }
-
-    // MARK: - Actions
     
     @IBAction func signUpBtn(_ sender: UIButton) {
         if applyAsProviderSwitch.isOn {
             showAlert("Please complete provider information first.")
             return
         }
-
         guard validateInputs() else { return }
 
         let email = emailTextField.text!.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -85,31 +129,16 @@ class SignUpSeekerViewController: UIViewController, UITextFieldDelegate {
                 self.showAlert("Email, Username, or Phone Number is already in use.")
                 return
             }
-
             Auth.auth().createUser(withEmail: email, password: password) { authResult, error in
-                if let error = error {
-                    self.showAlert("Error: \(error.localizedDescription)")
-                    return
-                }
-
+                if let error = error { self.showAlert("Error: \(error.localizedDescription)"); return }
                 guard let uid = authResult?.user.uid else { return }
-
                 let userData: [String: Any] = [
-                    "uid": uid,
-                    "name": name,
-                    "email": email,
-                    "username": username,
-                    "phone": phone,
-                    "role": "seeker",
-                    "createdAt": FieldValue.serverTimestamp()
+                    "uid": uid, "name": name, "email": email, "username": username, "phone": phone,
+                    "role": "seeker", "createdAt": FieldValue.serverTimestamp()
                 ]
-
                 self.db.collection("users").document(uid).setData(userData) { error in
-                    if let error = error {
-                        self.showAlert("Account created but failed: \(error.localizedDescription)")
-                    } else {
-                        self.showSuccessAndRedirect()
-                    }
+                    if let error = error { self.showAlert("Failed: \(error.localizedDescription)") }
+                    else { self.showSuccessAndRedirect() }
                 }
             }
         }
@@ -117,17 +146,12 @@ class SignUpSeekerViewController: UIViewController, UITextFieldDelegate {
 
     @IBAction func switchBtn(_ sender: UISwitch) {
         guard sender.isOn else { return }
-        
-        // التحقق من صحة المدخلات قبل الانتقال
-        guard validateInputs() else {
-            sender.setOn(false, animated: true)
-            return
-        }
+        guard validateInputs() else { sender.setOn(false, animated: true); return }
 
         let name = nameTextField.text!.trimmingCharacters(in: .whitespacesAndNewlines)
         let email = emailTextField.text!.trimmingCharacters(in: .whitespacesAndNewlines)
         let phone = phoneNumberTextField.text!.trimmingCharacters(in: .whitespacesAndNewlines)
-        let username = usernameTextField.text!.trimmingCharacters(in: .whitespacesAndNewlines) // ✅ Capture Username
+        let username = usernameTextField.text!.trimmingCharacters(in: .whitespacesAndNewlines)
         let password = passwordTextField.text!
 
         checkIfUserDataExists(email: email, username: username, phone: phone) { exists in
@@ -136,61 +160,37 @@ class SignUpSeekerViewController: UIViewController, UITextFieldDelegate {
                 sender.setOn(false, animated: true)
                 return
             }
-
             let storyboard = UIStoryboard(name: "Main", bundle: nil)
             guard let providerVC = storyboard.instantiateViewController(withIdentifier: "ApplyProviderTableViewController") as? ApplyProviderTableViewController else {
-                sender.setOn(false, animated: true)
-                return
+                sender.setOn(false, animated: true); return
             }
-
-            // تمرير البيانات للصفحة التالية
             providerVC.userName = name
             providerVC.userEmail = email
             providerVC.userPhone = phone
-            providerVC.userUsername = username // ✅ Pass Username
+            providerVC.userUsername = username
             providerVC.userPassword = password
-
             self.navigationController?.pushViewController(providerVC, animated: true)
         }
     }
-
-    // MARK: - Navigation
     
     func showSuccessAndRedirect() {
         let alert = UIAlertController(title: "Success!", message: "Account created successfully.", preferredStyle: .alert)
-        let okAction = UIAlertAction(title: "OK", style: .default) { _ in
-            
-            // الانتقال مباشرة إلى Seeker Storyboard
+        alert.addAction(UIAlertAction(title: "OK", style: .default) { _ in
             let storyboard = UIStoryboard(name: "Seeker", bundle: nil)
-            if let mainVC = storyboard.instantiateInitialViewController() {
-                if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
-                   let sceneDelegate = windowScene.delegate as? SceneDelegate,
-                   let window = sceneDelegate.window {
-                    window.rootViewController = mainVC
-                    UIView.transition(with: window, duration: 0.3, options: .transitionCrossDissolve, animations: nil, completion: nil)
-                }
+            if let mainVC = storyboard.instantiateInitialViewController(),
+               let window = (UIApplication.shared.connectedScenes.first?.delegate as? SceneDelegate)?.window {
+                window.rootViewController = mainVC
+                UIView.transition(with: window, duration: 0.3, options: .transitionCrossDissolve, animations: nil)
             }
-        }
-        alert.addAction(okAction)
+        })
         present(alert, animated: true)
     }
-
-    // MARK: - Helpers
     
     func validateInputs() -> Bool {
         let fields = [nameTextField, emailTextField, usernameTextField, phoneNumberTextField, passwordTextField, confirmPasswordTextField]
-        if fields.contains(where: { $0?.text?.isEmpty ?? true }) {
-            showAlert("All fields are required.")
-            return false
-        }
-        if passwordTextField.text != confirmPasswordTextField.text {
-            showAlert("Passwords do not match.")
-            return false
-        }
-        if (passwordTextField.text?.count ?? 0) < 6 {
-            showAlert("Password must be at least 6 characters.")
-            return false
-        }
+        if fields.contains(where: { $0?.text?.isEmpty ?? true }) { showAlert("All fields are required."); return false }
+        if passwordTextField.text != confirmPasswordTextField.text { showAlert("Passwords do not match."); return false }
+        if (passwordTextField.text?.count ?? 0) < 6 { showAlert("Password must be at least 6 characters."); return false }
         return true
     }
 
@@ -199,8 +199,10 @@ class SignUpSeekerViewController: UIViewController, UITextFieldDelegate {
         button.setImage(UIImage(systemName: "eye.slash"), for: .normal)
         button.setImage(UIImage(systemName: "eye"), for: .selected)
         button.tintColor = .systemGray
-        button.frame = CGRect(x: 0, y: 0, width: 30, height: 30)
-        button.contentEdgeInsets = UIEdgeInsets(top: 0, left: 0, bottom: 0, right: 10)
+        var config = UIButton.Configuration.plain()
+        config.contentInsets = NSDirectionalEdgeInsets(top: 0, leading: -10, bottom: 0, trailing: 10)
+        button.configuration = config
+        button.frame = CGRect(x: 0, y: 0, width: 40, height: 30)
         button.addTarget(self, action: #selector(togglePasswordVisibility(_:)), for: .touchUpInside)
         textField.rightView = button
         textField.rightViewMode = .always
@@ -209,13 +211,9 @@ class SignUpSeekerViewController: UIViewController, UITextFieldDelegate {
 
     @objc private func togglePasswordVisibility(_ sender: UIButton) {
         sender.isSelected.toggle()
-        if let textField = sender.superview as? UITextField {
-            textField.isSecureTextEntry.toggle()
-            if let text = textField.text {
-                textField.text = nil
-                textField.text = text
-            }
-        }
+        if let textField = sender.superview as? UITextField { textField.isSecureTextEntry.toggle() }
+        else if sender == passwordTextField.rightView as? UIButton { passwordTextField.isSecureTextEntry.toggle() }
+        else if sender == confirmPasswordTextField.rightView as? UIButton { confirmPasswordTextField.isSecureTextEntry.toggle() }
     }
 
     func checkIfUserDataExists(email: String, username: String, phone: String, completion: @escaping (Bool) -> Void) {
@@ -223,9 +221,7 @@ class SignUpSeekerViewController: UIViewController, UITextFieldDelegate {
             Filter.whereField("email", isEqualTo: email),
             Filter.whereField("username", isEqualTo: username),
             Filter.whereField("phone", isEqualTo: phone)
-        ])).getDocuments { snapshot, _ in
-            completion(!(snapshot?.documents.isEmpty ?? true))
-        }
+        ])).getDocuments { snapshot, _ in completion(!(snapshot?.documents.isEmpty ?? true)) }
     }
 
     func showAlert(_ message: String) {

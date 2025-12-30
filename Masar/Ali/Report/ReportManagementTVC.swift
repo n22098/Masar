@@ -1,89 +1,92 @@
 import UIKit
+import FirebaseFirestore
 
 class ReportManagementTVC: UITableViewController {
     
-    private let viewModel = ReportManagementViewModel()
-    
-    // اللون البنفسجي الموحد (نفس المستخدم في الصفحات السابقة)
+    var reports: [[String: Any]] = []
     let brandColor = UIColor(red: 98/255, green: 84/255, blue: 243/255, alpha: 1.0)
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        setupUI()
+        setupDesign()
+        fetchReports()
+        
+        // تسجيل الخلية برمجياً لضمان عملها حتى لو لم تربطها بالستوري بورد
+        tableView.register(ReportItemCell.self, forCellReuseIdentifier: ReportItemCell.identifier)
     }
     
-    // MARK: - Setup
-    
-    private func setupUI() {
-        // 1. Navigation Bar - توحيد اللون البنفسجي
+    func setupDesign() {
+        title = "Report Management"
+        // لون خلفية الجدول (رمادي فاتح جداً)
+        view.backgroundColor = UIColor(red: 248/255, green: 249/255, blue: 253/255, alpha: 1.0)
+        
+        // إعداد النافيجيشن بار
         let appearance = UINavigationBarAppearance()
         appearance.configureWithOpaqueBackground()
         appearance.backgroundColor = brandColor
-        
-        // النصوص باللون الأبيض لتباين ممتاز
-        appearance.titleTextAttributes = [
-            .foregroundColor: UIColor.white,
-            .font: UIFont.systemFont(ofSize: 18, weight: .semibold)
-        ]
-        appearance.largeTitleTextAttributes = [
-            .foregroundColor: UIColor.white,
-            .font: UIFont.systemFont(ofSize: 34, weight: .bold)
-        ]
-        appearance.shadowColor = .clear // إزالة الخط الفاصل
+        appearance.titleTextAttributes = [.foregroundColor: UIColor.white]
+        appearance.largeTitleTextAttributes = [.foregroundColor: UIColor.white]
         
         navigationController?.navigationBar.standardAppearance = appearance
         navigationController?.navigationBar.scrollEdgeAppearance = appearance
-        navigationController?.navigationBar.compactAppearance = appearance
-        navigationController?.navigationBar.tintColor = .white // لون أزرار الرجوع
+        navigationController?.navigationBar.tintColor = .white
         navigationController?.navigationBar.prefersLargeTitles = true
         
-        self.title = "Reports"
+        // 🔥 التعديل 1: إزالة الخطوط الفاصلة
+        tableView.separatorStyle = .none
         
-        // 2. Table View Styling - خلفية رمادية فاتحة عصرية
-        tableView.backgroundColor = UIColor(red: 248/255, green: 248/255, blue: 252/255, alpha: 1.0)
-        tableView.separatorStyle = .none // إزالة الخطوط لأننا نستخدم نظام البطاقات
-        tableView.tableFooterView = UIView()
-        
-        // إعدادات الارتفاع
-        tableView.rowHeight = UITableView.automaticDimension
-        tableView.estimatedRowHeight = 120
-        
-        // إزالة الحشوة الزائدة في حالة الـ Grouped
-        if #available(iOS 15.0, *) {
-            tableView.sectionHeaderTopPadding = 0
+        // 🔥 التعديل 3 (جزئي): زيادة ارتفاع الخلية قليلاً لاستيعاب المسافات الجديدة
+        tableView.rowHeight = 100 // زدناها من 90 إلى 100
+    }
+    
+    func fetchReports() {
+        let db = Firestore.firestore()
+        db.collection("reports").order(by: "timestamp", descending: true).addSnapshotListener { [weak self] (snapshot, error) in
+            if let error = error { print(error); return }
+            self?.reports = snapshot?.documents.map { $0.data() } ?? []
+            self?.tableView.reloadData()
         }
     }
 
-    // MARK: - Table view data source
-    
+    // MARK: - Table View Data Source
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return viewModel.numberOfReports()
+        return reports.count
     }
 
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        guard let cell = tableView.dequeueReusableCell(withIdentifier: "ReportItemCell", for: indexPath) as? ReportItemCell else {
+        guard let cell = tableView.dequeueReusableCell(withIdentifier: ReportItemCell.identifier, for: indexPath) as? ReportItemCell else {
             return UITableViewCell()
         }
         
-        if let report = viewModel.report(at: indexPath.row) {
-            cell.configure(with: report)
-        }
+        let report = reports[indexPath.row]
+        
+        // تنسيق رقم التقرير (001, 002...)
+        let displayId = String(format: "%03d", reports.count - indexPath.row)
+        
+        let name = report["reporter"] as? String ?? "Unknown"
+        let email = report["email"] as? String ?? "No Email"
+        
+        cell.configure(id: displayId, name: name, email: email)
+        
+        // 🔥 التعديل 2: إزالة السهم الخارجي (لأننا وضعنا واحداً داخل الخلية)
+        cell.accessoryType = .none
         
         return cell
     }
     
-    // MARK: - Table view delegate
-    
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        // التأخير قليلاً لرؤية الأنيميشن
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-            tableView.deselectRow(at: indexPath, animated: true)
-        }
+        let selectedReport = reports[indexPath.row]
+        let detailsVC = ReportDetailsTVC()
         
-        // Feedback لمسي خفيف عند الضغط
-        let generator = UIImpactFeedbackGenerator(style: .light)
-        generator.impactOccurred()
+        var stringData: [String: String] = [:]
+        stringData["id"] = selectedReport["id"] as? String ?? ""
+        stringData["reporter"] = selectedReport["reporter"] as? String ?? ""
+        stringData["email"] = selectedReport["email"] as? String ?? ""
+        stringData["subject"] = selectedReport["subject"] as? String ?? ""
+        stringData["description"] = selectedReport["description"] as? String ?? ""
         
-        // Handle navigation here...
+        detailsVC.reportData = stringData
+        navigationItem.backBarButtonItem = UIBarButtonItem(title: "", style: .plain, target: nil, action: nil)
+        navigationController?.pushViewController(detailsVC, animated: true)
     }
 }

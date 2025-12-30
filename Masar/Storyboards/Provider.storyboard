@@ -55,20 +55,19 @@
                                                     <rect key="frame" x="106" y="0.0" width="247" height="96"/>
                                                     <subviews>
                                                         <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Label" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="hXx-N2-pEp">
-                                                            <rect key="frame" x="0.0" y="0.0" width="247" height="48"/>
+                                                            <rect key="frame" x="0.0" y="0.0" width="247" height="32"/>
                                                             <fontDescription key="fontDescription" style="UICTFontTextStyleHeadline"/>
                                                             <nil key="textColor"/>
                                                             <nil key="highlightedColor"/>
                                                         </label>
                                                         <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Label" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="rHp-gh-EcM">
-                                                            <rect key="frame" x="0.0" y="48" width="247" height="48"/>
+                                                            <rect key="frame" x="0.0" y="32" width="247" height="32"/>
                                                             <fontDescription key="fontDescription" style="UICTFontTextStyleSubhead"/>
                                                             <nil key="textColor"/>
                                                             <nil key="highlightedColor"/>
                                                         </label>
                                                         <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="IBP-xM-zs8">
                                                             <rect key="frame" x="0.0" y="64" width="247" height="32"/>
-                                                            <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                                             <state key="normal" title="Button"/>
                                                             <buttonConfiguration key="configuration" style="plain" title="view services"/>
                                                         </button>
@@ -121,12 +120,50 @@
                         <autoresizingMask key="autoresizingMask"/>
                     </navigationBar>
                     <connections>
-                        <segue destination="S8d-bl-vlc" kind="relationship" relationship="rootViewController" id="7Hm-QA-rBX"/>
+                        <segue destination="akl-te-UtL" kind="relationship" relationship="rootViewController" id="wYu-fZ-YEf"/>
                     </connections>
                 </navigationController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="oHF-LE-HOx" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
             <point key="canvasLocation" x="-570" y="346"/>
+        </scene>
+        <!--Provider Messages Table View Controller-->
+        <scene sceneID="1je-Ue-JMe">
+            <objects>
+                <tableViewController id="akl-te-UtL" customClass="ProviderMessagesTableViewController" customModule="Masar" customModuleProvider="target" sceneMemberID="viewController">
+                    <tableView key="view" clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="default" rowHeight="-1" estimatedRowHeight="-1" sectionHeaderHeight="-1" estimatedSectionHeaderHeight="-1" sectionFooterHeight="-1" estimatedSectionFooterHeight="-1" id="y8P-GM-XSF">
+                        <rect key="frame" x="0.0" y="0.0" width="393" height="852"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <color key="backgroundColor" systemColor="systemBackgroundColor"/>
+                        <prototypes>
+                            <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" preservesSuperviewLayoutMargins="YES" selectionStyle="default" indentationWidth="10" rowHeight="229" id="H8g-Jn-w3P">
+                                <rect key="frame" x="0.0" y="50" width="393" height="229"/>
+                                <autoresizingMask key="autoresizingMask"/>
+                                <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" preservesSuperviewLayoutMargins="YES" insetsLayoutMarginsFromSafeArea="NO" tableViewCell="H8g-Jn-w3P" id="2nZ-fo-055">
+                                    <rect key="frame" x="0.0" y="0.0" width="393" height="229"/>
+                                    <autoresizingMask key="autoresizingMask"/>
+                                    <subviews>
+                                        <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" text="Label" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="yRZ-sU-xhD">
+                                            <rect key="frame" x="195" y="84" width="42" height="21"/>
+                                            <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                            <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                            <nil key="textColor"/>
+                                            <nil key="highlightedColor"/>
+                                        </label>
+                                    </subviews>
+                                </tableViewCellContentView>
+                            </tableViewCell>
+                        </prototypes>
+                        <connections>
+                            <outlet property="dataSource" destination="akl-te-UtL" id="VO9-gS-qnZ"/>
+                            <outlet property="delegate" destination="akl-te-UtL" id="EWd-N0-bZI"/>
+                        </connections>
+                    </tableView>
+                    <navigationItem key="navigationItem" id="vR2-y9-OLq"/>
+                </tableViewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="ZUe-4R-BXe" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="333.58778625954199" y="345.77464788732397"/>
         </scene>
         <!--S-->
         <scene sceneID="paY-zx-RUi">
@@ -139,11 +176,11 @@
                         <color key="selectedImageTintColor" red="0.34901960780000002" green="0.3411764706" blue="0.89019607840000003" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                     </tabBar>
                     <connections>
-                        <segue destination="UeB-jG-pny" kind="relationship" relationship="viewControllers" id="7eo-Fd-pHZ"/>
-                        <segue destination="khR-qn-ukq" kind="relationship" relationship="viewControllers" id="M51-1Z-hkq"/>
-                        <segue destination="2mC-Jt-Wpg" kind="relationship" relationship="viewControllers" id="tOh-V4-NUL"/>
-                        <segue destination="9GH-tW-YeT" kind="relationship" relationship="viewControllers" id="dke-hN-2RP"/>
-                        <segue destination="uTK-tK-QBv" kind="relationship" relationship="viewControllers" id="9Bg-Wm-aGl"/>
+                        <segue destination="UeB-jG-pny" kind="relationship" relationship="viewControllers" id="idd-To-clq"/>
+                        <segue destination="khR-qn-ukq" kind="relationship" relationship="viewControllers" id="niB-Ed-5ii"/>
+                        <segue destination="2mC-Jt-Wpg" kind="relationship" relationship="viewControllers" id="7I8-uo-ixF"/>
+                        <segue destination="9GH-tW-YeT" kind="relationship" relationship="viewControllers" id="QVn-Fw-Ezz"/>
+                        <segue destination="uTK-tK-QBv" kind="relationship" relationship="viewControllers" id="wYp-kX-sbV"/>
                     </connections>
                 </tabBarController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="kbw-8e-jhq" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
@@ -2021,7 +2058,7 @@
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <stackView opaque="NO" contentMode="scaleToFill" fixedFrame="YES" axis="vertical" distribution="fillProportionally" spacing="15" translatesAutoresizingMaskIntoConstraints="NO" id="MJ2-td-9I8">
-                                <rect key="frame" x="30" y="202.00000000000003" width="114.33333333333331" height="297.66666666666674"/>
+                                <rect key="frame" x="30" y="202" width="114.33333333333331" height="297.66666666666663"/>
                                 <subviews>
                                     <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="person.fill" catalog="system" translatesAutoresizingMaskIntoConstraints="NO" id="h8N-Sd-BDR">
                                         <rect key="frame" x="0.0" y="1.6666666666666661" width="114.33333333333333" height="17"/>
@@ -2114,22 +2151,6 @@
                 <placeholder placeholderIdentifier="IBFirstResponder" id="9IU-Pf-gXR" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
             <point key="canvasLocation" x="389" y="3270"/>
-        </scene>
-        <!--Message Pro View Controller-->
-        <scene sceneID="0ns-dZ-WfG">
-            <objects>
-                <viewController storyboardIdentifier="MessageProViewController" id="S8d-bl-vlc" customClass="MessageProViewController" customModule="Masar" customModuleProvider="target" sceneMemberID="viewController">
-                    <view key="view" contentMode="scaleToFill" id="GIf-tI-khl">
-                        <rect key="frame" x="0.0" y="0.0" width="393" height="852"/>
-                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
-                        <viewLayoutGuide key="safeArea" id="YlY-JC-5ax"/>
-                        <color key="backgroundColor" systemColor="systemBackgroundColor"/>
-                    </view>
-                    <navigationItem key="navigationItem" id="2By-As-rgg"/>
-                </viewController>
-                <placeholder placeholderIdentifier="IBFirstResponder" id="Sd6-YP-BuB" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
-            </objects>
-            <point key="canvasLocation" x="431" y="346"/>
         </scene>
         <!--Booking History Table View Controller-->
         <scene sceneID="Tai-Ri-fZR">
@@ -2489,7 +2510,7 @@
                                     <state key="normal" title="Button"/>
                                     <buttonConfiguration key="configuration" style="gray" title="Chat"/>
                                     <connections>
-                                        <segue destination="S8d-bl-vlc" kind="show" id="Gyu-Vf-gBP"/>
+                                        <segue destination="akl-te-UtL" kind="show" id="4rW-LK-hhQ"/>
                                     </connections>
                                 </button>
                                 <stackView opaque="NO" contentMode="scaleToFill" fixedFrame="YES" spacing="-1" translatesAutoresizingMaskIntoConstraints="NO" id="Chx-dh-rTY">
@@ -2723,7 +2744,7 @@
         </scene>
     </scenes>
     <inferredMetricsTieBreakers>
-        <segue reference="Gyu-Vf-gBP"/>
+        <segue reference="4rW-LK-hhQ"/>
     </inferredMetricsTieBreakers>
     <resources>
         <image name="arrow.up.arrow.down" catalog="system" width="128" height="97"/>

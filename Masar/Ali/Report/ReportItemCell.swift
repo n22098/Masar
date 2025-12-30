@@ -2,144 +2,144 @@ import UIKit
 
 class ReportItemCell: UITableViewCell {
     
-    @IBOutlet weak var idLabel: UILabel!
-    @IBOutlet weak var subjectLabel: UILabel!
-    @IBOutlet weak var reporterLabel: UILabel!
+    static let identifier = "ReportItemCell"
     
-    // الألوان الموحدة للمشروع
-    private let brandColor = UIColor(red: 98/255, green: 84/255, blue: 243/255, alpha: 1.0)
+    // MARK: - UI Elements
+    private let containerView: UIView = {
+        let view = UIView()
+        view.backgroundColor = .white
+        view.layer.cornerRadius = 12
+        // تحسين الظل ليبدو أعمق قليلاً
+        view.layer.shadowColor = UIColor.black.cgColor
+        view.layer.shadowOpacity = 0.06
+        view.layer.shadowOffset = CGSize(width: 0, height: 3)
+        view.layer.shadowRadius = 5
+        view.translatesAutoresizingMaskIntoConstraints = false
+        return view
+    }()
     
-    // العناصر الإضافية للتصميم
-    private var containerView: UIView!
-    private var stackView: UIStackView?
-    private var chevronImageView: UIImageView?
-
-    override func awakeFromNib() {
-        super.awakeFromNib()
+    private let iconContainer: UIView = {
+        let view = UIView()
+        view.backgroundColor = UIColor(red: 98/255, green: 84/255, blue: 243/255, alpha: 0.1)
+        view.layer.cornerRadius = 10
+        view.translatesAutoresizingMaskIntoConstraints = false
+        return view
+    }()
+    
+    private let iconImageView: UIImageView = {
+        let iv = UIImageView()
+        iv.image = UIImage(systemName: "exclamationmark.bubble.fill")
+        iv.tintColor = UIColor(red: 98/255, green: 84/255, blue: 243/255, alpha: 1.0)
+        iv.contentMode = .scaleAspectFit
+        iv.translatesAutoresizingMaskIntoConstraints = false
+        return iv
+    }()
+    
+    private let reportIdLabel: UILabel = {
+        let label = UILabel()
+        label.font = .systemFont(ofSize: 12, weight: .regular)
+        label.textColor = .systemGray
+        return label
+    }()
+    
+    private let nameLabel: UILabel = {
+        let label = UILabel()
+        label.font = .systemFont(ofSize: 16, weight: .bold)
+        label.textColor = .black
+        return label
+    }()
+    
+    private let emailLabel: UILabel = {
+        let label = UILabel()
+        label.font = .systemFont(ofSize: 12, weight: .medium)
+        label.textColor = .gray
+        return label
+    }()
+    
+    private let chevronImageView: UIImageView = {
+        let iv = UIImageView(image: UIImage(systemName: "chevron.right"))
+        iv.tintColor = .lightGray.withAlphaComponent(0.6)
+        iv.contentMode = .scaleAspectFit
+        iv.translatesAutoresizingMaskIntoConstraints = false
+        return iv
+    }()
+    
+    private let textStackView: UIStackView = {
+        let stack = UIStackView()
+        stack.axis = .vertical
+        stack.spacing = 4
+        stack.translatesAutoresizingMaskIntoConstraints = false
+        return stack
+    }()
+    
+    // MARK: - Init
+    override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
+        super.init(style: style, reuseIdentifier: reuseIdentifier)
         setupUI()
     }
-
-    private func setupUI() {
-            // خلفية الخلية شفافة
-            backgroundColor = .clear
-            selectionStyle = .none
-            
-            // 👇 أضف هذا السطر لإخفاء السهم الخارجي الزائد
-            accessoryType = .none
-            
-            // إعداد حاوية البطاقة
-            setupContainerView()
-            
-            // إعداد المحتوى
-            setupStackView()
-            setupChevron()
-        }
     
-    private func setupContainerView() {
-        containerView = UIView()
-        containerView.backgroundColor = .white
-        containerView.layer.cornerRadius = 12 // زوايا دائرية
-        // إضافة ظل خفيف جداً للاحترافية
-        containerView.layer.shadowColor = UIColor.black.cgColor
-        containerView.layer.shadowOpacity = 0.05
-        containerView.layer.shadowOffset = CGSize(width: 0, height: 2)
-        containerView.layer.shadowRadius = 4
-        containerView.translatesAutoresizingMaskIntoConstraints = false
+    required init?(coder: NSCoder) {
+        super.init(coder: coder)
+        setupUI()
+    }
+    
+    // MARK: - Setup UI
+    private func setupUI() {
+        backgroundColor = .clear
+        selectionStyle = .none
         
         contentView.addSubview(containerView)
+        containerView.addSubview(iconContainer)
+        iconContainer.addSubview(iconImageView)
+        containerView.addSubview(textStackView)
+        containerView.addSubview(chevronImageView)
         
-        // تثبيت البطاقة مع هوامش من الأطراف
+        textStackView.addArrangedSubview(reportIdLabel)
+        textStackView.addArrangedSubview(nameLabel)
+        textStackView.addArrangedSubview(emailLabel)
+        
         NSLayoutConstraint.activate([
-            containerView.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 8),
+            // 🔥 التعديل 3: زيادة المسافات العلوية والسفلية (من 6 إلى 10)
+            containerView.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 10),
+            containerView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -10),
+            // المسافات الجانبية
             containerView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
             containerView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
-            containerView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -8)
+            
+            // باقي القيود كما هي...
+            iconContainer.leadingAnchor.constraint(equalTo: containerView.leadingAnchor, constant: 12),
+            iconContainer.centerYAnchor.constraint(equalTo: containerView.centerYAnchor),
+            iconContainer.widthAnchor.constraint(equalToConstant: 45),
+            iconContainer.heightAnchor.constraint(equalToConstant: 45),
+            
+            iconImageView.centerXAnchor.constraint(equalTo: iconContainer.centerXAnchor),
+            iconImageView.centerYAnchor.constraint(equalTo: iconContainer.centerYAnchor),
+            iconImageView.widthAnchor.constraint(equalToConstant: 22),
+            iconImageView.heightAnchor.constraint(equalToConstant: 22),
+            
+            chevronImageView.trailingAnchor.constraint(equalTo: containerView.trailingAnchor, constant: -12),
+            chevronImageView.centerYAnchor.constraint(equalTo: containerView.centerYAnchor),
+            chevronImageView.widthAnchor.constraint(equalToConstant: 8),
+            chevronImageView.heightAnchor.constraint(equalToConstant: 12),
+            
+            textStackView.leadingAnchor.constraint(equalTo: iconContainer.trailingAnchor, constant: 12),
+            textStackView.trailingAnchor.constraint(equalTo: chevronImageView.leadingAnchor, constant: -8),
+            textStackView.centerYAnchor.constraint(equalTo: containerView.centerYAnchor)
         ])
     }
-
-    private func setupStackView() {
-        // التأكد من إزالة العناصر من الـ Superview الأصلي
-        [idLabel, subjectLabel, reporterLabel].forEach {
-            $0?.translatesAutoresizingMaskIntoConstraints = false
-            $0?.removeFromSuperview()
-        }
-        
-        // إنشاء الـ StackView
-        stackView = UIStackView(arrangedSubviews: [idLabel, subjectLabel, reporterLabel].compactMap { $0 })
-        stackView?.axis = .vertical
-        stackView?.spacing = 6
-        stackView?.alignment = .leading
-        stackView?.distribution = .fill
-        stackView?.translatesAutoresizingMaskIntoConstraints = false
-        
-        if let stack = stackView {
-            // نضيف الـ Stack داخل الـ ContainerView وليس الـ ContentView
-            containerView.addSubview(stack)
-            
-            NSLayoutConstraint.activate([
-                stack.topAnchor.constraint(equalTo: containerView.topAnchor, constant: 16),
-                stack.leadingAnchor.constraint(equalTo: containerView.leadingAnchor, constant: 16),
-                stack.trailingAnchor.constraint(equalTo: containerView.trailingAnchor, constant: -40), // مساحة للسهم
-                stack.bottomAnchor.constraint(equalTo: containerView.bottomAnchor, constant: -16)
-            ])
-        }
+    
+    // MARK: - Configuration
+    func configure(id: String, name: String, email: String) {
+        reportIdLabel.text = "#\(id)"
+        nameLabel.text = name
+        emailLabel.text = email
     }
     
-    private func setupChevron() {
-        let config = UIImage.SymbolConfiguration(pointSize: 14, weight: .semibold)
-        let image = UIImage(systemName: "chevron.right", withConfiguration: config)
-        chevronImageView = UIImageView(image: image)
-        chevronImageView?.tintColor = UIColor.lightGray.withAlphaComponent(0.6)
-        chevronImageView?.contentMode = .scaleAspectFit
-        chevronImageView?.translatesAutoresizingMaskIntoConstraints = false
-        
-        if let chevron = chevronImageView {
-            containerView.addSubview(chevron) // داخل البطاقة
-            
-            NSLayoutConstraint.activate([
-                chevron.centerYAnchor.constraint(equalTo: containerView.centerYAnchor),
-                chevron.trailingAnchor.constraint(equalTo: containerView.trailingAnchor, constant: -16),
-                chevron.widthAnchor.constraint(equalToConstant: 8),
-                chevron.heightAnchor.constraint(equalToConstant: 14)
-            ])
-        }
-    }
-
-    func configure(with report: ReportItem) {
-            // ID: صغير ورمادي في الأعلى
-            idLabel?.text = "#\(report.reportID)"
-            idLabel?.font = .systemFont(ofSize: 13, weight: .regular)
-            idLabel?.textColor = UIColor.systemGray2
-            
-            // Subject: العنوان الرئيسي - بارز
-            subjectLabel?.text = report.subject
-            subjectLabel?.font = .systemFont(ofSize: 17, weight: .bold)
-            subjectLabel?.textColor = UIColor.black
-            
-            // Reporter: تلوين الاسم فقط
-            let reporterText = "Reporter: "
-            let nameText = report.reporter
-            
-            // التصحيح هنا: استخدمنا .foregroundColor بدلاً من .textColor
-            let attributedString = NSMutableAttributedString(string: reporterText, attributes: [
-                .font: UIFont.systemFont(ofSize: 14, weight: .regular),
-                .foregroundColor: UIColor.gray // ✅ الصحيح
-            ])
-            
-            attributedString.append(NSAttributedString(string: nameText, attributes: [
-                .font: UIFont.systemFont(ofSize: 14, weight: .semibold),
-                .foregroundColor: brandColor // ✅ الصحيح
-            ]))
-            
-            reporterLabel?.attributedText = attributedString
-        }
-    
-    // إضافة أنيميشن عند الضغط لجعل التطبيق يشعرك بالحيوية
+    // MARK: - Animation
     override func setHighlighted(_ highlighted: Bool, animated: Bool) {
         super.setHighlighted(highlighted, animated: animated)
         UIView.animate(withDuration: 0.2) {
-            self.containerView.transform = highlighted ? CGAffineTransform(scaleX: 0.98, y: 0.98) : .identity
-            self.containerView.backgroundColor = highlighted ? UIColor(white: 0.97, alpha: 1) : .white
+            self.containerView.transform = highlighted ? CGAffineTransform(scaleX: 0.96, y: 0.96) : .identity
         }
     }
 }

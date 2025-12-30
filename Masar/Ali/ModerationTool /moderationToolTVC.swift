@@ -8,7 +8,6 @@ class moderationToolTVC: UITableViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         setupUI()
-        // DO NOT call setupCells() here anymore.
     }
     
     // MARK: - Setup
@@ -23,33 +22,111 @@ class moderationToolTVC: UITableViewController {
         navigationController?.navigationBar.standardAppearance = appearance
         navigationController?.navigationBar.scrollEdgeAppearance = appearance
         navigationController?.navigationBar.tintColor = .white
-        navigationController?.navigationBar.prefersLargeTitles = true
+        navigationController?.navigationBar.prefersLargeTitles = false
         
         self.navigationItem.title = "Moderations Tool"
         
         tableView.backgroundColor = UIColor(red: 248/255, green: 248/255, blue: 252/255, alpha: 1.0)
         tableView.separatorStyle = .none
-        tableView.rowHeight = 80
+        
+        tableView.tableHeaderView = nil
+        tableView.contentInset = UIEdgeInsets(top: 20, left: 0, bottom: 0, right: 0)
+    }
+    
+    override func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
+        return 85
     }
     
     // MARK: - Table View Delegate
-    
-    // This is the safest place to configure Static Cells.
-    // It runs right before the cell is drawn on the screen.
     override func tableView(_ tableView: UITableView, willDisplay cell: UITableViewCell, forRowAt indexPath: IndexPath) {
         
-        // Use optional casting (as?) to safely check the cell type
-        if let category = cell as? Categorycell {
-            category.configure(title: "Category Management")
-            category.accessoryType = .none
+        // 1. إخفاء أي نصوص مكررة موجودة مسبقاً
+        for subview in cell.contentView.subviews {
+            if let label = subview as? UILabel, label != cell.textLabel && label != cell.detailTextLabel {
+                label.removeFromSuperview()
+            }
         }
-        else if let report = cell as? reportCell {
-            report.configure(title: "Report Management")
-            report.accessoryType = .none
+        
+        // 2. إنشاء خلفية البطاقة (Card View)
+        cell.backgroundColor = .clear
+        cell.contentView.backgroundColor = .clear
+        cell.accessoryType = .none
+        cell.selectionStyle = .none
+        
+        // 2. إنشاء خلفية البطاقة (Card View)
+        var cardBackgroundView: UIView?
+        
+        if let existingCard = cell.viewWithTag(999) {
+            cardBackgroundView = existingCard
+        } else {
+            let cardBackground = UIView()
+            cardBackground.tag = 999
+            cardBackground.backgroundColor = .white
+            cardBackground.layer.cornerRadius = 12
+            
+            cardBackground.layer.shadowColor = UIColor.black.cgColor
+            cardBackground.layer.shadowOpacity = 0.05
+            cardBackground.layer.shadowOffset = CGSize(width: 0, height: 2)
+            cardBackground.layer.shadowRadius = 4
+            
+            cell.contentView.addSubview(cardBackground)
+            cell.contentView.sendSubviewToBack(cardBackground)
+            
+            cardBackground.translatesAutoresizingMaskIntoConstraints = false
+            NSLayoutConstraint.activate([
+                cardBackground.topAnchor.constraint(equalTo: cell.contentView.topAnchor, constant: 6),
+                cardBackground.bottomAnchor.constraint(equalTo: cell.contentView.bottomAnchor, constant: -6),
+                cardBackground.leadingAnchor.constraint(equalTo: cell.contentView.leadingAnchor, constant: 16),
+                cardBackground.trailingAnchor.constraint(equalTo: cell.contentView.trailingAnchor, constant: -16)
+            ])
+            cardBackgroundView = cardBackground
         }
-        else if let verification = cell as? verificationCell {
-            verification.configure(title: "Verification")
-            verification.accessoryType = .none
+        
+        // 3. إضافة سهم مخصص
+        if cell.contentView.viewWithTag(888) == nil, let cardBg = cardBackgroundView {
+            let arrowImageView = UIImageView()
+            arrowImageView.tag = 888
+            arrowImageView.image = UIImage(systemName: "chevron.right")
+            arrowImageView.tintColor = .systemGray3
+            arrowImageView.contentMode = .scaleAspectFit
+            arrowImageView.translatesAutoresizingMaskIntoConstraints = false
+            
+            cell.contentView.addSubview(arrowImageView)
+            cell.contentView.bringSubviewToFront(arrowImageView)
+            
+            NSLayoutConstraint.activate([
+                arrowImageView.centerYAnchor.constraint(equalTo: cell.contentView.centerYAnchor),
+                arrowImageView.trailingAnchor.constraint(equalTo: cardBg.trailingAnchor, constant: -16),
+                arrowImageView.widthAnchor.constraint(equalToConstant: 12),
+                arrowImageView.heightAnchor.constraint(equalToConstant: 20)
+            ])
+        }
+        
+        // 4. تنسيق النص والأيقونة
+        cell.textLabel?.font = .systemFont(ofSize: 17, weight: .medium)
+        cell.textLabel?.textColor = UIColor(red: 60/255, green: 60/255, blue: 67/255, alpha: 1.0)
+        cell.detailTextLabel?.text = nil
+        
+        // 5. تعبئة البيانات حسب indexPath
+        if indexPath.section == 0 {
+            if indexPath.row == 0 {
+                // Category Management
+                cell.textLabel?.text = "Category Management"
+                cell.imageView?.image = UIImage(systemName: "square.grid.2x2.fill")
+                cell.imageView?.tintColor = brandColor
+            }
+            else if indexPath.row == 1 {
+                // Report Management
+                cell.textLabel?.text = "Reports"
+                cell.imageView?.image = UIImage(systemName: "exclamationmark.bubble.fill")
+                cell.imageView?.tintColor = brandColor
+            }
+            else if indexPath.row == 2 {
+                // Verification
+                cell.textLabel?.text = "Verification"
+                cell.imageView?.image = UIImage(systemName: "checkmark.shield.fill")
+                cell.imageView?.tintColor = brandColor
+            }
         }
     }
     

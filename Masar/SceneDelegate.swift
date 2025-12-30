@@ -34,7 +34,7 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         // ✅ تحميل صفحة تسجيل الدخول من الستوري بورد
         let storyboard = UIStoryboard(name: "Main", bundle: nil)
         let signInVC = storyboard.instantiateViewController(withIdentifier: "SignInViewController")
-        
+
         let nav = UINavigationController(rootViewController: signInVC)
         nav.setNavigationBarHidden(true, animated: false)
 
@@ -45,13 +45,13 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     // ✅ دالة الانتقال للصفحة الرئيسية (بعد تسجيل الدخول)
     func showMainTabBar() {
         guard let window = self.window else { return }
-        
+
         let tabBar = makeMainTabBarController()
-        
+
         // تطبيق Dark Mode على الشاشة الجديدة
         let isDarkMode = UserDefaults.standard.bool(forKey: "isDarkMode")
         window.overrideUserInterfaceStyle = isDarkMode ? .dark : .light
-        
+
         UIView.transition(with: window, duration: 0.3, options: .transitionCrossDissolve, animations: {
             window.rootViewController = tabBar
         }, completion: nil)
@@ -60,14 +60,14 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     // ✅ دالة لتبديل الشاشات بين Seeker و Provider
     func navigateToStoryboard(_ storyboardName: String) {
         guard let window = self.window else { return }
-        
+
         let storyboard = UIStoryboard(name: storyboardName, bundle: nil)
-        
+
         if let mainVC = storyboard.instantiateInitialViewController() {
             // تطبيق Dark Mode على الشاشة الجديدة
             let isDarkMode = UserDefaults.standard.bool(forKey: "isDarkMode")
             window.overrideUserInterfaceStyle = isDarkMode ? .dark : .light
-            
+
             UIView.transition(with: window, duration: 0.3, options: .transitionCrossDissolve, animations: {
                 window.rootViewController = mainVC
             }, completion: nil)
@@ -101,10 +101,9 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
             selectedImage: UIImage(systemName: "clock.fill")
         )
 
-        // Messages
-        let messagesVC = UIViewController()
-        messagesVC.view.backgroundColor = .systemBackground
-        messagesVC.title = NSLocalizedString("Messages", comment: "")
+        // ✅ Messages (FIXED): تحميل من Provider.storyboard بدل UIViewController فاضي
+        let providerStoryboard = UIStoryboard(name: "Provider", bundle: nil)
+        let messagesVC = providerStoryboard.instantiateViewController(withIdentifier: "ProviderMessagesTableViewController")
         let messagesNav = UINavigationController(rootViewController: messagesVC)
         messagesNav.tabBarItem = UITabBarItem(
             title: NSLocalizedString("Messages", comment: ""),
@@ -124,30 +123,24 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 
         let tabBar = UITabBarController()
         tabBar.viewControllers = [searchNav, historyNav, messagesNav, profileNav]
-        
+
         // لون التحديد (بنفسجي)
         tabBar.tabBar.tintColor = UIColor(red: 98/255, green: 84/255, blue: 243/255, alpha: 1.0)
 
         return tabBar
     }
-    
+
     // MARK: - Scene Lifecycle
-    func sceneDidDisconnect(_ scene: UIScene) {
-        // Called as the scene is being released by the system.
-    }
+    func sceneDidDisconnect(_ scene: UIScene) {}
 
-    func sceneDidBecomeActive(_ scene: UIScene) {
-        // Called when the scene has moved from an inactive state to an active state.
-    }
+    func sceneDidBecomeActive(_ scene: UIScene) {}
 
-    func sceneWillResignActive(_ scene: UIScene) {
-        // Called when the scene will move from an active state to an inactive state.
-    }
+    func sceneWillResignActive(_ scene: UIScene) {}
 
     func sceneWillEnterForeground(_ scene: UIScene) {
         // ✅ تحميل Dark Mode عند الرجوع للتطبيق (على جميع النوافذ)
         let isDarkMode = UserDefaults.standard.bool(forKey: "isDarkMode")
-        
+
         UIApplication.shared.connectedScenes
             .compactMap { $0 as? UIWindowScene }
             .flatMap { $0.windows }
@@ -156,7 +149,5 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
             }
     }
 
-    func sceneDidEnterBackground(_ scene: UIScene) {
-        // Called as the scene transitions from the foreground to the background.
-    }
+    func sceneDidEnterBackground(_ scene: UIScene) {}
 }
