@@ -20,9 +20,9 @@ struct erviceProviderModel {
     let imageName: String
     let category: ServiceCategory
 }
-
-struct ServiceItem {
-    let name: String
-    let price: String
-    let details: String
-}
+//
+//struct ServiceItem {
+//    let name: String
+//    let price: String
+//    let details: String
+//}

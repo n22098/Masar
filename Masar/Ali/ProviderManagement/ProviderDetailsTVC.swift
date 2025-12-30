@@ -162,10 +162,12 @@ class ProviderDetailsTVC: UITableViewController {
             email: email,
             phone: phone,
             username: username,
+            category: provider?.category ?? "",
             status: status,
-            imageName: "default_profile", // or provider?.imageName
+            imageName: "default_profile",
             roleType: "Provider"
         )
+
         
         // 4. Save to your Data Source (API, Firebase, or CoreData)
         if isNewProvider {
