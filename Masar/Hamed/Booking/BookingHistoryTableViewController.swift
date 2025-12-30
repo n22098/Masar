@@ -121,10 +121,9 @@ class BookingHistoryTableViewController: UITableViewController {
             
             // 1. الأيقونة (الوجه الحزين)
             let imageView = UIImageView()
-            // استخدام أيقونة النظام التي تشبه الصورة تماماً
             let config = UIImage.SymbolConfiguration(pointSize: 70, weight: .regular)
             imageView.image = UIImage(systemName: "face.frowning", withConfiguration: config)
-            imageView.tintColor = brandColor // اللون البنفسجي
+            imageView.tintColor = brandColor
             imageView.contentMode = .scaleAspectFit
             
             // 2. العنوان
@@ -152,7 +151,7 @@ class BookingHistoryTableViewController: UITableViewController {
             // قيود التخطيط (Constraints)
             NSLayoutConstraint.activate([
                 stackView.centerXAnchor.constraint(equalTo: emptyView.centerXAnchor),
-                stackView.centerYAnchor.constraint(equalTo: emptyView.centerYAnchor, constant: -50), // رفعها قليلاً للأعلى
+                stackView.centerYAnchor.constraint(equalTo: emptyView.centerYAnchor, constant: -50),
                 stackView.leadingAnchor.constraint(equalTo: emptyView.leadingAnchor, constant: 40),
                 stackView.trailingAnchor.constraint(equalTo: emptyView.trailingAnchor, constant: -40)
             ])
@@ -178,6 +177,13 @@ class BookingHistoryTableViewController: UITableViewController {
         let cell = tableView.dequeueReusableCell(withIdentifier: "ModernBookingHistoryCell", for: indexPath) as! ModernBookingHistoryCell
         let booking = filteredBookings[indexPath.row]
         cell.configure(with: booking)
+        
+        // ⭐ NEW: التعامل مع ضغط زر التقييم
+        cell.onRateTapped = { [weak self] in
+            // يجب أن يكون لديك Segue اسمه "showRate" يذهب إلى RatingViewController
+            self?.performSegue(withIdentifier: "showRate", sender: booking)
+        }
+        
         return cell
     }
     
@@ -246,7 +252,9 @@ class BookingHistoryTableViewController: UITableViewController {
     }
     
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-        if let destVC = segue.destination as? Bookinghistoryapp,
+        // الانتقال لصفحة التفاصيل
+        if segue.identifier == "showBookingDetails",
+           let destVC = segue.destination as? Bookinghistoryapp,
            let booking = sender as? BookingModel {
             destVC.bookingData = booking
             
@@ -260,11 +268,22 @@ class BookingHistoryTableViewController: UITableViewController {
                 self.tableView.reloadData()
             }
         }
+        
+        // ⭐ NEW: الانتقال لصفحة التقييم
+        if segue.identifier == "showRate",
+           let destVC = segue.destination as? RatingViewController,
+           let booking = sender as? BookingModel {
+            destVC.bookingName = booking.serviceName
+            // destVC.providerID = booking.providerId (يمكنك إضافتها إذا كنت تحفظ ID البروفايدر)
+        }
     }
 }
 
-// MARK: - ModernBookingHistoryCell
+// MARK: - ModernBookingHistoryCell (Updated with Rate Button)
 class ModernBookingHistoryCell: UITableViewCell {
+    
+    // ⭐ Callback for Rate Button
+    var onRateTapped: (() -> Void)?
     
     private let containerView: UIView = {
         let view = UIView()
@@ -321,6 +340,20 @@ class ModernBookingHistoryCell: UITableViewCell {
         return label
     }()
     
+    // ⭐ زر التقييم الجديد
+    private lazy var rateButton: UIButton = {
+        let btn = UIButton(type: .system)
+        btn.setTitle("Rate", for: .normal)
+        btn.setTitleColor(UIColor.systemBlue, for: .normal)
+        btn.titleLabel?.font = UIFont.systemFont(ofSize: 14, weight: .bold)
+        btn.layer.borderWidth = 1
+        btn.layer.borderColor = UIColor.systemBlue.cgColor
+        btn.layer.cornerRadius = 12
+        btn.translatesAutoresizingMaskIntoConstraints = false
+        btn.addTarget(self, action: #selector(rateButtonTapped), for: .touchUpInside)
+        return btn
+    }()
+    
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
         setupUI()
@@ -338,6 +371,7 @@ class ModernBookingHistoryCell: UITableViewCell {
         containerView.addSubview(dateLabel)
         containerView.addSubview(priceLabel)
         containerView.addSubview(statusLabel)
+        containerView.addSubview(rateButton) // ⭐ Add button
         
         NSLayoutConstraint.activate([
             containerView.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 8),
@@ -361,9 +395,19 @@ class ModernBookingHistoryCell: UITableViewCell {
             statusLabel.heightAnchor.constraint(equalToConstant: 24),
             statusLabel.widthAnchor.constraint(greaterThanOrEqualToConstant: 80),
             
+            // ⭐ مكان زر التقييم تحت الحالة
+            rateButton.topAnchor.constraint(equalTo: statusLabel.bottomAnchor, constant: 8),
+            rateButton.trailingAnchor.constraint(equalTo: containerView.trailingAnchor, constant: -16),
+            rateButton.widthAnchor.constraint(equalToConstant: 70),
+            rateButton.heightAnchor.constraint(equalToConstant: 30),
+            
             priceLabel.bottomAnchor.constraint(equalTo: containerView.bottomAnchor, constant: -16),
             priceLabel.trailingAnchor.constraint(equalTo: containerView.trailingAnchor, constant: -16),
         ])
+    }
+    
+    @objc private func rateButtonTapped() {
+        onRateTapped?()
     }
     
     func configure(with booking: BookingModel) {
@@ -377,12 +421,15 @@ class ModernBookingHistoryCell: UITableViewCell {
         case .upcoming:
             statusLabel.textColor = UIColor(red: 255/255, green: 149/255, blue: 0/255, alpha: 1)
             statusLabel.backgroundColor = UIColor(red: 255/255, green: 149/255, blue: 0/255, alpha: 0.1)
+            rateButton.isHidden = true // ⭐ Hide rate button for upcoming
         case .completed:
             statusLabel.textColor = UIColor(red: 52/255, green: 199/255, blue: 89/255, alpha: 1)
             statusLabel.backgroundColor = UIColor(red: 52/255, green: 199/255, blue: 89/255, alpha: 0.1)
+            rateButton.isHidden = false // ⭐ Show rate button for completed
         case .canceled:
             statusLabel.textColor = UIColor(red: 255/255, green: 59/255, blue: 48/255, alpha: 1)
             statusLabel.backgroundColor = UIColor(red: 255/255, green: 59/255, blue: 48/255, alpha: 0.1)
+            rateButton.isHidden = true // ⭐ Hide rate button for canceled
         }
     }
 }
