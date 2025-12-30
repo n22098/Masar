@@ -8,15 +8,12 @@ class BookingHistoryTableViewController: UITableViewController {
         let items = ["Upcoming", "Completed", "Canceled"]
         let segment = UISegmentedControl(items: items)
         let brandColor = UIColor(red: 98/255, green: 84/255, blue: 243/255, alpha: 1.0)
-        
         segment.selectedSegmentIndex = 0
         segment.translatesAutoresizingMaskIntoConstraints = false
-        
         segment.backgroundColor = UIColor(white: 0.95, alpha: 1)
         segment.selectedSegmentTintColor = .white
         segment.setTitleTextAttributes([.foregroundColor: UIColor.gray], for: .normal)
         segment.setTitleTextAttributes([.foregroundColor: brandColor, .font: UIFont.systemFont(ofSize: 14, weight: .semibold)], for: .selected)
-        
         return segment
     }()
     
@@ -32,7 +29,6 @@ class BookingHistoryTableViewController: UITableViewController {
         setupUI()
         
         tableView.register(ModernBookingHistoryCell.self, forCellReuseIdentifier: "ModernBookingHistoryCell")
-        
         fetchBookingsFromFirebase()
     }
     
@@ -102,38 +98,30 @@ class BookingHistoryTableViewController: UITableViewController {
         case 2: filteredBookings = allBookings.filter { $0.status == .canceled }
         default: filteredBookings = allBookings
         }
-        
-        // تحديث حالة "القائمة فارغة"
         updateBackgroundView()
     }
     
-    // MARK: - 🔥 Empty State Logic (تصميم الصفحة الفارغة مع الوجه) 🔥
     func updateBackgroundView() {
         if filteredBookings.isEmpty {
             let emptyView = UIView(frame: tableView.bounds)
-            
-            // StackView لترتيب العناصر فوق بعضها في المنتصف
             let stackView = UIStackView()
             stackView.axis = .vertical
             stackView.alignment = .center
             stackView.spacing = 16
             stackView.translatesAutoresizingMaskIntoConstraints = false
             
-            // 1. الأيقونة (الوجه الحزين)
             let imageView = UIImageView()
             let config = UIImage.SymbolConfiguration(pointSize: 70, weight: .regular)
             imageView.image = UIImage(systemName: "face.frowning", withConfiguration: config)
             imageView.tintColor = brandColor
             imageView.contentMode = .scaleAspectFit
             
-            // 2. العنوان
             let titleLabel = UILabel()
             titleLabel.text = "No request history"
             titleLabel.font = UIFont.systemFont(ofSize: 22, weight: .bold)
             titleLabel.textColor = .black
             titleLabel.textAlignment = .center
             
-            // 3. النص الفرعي
             let messageLabel = UILabel()
             messageLabel.text = "No history of requests made on Masar"
             messageLabel.font = UIFont.systemFont(ofSize: 16, weight: .regular)
@@ -141,14 +129,12 @@ class BookingHistoryTableViewController: UITableViewController {
             messageLabel.textAlignment = .center
             messageLabel.numberOfLines = 0
             
-            // إضافة العناصر للـ StackView
             stackView.addArrangedSubview(imageView)
             stackView.addArrangedSubview(titleLabel)
             stackView.addArrangedSubview(messageLabel)
             
             emptyView.addSubview(stackView)
             
-            // قيود التخطيط (Constraints)
             NSLayoutConstraint.activate([
                 stackView.centerXAnchor.constraint(equalTo: emptyView.centerXAnchor),
                 stackView.centerYAnchor.constraint(equalTo: emptyView.centerYAnchor, constant: -50),
@@ -178,9 +164,8 @@ class BookingHistoryTableViewController: UITableViewController {
         let booking = filteredBookings[indexPath.row]
         cell.configure(with: booking)
         
-        // ⭐ NEW: التعامل مع ضغط زر التقييم
+        // ⭐ Handle Rate Button Click
         cell.onRateTapped = { [weak self] in
-            // يجب أن يكون لديك Segue اسمه "showRate" يذهب إلى RatingViewController
             self?.performSegue(withIdentifier: "showRate", sender: booking)
         }
         
@@ -189,26 +174,21 @@ class BookingHistoryTableViewController: UITableViewController {
     
     // MARK: - Delete Feature
     override func tableView(_ tableView: UITableView, trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
-        
         let deleteAction = UIContextualAction(style: .destructive, title: "Delete") { [weak self] (action, view, completionHandler) in
             self?.confirmDeletion(at: indexPath)
             completionHandler(true)
         }
-        
         deleteAction.backgroundColor = .systemRed
         deleteAction.image = UIImage(systemName: "trash.fill")
-        
         return UISwipeActionsConfiguration(actions: [deleteAction])
     }
     
     func confirmDeletion(at indexPath: IndexPath) {
         let alert = UIAlertController(title: "Delete Booking", message: "Are you sure you want to delete this booking history?", preferredStyle: .alert)
-        
         alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
         alert.addAction(UIAlertAction(title: "Delete", style: .destructive, handler: { [weak self] _ in
             self?.deleteBooking(at: indexPath)
         }))
-        
         present(alert, animated: true)
     }
     
@@ -218,25 +198,17 @@ class BookingHistoryTableViewController: UITableViewController {
         let bookingToDelete = filteredBookings[indexPath.row]
         guard let bookingId = bookingToDelete.id else { return }
         
-        // 1. Remove from Local Data
         filteredBookings.remove(at: indexPath.row)
-        
         if let index = allBookings.firstIndex(where: { $0.id == bookingId }) {
             allBookings.remove(at: index)
         }
         
-        // 2. Update Screen
         tableView.deleteRows(at: [indexPath], with: .left)
-        
-        // 🛑 تحديث الواجهة الفارغة فوراً بعد الحذف
         updateBackgroundView()
         
-        // 3. Delete from Database
         Firestore.firestore().collection("bookings").document(bookingId).delete { error in
             if let error = error {
                 print("Error removing from Firestore: \(error)")
-            } else {
-                print("Successfully deleted from Firestore")
             }
         }
     }
@@ -244,7 +216,6 @@ class BookingHistoryTableViewController: UITableViewController {
     // MARK: - Navigation
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
-        
         if indexPath.row < filteredBookings.count {
             let selectedBooking = filteredBookings[indexPath.row]
             performSegue(withIdentifier: "showBookingDetails", sender: selectedBooking)
@@ -252,15 +223,11 @@ class BookingHistoryTableViewController: UITableViewController {
     }
     
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-        // الانتقال لصفحة التفاصيل
-        if segue.identifier == "showBookingDetails",
-           let destVC = segue.destination as? Bookinghistoryapp,
+        if let destVC = segue.destination as? Bookinghistoryapp,
            let booking = sender as? BookingModel {
             destVC.bookingData = booking
-            
             destVC.onStatusChanged = { [weak self] newStatus in
                 guard let self = self else { return }
-                
                 if let index = self.allBookings.firstIndex(where: { $0.id == booking.id }) {
                     self.allBookings[index].status = newStatus
                 }
@@ -269,20 +236,18 @@ class BookingHistoryTableViewController: UITableViewController {
             }
         }
         
-        // ⭐ NEW: الانتقال لصفحة التقييم
+        // ⭐ Navigate to Rating Screen
         if segue.identifier == "showRate",
            let destVC = segue.destination as? RatingViewController,
            let booking = sender as? BookingModel {
             destVC.bookingName = booking.serviceName
-            // destVC.providerID = booking.providerId (يمكنك إضافتها إذا كنت تحفظ ID البروفايدر)
         }
     }
 }
 
-// MARK: - ModernBookingHistoryCell (Updated with Rate Button)
+// MARK: - ModernBookingHistoryCell
 class ModernBookingHistoryCell: UITableViewCell {
     
-    // ⭐ Callback for Rate Button
     var onRateTapped: (() -> Void)?
     
     private let containerView: UIView = {
@@ -340,7 +305,7 @@ class ModernBookingHistoryCell: UITableViewCell {
         return label
     }()
     
-    // ⭐ زر التقييم الجديد
+    // ⭐ زر التقييم
     private lazy var rateButton: UIButton = {
         let btn = UIButton(type: .system)
         btn.setTitle("Rate", for: .normal)
@@ -371,7 +336,7 @@ class ModernBookingHistoryCell: UITableViewCell {
         containerView.addSubview(dateLabel)
         containerView.addSubview(priceLabel)
         containerView.addSubview(statusLabel)
-        containerView.addSubview(rateButton) // ⭐ Add button
+        containerView.addSubview(rateButton)
         
         NSLayoutConstraint.activate([
             containerView.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 8),
@@ -395,7 +360,7 @@ class ModernBookingHistoryCell: UITableViewCell {
             statusLabel.heightAnchor.constraint(equalToConstant: 24),
             statusLabel.widthAnchor.constraint(greaterThanOrEqualToConstant: 80),
             
-            // ⭐ مكان زر التقييم تحت الحالة
+            // ⭐ مكان زر التقييم تحت Status
             rateButton.topAnchor.constraint(equalTo: statusLabel.bottomAnchor, constant: 8),
             rateButton.trailingAnchor.constraint(equalTo: containerView.trailingAnchor, constant: -16),
             rateButton.widthAnchor.constraint(equalToConstant: 70),
@@ -421,15 +386,15 @@ class ModernBookingHistoryCell: UITableViewCell {
         case .upcoming:
             statusLabel.textColor = UIColor(red: 255/255, green: 149/255, blue: 0/255, alpha: 1)
             statusLabel.backgroundColor = UIColor(red: 255/255, green: 149/255, blue: 0/255, alpha: 0.1)
-            rateButton.isHidden = true // ⭐ Hide rate button for upcoming
+            rateButton.isHidden = true
         case .completed:
             statusLabel.textColor = UIColor(red: 52/255, green: 199/255, blue: 89/255, alpha: 1)
             statusLabel.backgroundColor = UIColor(red: 52/255, green: 199/255, blue: 89/255, alpha: 0.1)
-            rateButton.isHidden = false // ⭐ Show rate button for completed
+            rateButton.isHidden = false // ⭐ Show only for completed
         case .canceled:
             statusLabel.textColor = UIColor(red: 255/255, green: 59/255, blue: 48/255, alpha: 1)
             statusLabel.backgroundColor = UIColor(red: 255/255, green: 59/255, blue: 48/255, alpha: 0.1)
-            rateButton.isHidden = true // ⭐ Hide rate button for canceled
+            rateButton.isHidden = true
         }
     }
 }

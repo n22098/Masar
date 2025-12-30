@@ -37,6 +37,8 @@ class SearchTableViewController: UITableViewController {
     // 🔥 New: Array to hold category names from Firebase
     private var categoryNames: [String] = ["All"]
     
+    let db = Firestore.firestore()
+    
     // MARK: - Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -47,6 +49,12 @@ class SearchTableViewController: UITableViewController {
         // 🔥 Fetch categories first, then providers
         fetchCategoriesFromFirebase()
         fetchProvidersFromFirebase()
+    }
+    
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        // تحديث التقييمات عند الرجوع للصفحة
+        tableView.reloadData()
     }
     
     // MARK: - Firebase Fetching 📡
@@ -161,6 +169,34 @@ class SearchTableViewController: UITableViewController {
                 print("✅ Successfully loaded \(newProviders.count) providers from Firebase!")
             }
         }
+    }
+    
+    // 🔥 دالة جديدة لجلب متوسط التقييم
+    func fetchAverageRating(for providerId: String, completion: @escaping (Double, Int) -> Void) {
+        db.collection("ratings")
+            .whereField("providerId", isEqualTo: providerId)
+            .getDocuments { (snapshot, error) in
+                if let error = error {
+                    print("Error fetching ratings: \(error)")
+                    completion(0.0, 0)
+                    return
+                }
+                
+                guard let documents = snapshot?.documents, !documents.isEmpty else {
+                    completion(0.0, 0)
+                    return
+                }
+                
+                var totalStars = 0.0
+                for doc in documents {
+                    if let stars = doc.data()["stars"] as? Double {
+                        totalStars += stars
+                    }
+                }
+                
+                let average = totalStars / Double(documents.count)
+                completion(average, documents.count)
+            }
     }
     
     // MARK: - Setup
@@ -297,6 +333,9 @@ class SearchTableViewController: UITableViewController {
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "ProviderCell", for: indexPath) as! ProviderTableCell
         let provider = filteredProviders[indexPath.row]
+        
+        // 🔥 تمرير الـ SearchTableViewController للـ cell
+        cell.parentViewController = self
         cell.configure(with: provider)
         return cell
     }
@@ -330,6 +369,10 @@ extension SearchTableViewController: UISearchResultsUpdating {
 
 // MARK: - Provider Cell
 class ProviderTableCell: UITableViewCell {
+    
+    // 🔥 مرجع للـ parent view controller
+    weak var parentViewController: SearchTableViewController?
+    
     private let containerView: UIView = {
         let view = UIView()
         view.backgroundColor = .white
@@ -373,6 +416,7 @@ class ProviderTableCell: UITableViewCell {
         let label = UILabel()
         label.font = UIFont.systemFont(ofSize: 13, weight: .medium)
         label.textColor = UIColor(red: 255/255, green: 149/255, blue: 0/255, alpha: 1)
+        label.text = "⭐️ 0.0"
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
     }()
@@ -438,7 +482,23 @@ class ProviderTableCell: UITableViewCell {
     func configure(with provider: ServiceProviderModel) {
         nameLabel.text = provider.name
         roleLabel.text = provider.role
-        ratingLabel.text = "⭐️ \(provider.rating)"
+        
+        // 🔥 جلب التقييم الحقيقي من Firebase
+        if let parentVC = parentViewController {
+            parentVC.fetchAverageRating(for: provider.id) { [weak self] average, count in
+                DispatchQueue.main.async {
+                    if count > 0 {
+                        self?.ratingLabel.text = String(format: "⭐️ %.1f", average)
+                    } else {
+                        self?.ratingLabel.text = "⭐️ 0.0"
+                    }
+                }
+            }
+        } else {
+            // القيمة الافتراضية
+            ratingLabel.text = "⭐️ \(provider.rating)"
+        }
+        
         if let image = UIImage(named: provider.imageName) {
             avatarImageView.image = image
         } else {

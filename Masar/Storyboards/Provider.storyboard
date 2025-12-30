@@ -119,12 +119,12 @@
                         <autoresizingMask key="autoresizingMask"/>
                     </navigationBar>
                     <connections>
-                        <segue destination="hKQ-hj-TmT" kind="relationship" relationship="rootViewController" id="kmF-iN-fK6"/>
+                        <segue destination="S8d-bl-vlc" kind="relationship" relationship="rootViewController" id="7Hm-QA-rBX"/>
                     </connections>
                 </navigationController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="oHF-LE-HOx" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="-570" y="501"/>
+            <point key="canvasLocation" x="-69" y="327"/>
         </scene>
         <!--S-->
         <scene sceneID="paY-zx-RUi">
@@ -1958,6 +1958,9 @@
                                     <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                     <state key="normal" title="Button"/>
                                     <buttonConfiguration key="configuration" style="gray" title="Chat"/>
+                                    <connections>
+                                        <segue destination="S8d-bl-vlc" kind="show" id="GlS-5e-wAh"/>
+                                    </connections>
                                 </button>
                                 <stackView opaque="NO" contentMode="scaleToFill" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="Fjk-Pz-fRb">
                                     <rect key="frame" x="305" y="0.0" width="71" height="38.333333333333336"/>
@@ -2328,7 +2331,7 @@
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <stackView opaque="NO" contentMode="scaleToFill" fixedFrame="YES" axis="vertical" distribution="fillProportionally" spacing="15" translatesAutoresizingMaskIntoConstraints="NO" id="MJ2-td-9I8">
-                                <rect key="frame" x="30" y="202" width="114.33333333333331" height="297.66666666666669"/>
+                                <rect key="frame" x="30" y="202" width="114.33333333333331" height="297.66666666666663"/>
                                 <subviews>
                                     <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="person.fill" catalog="system" translatesAutoresizingMaskIntoConstraints="NO" id="h8N-Sd-BDR">
                                         <rect key="frame" x="0.0" y="1.6666666666666661" width="114.33333333333333" height="17"/>
@@ -2422,8 +2425,25 @@
             </objects>
             <point key="canvasLocation" x="389" y="3270"/>
         </scene>
+        <!--Message Pro View Controller-->
+        <scene sceneID="0ns-dZ-WfG">
+            <objects>
+                <viewController storyboardIdentifier="MessageProViewController" id="S8d-bl-vlc" customClass="MessageProViewController" customModule="Masar" customModuleProvider="target" sceneMemberID="viewController">
+                    <view key="view" contentMode="scaleToFill" id="GIf-tI-khl">
+                        <rect key="frame" x="0.0" y="0.0" width="393" height="852"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <viewLayoutGuide key="safeArea" id="YlY-JC-5ax"/>
+                        <color key="backgroundColor" systemColor="systemBackgroundColor"/>
+                    </view>
+                    <navigationItem key="navigationItem" id="2By-As-rgg"/>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="Sd6-YP-BuB" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="1981" y="289"/>
+        </scene>
     </scenes>
     <inferredMetricsTieBreakers>
+        <segue reference="7Hm-QA-rBX"/>
         <segue reference="9iO-hL-XsA"/>
     </inferredMetricsTieBreakers>
     <resources>

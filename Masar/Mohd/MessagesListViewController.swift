@@ -1,11 +1,16 @@
 import UIKit
+import FirebaseFirestore
+import FirebaseAuth
 
 final class MessagesListViewController: UIViewController {
 
     // MARK: - Properties
 
     private let tableView = UITableView()
+    // سنستخدم هذا المتغير لتخزين بيانات المزودين وعرضهم كأنهم محادثات
     private var conversations: [Conversation] = []
+    
+    private let db = Firestore.firestore()
 
     // MARK: - Lifecycle
 
@@ -15,15 +20,17 @@ final class MessagesListViewController: UIViewController {
 
         setupHeader()
         setupTableView()
-        loadConversations()
+        
+        // استدعاء الدالة لجلب المزودين
+        fetchAllProviders()
     }
-
+    
     // MARK: - UI Setup
 
     private func setupHeader() {
         let headerView = UIView()
         headerView.translatesAutoresizingMaskIntoConstraints = false
-        headerView.backgroundColor = UIColor(red: 112/255, green: 79/255, blue: 217/255, alpha: 1)
+        headerView.backgroundColor = UIColor(red: 112/255, green: 79/255, blue: 217/255, alpha: 1) // اللون البنفسجي
 
         let titleLabel = UILabel()
         titleLabel.text = "Messages"
@@ -63,37 +70,69 @@ final class MessagesListViewController: UIViewController {
         ])
     }
 
-    // MARK: - Data
+    // MARK: - Firebase Data Logic
+    
+    private func fetchAllProviders() {
+        // التأكد من أن المستخدم مسجل دخول حتى لا نعرضه لنفسه (اختياري)
+        let currentUid = Auth.auth().currentUser?.uid ?? ""
 
-    private func loadConversations() {
-        // تم تحديث البيانات لتتوافق مع User struct الجديد (بدون username)
-        conversations = [
-            Conversation(
-                id: "1",
-                user: User(
-                    id: "u1",
-                    name: "Sayed Husain",
-                    email: "sayed@example.com",
-                    phone: "12345678",
-                    profileImageName: nil
-                ),
-                lastMessage: "Sure, send me the details",
-                lastUpdated: Date()
-            ),
-            Conversation(
-                id: "2",
-                user: User(
-                    id: "u2",
-                    name: "Aisha Noor",
-                    email: "aisha@example.com",
-                    phone: "87654321",
-                    profileImageName: nil
-                ),
-                lastMessage: "I'll update the design shortly",
-                lastUpdated: Date()
-            )
-        ]
-        tableView.reloadData()
+        // جلب جميع المستخدمين الذين لديهم الدور "provider"
+        db.collection("users")
+            .whereField("role", isEqualTo: "provider")
+            .getDocuments { [weak self] snapshot, error in
+                guard let self = self else { return }
+                
+                if let error = error {
+                    print("Error fetching providers: \(error)")
+                    return
+                }
+
+                guard let documents = snapshot?.documents else {
+                    print("No providers found")
+                    return
+                }
+
+                var fetchedList: [Conversation] = []
+
+                for doc in documents {
+                    let data = doc.data()
+                    let uid = data["uid"] as? String ?? doc.documentID
+                    
+                    // عدم عرض المستخدم لنفسه إذا كان هو أيضاً provider
+                    if uid == currentUid { continue }
+
+                    let name = data["name"] as? String ?? "Unknown Provider"
+                    let email = data["email"] as? String ?? ""
+                    let phone = data["phone"] as? String ?? ""
+                    
+                    // إنشاء كائن المستخدم
+                    let providerUser = User(
+                        id: uid,
+                        name: name,
+                        email: email,
+                        phone: phone,
+                        profileImageName: nil // يمكنك إضافة رابط الصورة إذا توفر في الفايربيس
+                    )
+                    
+                    // إنشاء كائن محادثة وهمي لكي يظهر في القائمة
+                    let conversationItem = Conversation(
+                        id: uid, // نستخدم نفس ايدي المستخدم كـ ايدي للمحادثة مؤقتاً
+                        user: providerUser,
+                        lastMessage: "Tap to start chatting", // رسالة افتراضية
+                        lastUpdated: Date()
+                    )
+                    
+                    fetchedList.append(conversationItem)
+                }
+
+                DispatchQueue.main.async {
+                    self.conversations = fetchedList
+                    self.tableView.reloadData()
+                    
+                    // طباعة للتأكد في الكونسول
+                    print("✅ Fetched \(fetchedList.count) providers from Firebase")
+                }
+            }
     }
 }
 
@@ -102,7 +141,7 @@ final class MessagesListViewController: UIViewController {
 extension MessagesListViewController: UITableViewDataSource, UITableViewDelegate {
 
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        conversations.count
+        return conversations.count
     }
 
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
@@ -114,6 +153,8 @@ extension MessagesListViewController: UITableViewDataSource, UITableViewDelegate
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
         let conversation = conversations[indexPath.row]
+        
+        // الانتقال لشاشة الشات عند الضغط
         let chatVC = ChatViewController(conversation: conversation)
         navigationController?.pushViewController(chatVC, animated: true)
     }

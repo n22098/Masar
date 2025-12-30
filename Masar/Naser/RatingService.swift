@@ -1,17 +1,63 @@
 import FirebaseFirestore
 
 class RatingService {
-    // نستخدم "shared" للوصول للخدمة بسهولة من أي مكان
+    
     static let shared = RatingService()
     private let db = Firestore.firestore()
+    private let collectionName = "Rating"
     
-    func uploadRating(_ rating: Rating, completion: @escaping (Error?) -> Void) {
-        do {
-            try db.collection("Rating").addDocument(from: rating) { error in
-                completion(error)
-            }
-        } catch let error {
+    private init() {}
+    
+    // دالة رفع التقييم (تم التعديل لتقبل البيانات يدوياً)
+    func uploadRating(stars: Double, feedback: String, bookingName: String, completion: @escaping (Error?) -> Void) {
+        
+        let data: [String: Any] = [
+            "stars": stars,
+            "feedback": feedback,
+            "bookingName": bookingName,
+            "date": Timestamp(date: Date()),
+            "username": "Guest User" // يمكنك تغييرها لاحقاً لاسم المستخدم الحقيقي
+        ]
+        
+        db.collection(collectionName).addDocument(data: data) { error in
             completion(error)
         }
+    }
+    
+    // دالة جلب التقييمات
+    func fetchRatings(completion: @escaping ([Rating], Error?) -> Void) {
+        db.collection(collectionName)
+            .order(by: "date", descending: true)
+            .getDocuments { snapshot, error in
+                if let error = error {
+                    completion([], error)
+                    return
+                }
+                
+                guard let documents = snapshot?.documents else {
+                    completion([], nil)
+                    return
+                }
+                
+                // تحويل البيانات يدوياً لتفادي خطأ المكتبة المفقودة
+                var ratings: [Rating] = []
+                for doc in documents {
+                    let data = doc.data()
+                    if let stars = data["stars"] as? Double,
+                       let feedback = data["feedback"] as? String,
+                       let bookingName = data["bookingName"] as? String {
+                        
+                        // معالجة التاريخ
+                        let timestamp = data["date"] as? Timestamp
+                        let date = timestamp?.dateValue() ?? Date()
+                        let username = data["username"] as? String ?? "Guest"
+                        
+                        let newRating = Rating(stars: stars, feedback: feedback, date: date, bookingName: bookingName, username: username)
+                        ratings.append(newRating)
+                    }
+                }
+                
+                completion(ratings, nil)
+            }
     }
 }
