@@ -22,7 +22,7 @@ class ProvidersTableViewController: UITableViewController {
         tableView.rowHeight = UITableView.automaticDimension
         tableView.estimatedRowHeight = 70
         
-        // تسجيل الخلية (تأكد أن CategoryCardCell معرف في المشروع)
+        // تسجيل الخلية
         tableView.register(CategoryCardCell.self, forCellReuseIdentifier: "CategoryCardCell")
         
         startProvidersListener()
@@ -41,8 +41,8 @@ class ProvidersTableViewController: UITableViewController {
         navigationController?.navigationBar.scrollEdgeAppearance = appearance
         navigationController?.navigationBar.tintColor = .white
         
-        // زر الإضافة (+)
-        navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .add, target: self, action: #selector(addProviderTapped))
+        // ❌ حذف زر الإضافة - الأدمن لا يستطيع إضافة بروفايدرز
+        // navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .add, target: self, action: #selector(addProviderTapped))
         
         tableView.backgroundColor = UIColor(red: 248/255, green: 248/255, blue: 252/255, alpha: 1.0)
         tableView.separatorStyle = .none
@@ -50,70 +50,47 @@ class ProvidersTableViewController: UITableViewController {
     
     // MARK: - Firebase Logic
     private func startProvidersListener() {
-        print("🔍 Fetching providers for Category ID: \(categoryID)")
+        print("🔍 Fetching providers for Category: \(selectedCategory)")
+        print("🔍 Category ID: \(categoryID)")
         
         // جلب البروفايدرز الخاصين بهذا القسم فقط
         db.collection("providers")
             .whereField("categoryID", isEqualTo: categoryID)
             .order(by: "createdAt", descending: false)
             .addSnapshotListener { [weak self] (querySnapshot, error) in
+                guard let self = self else { return }
+                
                 if let error = error {
                     print("❌ Error fetching providers: \(error.localizedDescription)")
                     return
                 }
                 
                 guard let documents = querySnapshot?.documents else {
-                    print("⚠️ No providers found")
+                    print("⚠️ No providers found for this category")
+                    self.providers = []
+                    self.tableView.reloadData()
                     return
                 }
                 
-                print("✅ Found \(documents.count) providers")
-                self?.providers = documents
-                self?.tableView.reloadData()
+                print("✅ Found \(documents.count) providers for \(self.selectedCategory)")
+                
+                // طباعة تفاصيل كل بروفايدر للتأكد من البيانات
+                for (index, doc) in documents.enumerated() {
+                    let name = doc.get("name") as? String ?? "Unknown"
+                    let catID = doc.get("categoryID") as? String ?? "N/A"
+                    print("   Provider #\(index + 1): \(name) | CategoryID: \(catID)")
+                }
+                
+                self.providers = documents
+                self.tableView.reloadData()
             }
-    }
-    
-    @objc private func addProviderTapped() {
-        let alert = UIAlertController(title: "New Provider", message: "Add to \(selectedCategory)", preferredStyle: .alert)
-        alert.addTextField { $0.placeholder = "Provider Name" }
-        alert.addTextField { $0.placeholder = "Phone (Optional)" }
-        alert.addTextField { $0.placeholder = "Email (Optional)" }
-        
-        let addAction = UIAlertAction(title: "Add", style: .default) { [weak self] _ in
-            guard let self = self,
-                  let name = alert.textFields?[0].text, !name.isEmpty else { return }
-            
-            let phone = alert.textFields?[1].text ?? ""
-            let email = alert.textFields?[2].text ?? ""
-            
-            self.saveProviderToFirebase(name: name, phone: phone, email: email)
-        }
-        
-        alert.addAction(addAction)
-        alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
-        present(alert, animated: true)
-    }
-    
-    private func saveProviderToFirebase(name: String, phone: String, email: String) {
-        db.collection("providers").addDocument(data: [
-            "name": name,
-            "phone": phone,
-            "email": email,
-            "categoryID": categoryID,      // ربط البروفايدر بالقسم
-            "categoryName": selectedCategory,
-            "createdAt": FieldValue.serverTimestamp()
-        ]) { error in
-            if let error = error {
-                print("❌ Failed to save: \(error.localizedDescription)")
-            } else {
-                print("✅ Provider saved successfully")
-            }
-        }
     }
     
     // MARK: - Table View Data Source
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return providers.count
+        let count = providers.count
+        print("📊 Number of rows to display: \(count)")
+        return count
     }
     
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
@@ -123,7 +100,7 @@ class ProvidersTableViewController: UITableViewController {
         
         let doc = providers[indexPath.row]
         let name = doc.get("name") as? String ?? "Unknown"
-        cell.configure(name: name) // إعادة استخدام نفس تصميم الخلية
+        cell.configure(name: name)
         
         return cell
     }
@@ -133,7 +110,11 @@ class ProvidersTableViewController: UITableViewController {
         if editingStyle == .delete {
             let docID = providers[indexPath.row].documentID
             db.collection("providers").document(docID).delete { error in
-                if let error = error { print("❌ Error deleting: \(error.localizedDescription)") }
+                if let error = error {
+                    print("❌ Error deleting: \(error.localizedDescription)")
+                } else {
+                    print("✅ Provider deleted successfully")
+                }
             }
         }
     }
@@ -148,7 +129,9 @@ class ProvidersTableViewController: UITableViewController {
         let email = doc.get("email") as? String ?? ""
         let providerID = doc.documentID
         
-        // الانتقال لصفحة التفاصيل (لازم يكون عندك هذا الكلاس)
+        print("➡️ Selected Provider: \(providerName) (ID: \(providerID))")
+        
+        // الانتقال لصفحة التفاصيل
         let detailsVC = ProviderDetailsVcontrol()
         detailsVC.providerID = providerID
         detailsVC.providerName = providerName

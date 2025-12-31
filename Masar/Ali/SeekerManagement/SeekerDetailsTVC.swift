@@ -1,275 +1,222 @@
 import UIKit
 import FirebaseFirestore
+import FirebaseAuth
 
 class SeekerDetailsTVC: UITableViewController {
 
-    // MARK: - Outlets
-    // تم تحويلها إلى UILabel
-    @IBOutlet weak var fullNameLabel: UILabel?
-    @IBOutlet weak var emailLabel: UILabel?
-    @IBOutlet weak var phoneLabel: UILabel?
-    @IBOutlet weak var usernameLabel: UILabel?
-    
-    // زر الحالة (القديم)
-    @IBOutlet weak var statusMenuButton: UIButton?
-    
-    // MARK: - Properties
     var seeker: Seeker?
-    var isNewSeeker: Bool = false // (لم يعد لها فائدة كبيرة في وضع العرض فقط، لكن تركتها لعدم كسر الكود)
+    var isNewSeeker: Bool = false
     private var currentStatus: String = "Active"
-    
-    // UI Elements
-    private let headerContainer = UIView()
-    private let profileImage = UIImageView()
-    private let nameLabel = UILabel()
-    private let roleLabel = UILabel()
-    private let statusLabel = UILabel()
-    
-    private let footerContainer = UIView()
-    private let footerTitleLabel = UILabel()
-    private let statusButton = UIButton(type: .system)
-    
     let brandColor = UIColor(red: 98/255, green: 84/255, blue: 243/255, alpha: 1.0)
     
-    // MARK: - Lifecycle
+    // Header outlets - connect these in storyboard
+    @IBOutlet weak var profileImageView: UIImageView!
+    @IBOutlet weak var usernameLabel: UILabel!
+    @IBOutlet weak var roleLabel: UILabel!
+    @IBOutlet weak var statusBadge: UILabel!
+    
+    // Cell outlets - connect these to your static cells in storyboard
+    @IBOutlet weak var fullNameValueLabel: UILabel!
+    @IBOutlet weak var emailValueLabel: UILabel!
+    @IBOutlet weak var phoneValueLabel: UILabel!
+    @IBOutlet weak var usernameValueLabel: UILabel!
+    
+    // Footer outlets - connect these in storyboard
+    @IBOutlet weak var statusButton: UIButton!
+    @IBOutlet weak var saveButton: UIButton!
+    
     override func viewDidLoad() {
         super.viewDidLoad()
-        
-        setupMainSettings()
-        setupHeaderOnlyInfo()
-        setupLabelStyles() // دالة التنسيق الجديدة للـ Labels
-        setupFooterButtonOnly()
+        setupNavigation()
+        setupTableView()
+        setupStatusMenu()
+        setupUI()
         loadData()
-        
-        // (تم إزالة زر الحفظ لأن الصفحة أصبحت للعرض فقط)
-        
-        // إصلاح المسافات في iOS 15+
         if #available(iOS 15.0, *) {
             tableView.sectionHeaderTopPadding = 0
         }
     }
     
-    // MARK: - Header Logic (إظهار العنوان في الوسط فقط)
-    override func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
-        if section == 1 {
-            let headerView = UIView()
-            headerView.backgroundColor = .white
-            
-            let label = UILabel()
-            label.text = "Personal Information"
-            label.font = .systemFont(ofSize: 14, weight: .regular)
-            label.textColor = .gray
-            label.translatesAutoresizingMaskIntoConstraints = false
-            
-            headerView.addSubview(label)
-            
-            NSLayoutConstraint.activate([
-                label.leadingAnchor.constraint(equalTo: headerView.leadingAnchor, constant: 20),
-                label.bottomAnchor.constraint(equalTo: headerView.bottomAnchor, constant: -10)
-            ])
-            
-            return headerView
-        }
-        return nil
-    }
-    
-    override func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
-        return section == 1 ? 45 : 0
-    }
-    
-    // MARK: - Setup Functions
-    private func setupMainSettings() {
-        title = "Profile Details" // لم نعد بحاجة لـ New Seeker لأننا في وضع عرض
-        
+    private func setupNavigation() {
+        title = "Seeker Details"
         let appearance = UINavigationBarAppearance()
         appearance.configureWithOpaqueBackground()
         appearance.backgroundColor = brandColor
         appearance.titleTextAttributes = [.foregroundColor: UIColor.white]
         appearance.largeTitleTextAttributes = [.foregroundColor: UIColor.white]
         appearance.shadowColor = .clear
-        
         navigationController?.navigationBar.standardAppearance = appearance
         navigationController?.navigationBar.scrollEdgeAppearance = appearance
         navigationController?.navigationBar.tintColor = .white
-        
-        tableView.backgroundColor = .white
+    }
+    
+    private func setupTableView() {
+        tableView.backgroundColor = UIColor(red: 248/255, green: 249/255, blue: 253/255, alpha: 1.0)
         tableView.separatorStyle = .none
-        statusMenuButton?.isHidden = true
-    }
-
-    private func setupHeaderOnlyInfo() {
-        let headerHeight: CGFloat = 140
-        headerContainer.frame = CGRect(x: 0, y: 0, width: tableView.bounds.width, height: headerHeight)
-        headerContainer.backgroundColor = .white
-        
-        profileImage.translatesAutoresizingMaskIntoConstraints = false
-        profileImage.contentMode = .scaleAspectFill
-        profileImage.layer.cornerRadius = 12
-        profileImage.layer.borderWidth = 1
-        profileImage.layer.borderColor = UIColor.systemGray5.cgColor
-        profileImage.clipsToBounds = true
-        headerContainer.addSubview(profileImage)
-        
-        nameLabel.font = .systemFont(ofSize: 20, weight: .bold)
-        nameLabel.textColor = .black
-        nameLabel.translatesAutoresizingMaskIntoConstraints = false
-        headerContainer.addSubview(nameLabel)
-        
-        roleLabel.font = .systemFont(ofSize: 14, weight: .medium)
-        roleLabel.textColor = .gray
-        roleLabel.translatesAutoresizingMaskIntoConstraints = false
-        headerContainer.addSubview(roleLabel)
-        
-        statusLabel.font = .systemFont(ofSize: 14, weight: .semibold)
-        statusLabel.translatesAutoresizingMaskIntoConstraints = false
-        headerContainer.addSubview(statusLabel)
-        
-        NSLayoutConstraint.activate([
-            profileImage.leadingAnchor.constraint(equalTo: headerContainer.leadingAnchor, constant: 20),
-            profileImage.centerYAnchor.constraint(equalTo: headerContainer.centerYAnchor),
-            profileImage.widthAnchor.constraint(equalToConstant: 100),
-            profileImage.heightAnchor.constraint(equalToConstant: 100),
-            
-            nameLabel.leadingAnchor.constraint(equalTo: profileImage.trailingAnchor, constant: 20),
-            nameLabel.topAnchor.constraint(equalTo: profileImage.topAnchor, constant: 10),
-            nameLabel.trailingAnchor.constraint(equalTo: headerContainer.trailingAnchor, constant: -20),
-            
-            roleLabel.leadingAnchor.constraint(equalTo: nameLabel.leadingAnchor),
-            roleLabel.topAnchor.constraint(equalTo: nameLabel.bottomAnchor, constant: 5),
-            roleLabel.trailingAnchor.constraint(equalTo: headerContainer.trailingAnchor, constant: -20),
-            
-            statusLabel.leadingAnchor.constraint(equalTo: nameLabel.leadingAnchor),
-            statusLabel.topAnchor.constraint(equalTo: roleLabel.bottomAnchor, constant: 5),
-            statusLabel.trailingAnchor.constraint(equalTo: headerContainer.trailingAnchor, constant: -20)
-        ])
-        
-        tableView.tableHeaderView = headerContainer
     }
     
-    private func setupFooterButtonOnly() {
-        let footerHeight: CGFloat = 100
-        footerContainer.frame = CGRect(x: 0, y: 0, width: tableView.bounds.width, height: footerHeight)
-        footerContainer.backgroundColor = .white
+    private func setupUI() {
+        // Setup profile image
+        profileImageView?.contentMode = .scaleAspectFill
+        profileImageView?.layer.cornerRadius = 45
+        profileImageView?.clipsToBounds = true
+        profileImageView?.layer.borderWidth = 3
+        profileImageView?.layer.borderColor = brandColor.withAlphaComponent(0.3).cgColor
         
-        footerTitleLabel.text = "Account Status"
-        footerTitleLabel.font = .systemFont(ofSize: 14, weight: .semibold)
-        footerTitleLabel.textColor = .gray
-        footerTitleLabel.translatesAutoresizingMaskIntoConstraints = false
-        footerContainer.addSubview(footerTitleLabel)
+        // Setup status badge
+        statusBadge?.font = .systemFont(ofSize: 13, weight: .semibold)
+        statusBadge?.textAlignment = .center
+        statusBadge?.layer.cornerRadius = 12
+        statusBadge?.clipsToBounds = true
         
-        var config = UIButton.Configuration.filled()
-        config.cornerStyle = .medium
-        config.contentInsets = NSDirectionalEdgeInsets(top: 10, leading: 24, bottom: 10, trailing: 24)
-        config.titleTextAttributesTransformer = UIConfigurationTextAttributesTransformer { incoming in
-            var outgoing = incoming
-            outgoing.font = UIFont.systemFont(ofSize: 16, weight: .semibold)
-            return outgoing
+        // Setup status button
+        statusButton?.layer.cornerRadius = 12
+        statusButton?.titleLabel?.font = .systemFont(ofSize: 16, weight: .semibold)
+        statusButton?.contentEdgeInsets = UIEdgeInsets(top: 14, left: 24, bottom: 14, right: 24)
+        statusButton?.showsMenuAsPrimaryAction = true
+        
+        // Setup save button with better style
+        saveButton?.backgroundColor = brandColor
+        saveButton?.setTitleColor(.white, for: .normal)
+        saveButton?.titleLabel?.font = .systemFont(ofSize: 17, weight: .bold)
+        saveButton?.layer.cornerRadius = 16
+        saveButton?.layer.shadowColor = brandColor.cgColor
+        saveButton?.layer.shadowOffset = CGSize(width: 0, height: 4)
+        saveButton?.layer.shadowRadius = 12
+        saveButton?.layer.shadowOpacity = 0.3
+        saveButton?.contentEdgeInsets = UIEdgeInsets(top: 16, left: 24, bottom: 16, right: 24)
+        saveButton?.addTarget(self, action: #selector(saveButtonTapped), for: .touchUpInside)
+        
+        // Add press animation
+        saveButton?.addTarget(self, action: #selector(buttonTouchDown), for: .touchDown)
+        saveButton?.addTarget(self, action: #selector(buttonTouchUp), for: [.touchUpInside, .touchUpOutside, .touchCancel])
+    }
+    
+    @objc private func buttonTouchDown(_ sender: UIButton) {
+        UIView.animate(withDuration: 0.1) {
+            self.saveButton?.transform = CGAffineTransform(scaleX: 0.95, y: 0.95)
         }
-        statusButton.configuration = config
-        statusButton.showsMenuAsPrimaryAction = true
-        statusButton.translatesAutoresizingMaskIntoConstraints = false
-        
+    }
+    
+    @objc private func buttonTouchUp(_ sender: UIButton) {
+        UIView.animate(withDuration: 0.1) {
+            self.saveButton?.transform = .identity
+        }
+    }
+    
+    private func setupStatusMenu() {
         let actions = [
-            UIAction(title: "Active", image: UIImage(systemName: "checkmark.circle.fill")) { [weak self] _ in self?.updateStatusUI("Active", .systemGreen) },
-            UIAction(title: "Ban", image: UIImage(systemName: "xmark.circle.fill")) { [weak self] _ in self?.updateStatusUI("Ban", .systemRed) }
+            UIAction(title: "Active", image: UIImage(systemName: "checkmark.circle.fill")) { [weak self] _ in
+                self?.currentStatus = "Active"
+                self?.updateStatusUI()
+            },
+            UIAction(title: "Ban", image: UIImage(systemName: "xmark.circle.fill")) { [weak self] _ in
+                self?.currentStatus = "Ban"
+                self?.updateStatusUI()
+            }
         ]
-        statusButton.menu = UIMenu(children: actions)
-        
-        footerContainer.addSubview(statusButton)
-        
-        NSLayoutConstraint.activate([
-            footerTitleLabel.topAnchor.constraint(equalTo: footerContainer.topAnchor, constant: 10),
-            footerTitleLabel.leadingAnchor.constraint(equalTo: footerContainer.leadingAnchor, constant: 20),
-            
-            statusButton.topAnchor.constraint(equalTo: footerTitleLabel.bottomAnchor, constant: 8),
-            statusButton.leadingAnchor.constraint(equalTo: footerContainer.leadingAnchor, constant: 20),
-            statusButton.trailingAnchor.constraint(equalTo: footerContainer.trailingAnchor, constant: -20),
-            statusButton.heightAnchor.constraint(equalToConstant: 50)
-        ])
-        
-        tableView.tableFooterView = footerContainer
+        statusButton?.menu = UIMenu(children: actions)
     }
     
-    // MARK: - تنسيق الـ Labels
-    private func setupLabelStyles() {
-        let labels = [fullNameLabel, emailLabel, phoneLabel, usernameLabel]
-        
-        for label in labels {
-            guard let lbl = label else { continue }
-            
-            // إعدادات الخط واللون
-            lbl.textColor = .darkGray
-            lbl.font = .systemFont(ofSize: 16, weight: .regular)
-            lbl.textAlignment = .right // أو left حسب تصميمك في الستوري بورد
-            
-            // إضافة الخط الفاصل السفلي (Bottom Line)
-            lbl.layer.sublayers?.forEach { if $0.name == "bottomLine" { $0.removeFromSuperlayer() } }
-            
-            let bottomLine = CALayer()
-            bottomLine.name = "bottomLine"
-            bottomLine.frame = CGRect(x: 0, y: 49, width: tableView.bounds.width, height: 1)
-            bottomLine.backgroundColor = UIColor.systemGray5.cgColor
-            lbl.layer.addSublayer(bottomLine)
-            
-            // ملاحظة: الـ Labels لا تدعم الـ leftView، لذلك يجب عليك إضافة عناوين الحقول (مثل "Full Name")
-            // مباشرة في الستوري بورد كـ Labels ثابتة بجانب هذه الـ Labels.
-        }
-    }
-
-    // MARK: - Load Data
     private func loadData() {
         guard let seeker = seeker else { return }
         
-        nameLabel.text = seeker.fullName
-        roleLabel.text = "Role: \(seeker.role)"
+        // Update header
+        profileImageView?.image = UIImage(systemName: "person.crop.circle.fill")
+        profileImageView?.tintColor = brandColor.withAlphaComponent(0.5)
+        usernameLabel?.text = seeker.username.isEmpty ? "N/A" : seeker.username
+        roleLabel?.text = seeker.role.isEmpty ? "Seeker" : seeker.role
         
-        if let img = UIImage(named: seeker.imageName) {
-            profileImage.image = img
-        } else {
-            profileImage.image = UIImage(systemName: "person.crop.square.fill")
-            profileImage.tintColor = .systemGray4
+        // Update cell values with ACTUAL data
+        fullNameValueLabel?.text = seeker.fullName.isEmpty ? "N/A" : seeker.fullName
+        emailValueLabel?.text = seeker.email.isEmpty ? "N/A" : seeker.email
+        phoneValueLabel?.text = seeker.phone.isEmpty ? "N/A" : seeker.phone
+        usernameValueLabel?.text = seeker.username.isEmpty ? "N/A" : seeker.username
+        
+        // Force UI update
+        DispatchQueue.main.async {
+            self.tableView.reloadData()
         }
         
-        // تعبئة البيانات في الـ Labels
-        fullNameLabel?.text = seeker.fullName
-        emailLabel?.text = seeker.email
-        phoneLabel?.text = seeker.phone
-        usernameLabel?.text = seeker.username
-        
-        let color: UIColor
-        switch seeker.status {
-        case "Active": color = .systemGreen
-        case "Ban": color = .systemRed
-        default: color = .systemGray
-        }
-        updateStatusUI(seeker.status, color)
+        // Update status
+        currentStatus = seeker.status
+        updateStatusUI()
     }
     
-    // MARK: - Save Logic (تم إرسال حالة التحديث فقط للزر السفلي)
-    private func updateStatusUI(_ status: String, _ color: UIColor) {
-        currentStatus = status
-        // هنا يمكنك إضافة كود لحفظ تغيير الحالة فقط في Firebase إذا أردت
-        // لأن باقي الحقول أصبحت للقراءة فقط
+    private func updateStatusUI() {
+        let color: UIColor = currentStatus == "Active" ? .systemGreen : .systemRed
         
-        statusButton.configuration?.title = status
-        statusButton.configuration?.baseBackgroundColor = color.withAlphaComponent(0.15)
-        statusButton.configuration?.baseForegroundColor = color
+        // Update badge in header
+        statusBadge?.text = currentStatus
+        statusBadge?.textColor = color
+        statusBadge?.backgroundColor = color.withAlphaComponent(0.15)
         
-        statusLabel.text = "Status: \(status)"
-        statusLabel.textColor = color
+        // Update status button
+        statusButton?.setTitle(currentStatus, for: .normal)
+        statusButton?.backgroundColor = color.withAlphaComponent(0.15)
+        statusButton?.setTitleColor(color, for: .normal)
+    }
+    
+    @objc private func saveButtonTapped(_ sender: UIButton) {
+        guard let uid = seeker?.uid else {
+            showAlert(title: "Error", message: "User ID not found")
+            return
+        }
         
-        // حفظ الحالة في الفايربيس عند التغيير من القائمة
-        if let uid = seeker?.uid {
-             let db = Firestore.firestore()
-             db.collection("users").document(uid).updateData(["status": status]) { err in
-                 if err == nil {
-                     print("Status updated to \(status)")
-                 }
-             }
+        saveButton?.isEnabled = false
+        saveButton?.alpha = 0.6
+        
+        Firestore.firestore().collection("users").document(uid).updateData(["status": currentStatus]) { [weak self] error in
+            guard let self = self else { return }
+            
+            self.saveButton?.isEnabled = true
+            self.saveButton?.alpha = 1.0
+            
+            if let error {
+                print("❌ \(error.localizedDescription)")
+                self.showAlert(title: "Error", message: "Failed to update status.")
+            } else {
+                print("✅ Status updated to \(self.currentStatus)")
+                
+                // Update seeker object
+                self.seeker?.status = self.currentStatus
+                
+                if self.currentStatus == "Ban" {
+                    self.kickUserFromApp(uid: uid)
+                }
+                
+                self.showAlert(title: "Success", message: "User status updated to \(self.currentStatus)")
+            }
         }
     }
     
-    override func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
-        return 55
+    private func kickUserFromApp(uid: String) {
+        if let currentUser = Auth.auth().currentUser, currentUser.uid == uid {
+            do {
+                try Auth.auth().signOut()
+                navigateToLogin()
+            } catch {
+                print("❌ \(error.localizedDescription)")
+            }
+        }
+    }
+    
+    private func navigateToLogin() {
+        DispatchQueue.main.async {
+            let storyboard = UIStoryboard(name: "Main", bundle: nil)
+            if let loginVC = storyboard.instantiateViewController(withIdentifier: "LoginViewController") as? UIViewController {
+                loginVC.modalPresentationStyle = .fullScreen
+                if let sceneDelegate = UIApplication.shared.connectedScenes.first?.delegate as? SceneDelegate {
+                    sceneDelegate.window?.rootViewController = loginVC
+                    sceneDelegate.window?.makeKeyAndVisible()
+                }
+            }
+        }
+    }
+    
+    private func showAlert(title: String, message: String) {
+        let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: "OK", style: .default))
+        present(alert, animated: true)
     }
 }

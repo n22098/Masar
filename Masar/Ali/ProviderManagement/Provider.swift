@@ -2,7 +2,7 @@ import Foundation
 import FirebaseFirestore
 
 struct Provider {
-    var id: String
+    var uid: String
     var fullName: String
     var email: String
     var phone: String
@@ -10,10 +10,11 @@ struct Provider {
     var category: String
     var status: String
     var imageName: String
-    var roleType: String
+    var role: String
+    
 
     // 1. Standard Initializer (for creating objects in code)
-    init(id: String = UUID().uuidString,
+    init(uid: String = UUID().uuidString,
          fullName: String,
          email: String,
          phone: String,
@@ -21,9 +22,9 @@ struct Provider {
          category: String,
          status: String = "Active",
          imageName: String = "default_profile",
-         roleType: String = "Provider") {
+         role: String = "Provider") {
         
-        self.id = id
+        self.uid = uid
         self.fullName = fullName
         self.email = email
         self.phone = phone
@@ -31,46 +32,37 @@ struct Provider {
         self.category = category
         self.status = status
         self.imageName = imageName
-        self.roleType = roleType
+        self.role = role
     }
 
-    // 2. Firebase Initializer (Maps Firebase keys to your code)
-    init?(id: String, dictionary: [String: Any]) {
-        // Updated to match your Firebase screenshot: "name" instead of "fullName"
-        guard let nameFromDB = dictionary["name"] as? String,
-              let emailFromDB = dictionary["email"] as? String else {
-            return nil
-        }
+    // 2. Firebase Initializer - Updated to match your ACTUAL Firebase fields
+    init?(uid: String, dictionary: [String: Any]) {
+        self.uid = uid
         
-        self.id = id
-        self.fullName = nameFromDB
-        self.email = emailFromDB
-        
-        // Match Firebase "phone" key
+        // Map Firebase fields to struct properties
+        self.fullName = dictionary["name"] as? String ?? ""
+        self.email = dictionary["email"] as? String ?? ""
         self.phone = dictionary["phone"] as? String ?? ""
+        self.username = dictionary["name"] as? String ?? ""  // Using name as username if not present
+        self.category = dictionary["category"] as? String ?? ""
+        self.status = dictionary["status"] as? String ?? "approved"
+        self.imageName = dictionary["idCardURL"] as? String ?? "default_profile"
+        self.role = "Provider"
         
-        // Match Firebase "username" or default to email if missing
-        self.username = dictionary["username"] as? String ?? emailFromDB
-        
-        // Match Firebase "categoryName" key
-        self.category = dictionary["categoryName"] as? String ?? (dictionary["category"] as? String ?? "General")
-        
-        self.status = dictionary["status"] as? String ?? "Active"
-        self.imageName = dictionary["imageName"] as? String ?? "default_profile"
-        self.roleType = dictionary["roleType"] as? String ?? "Provider"
+        // Debug print to see what we're getting
+        print("📝 Provider created: \(self.fullName), Category: \(self.category), Status: \(self.status)")
     }
 
     // 3. Dictionary for Saving (Maps your code back to Firebase keys)
     var dictionary: [String: Any] {
         return [
-            "name": fullName,       // Keep consistent with your DB screenshot
+            "name": fullName,
             "email": email,
             "phone": phone,
-            "username": username,
-            "categoryName": category, // Keep consistent with your DB screenshot
+            "category": category,
             "status": status,
-            "imageName": imageName,
-            "roleType": roleType
+            "idCardURL": imageName,
+            "role": role
         ]
     }
 }

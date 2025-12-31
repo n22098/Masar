@@ -29,6 +29,8 @@ class BookingHistoryTableViewController: UITableViewController {
         setupUI()
         
         tableView.register(ModernBookingHistoryCell.self, forCellReuseIdentifier: "ModernBookingHistoryCell")
+        
+        // استدعاء البيانات عند التحميل
         fetchBookingsFromFirebase()
     }
     
@@ -50,9 +52,11 @@ class BookingHistoryTableViewController: UITableViewController {
         // ✅ Fetch bookings for this seeker only
         ServiceManager.shared.fetchBookingsForSeeker(seekerEmail: currentUserEmail) { [weak self] bookings in
             guard let self = self else { return }
-            self.allBookings = bookings
-            self.filterBookings()
+            
+            // 🔥 التعديل المهم هنا: نقلنا كل تحديثات البيانات والواجهة للـ Main Thread
             DispatchQueue.main.async {
+                self.allBookings = bookings
+                self.filterBookings() // هذا يحدث الواجهة ويظهر رسالة "No History" إذا كانت القائمة فارغة
                 self.tableView.reloadData()
             }
         }
@@ -146,7 +150,8 @@ class BookingHistoryTableViewController: UITableViewController {
             
             NSLayoutConstraint.activate([
                 stackView.centerXAnchor.constraint(equalTo: emptyView.centerXAnchor),
-                stackView.centerYAnchor.constraint(equalTo: emptyView.centerYAnchor, constant: -50),
+                // رفعنا الرسالة للأعلى قليلاً لتفادي التداخل مع الهيدر لو كان الجدول قصيراً
+                stackView.centerYAnchor.constraint(equalTo: emptyView.centerYAnchor, constant: 20),
                 stackView.leadingAnchor.constraint(equalTo: emptyView.leadingAnchor, constant: 40),
                 stackView.trailingAnchor.constraint(equalTo: emptyView.trailingAnchor, constant: -40)
             ])

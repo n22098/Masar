@@ -27,12 +27,11 @@ class ApplyProviderTableViewController: UITableViewController,
     // MARK: - Configuration
     private let cloudName = "dsjx9ehz2"
     private let apiKey = "598938434737516"
-    private let apiSecret = "0Eyox42LzqrMjwvxpPbqx2SNk5Y"
+    private let apiSecret = "0Eyox42LzqrMjwvxpPbqx2SNk5Y" // Note: Keep secrets safe!
     private let uploadPreset = "ml_default"
 
     private var cloudinary: CLDCloudinary!
     
-    // 🎨 لون البراند الموحد (بنفسجي مسار)
     private let brandColor = UIColor(red: 98/255, green: 84/255, blue: 243/255, alpha: 1.0)
 
     // MARK: - Data Variables
@@ -58,48 +57,38 @@ class ApplyProviderTableViewController: UITableViewController,
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        // 1. إعداد الخدمات
         initCloudinary()
-        
-        // 2. جلب البيانات
         fetchCategoriesFromAdmin()
-        
-        // 3. إعداد الواجهة والمنطق
         setupSkillMenu()
         setupLabelTaps()
-        
-        // 4. 🔥 تطبيق التصميم الاحترافي الجديد
         setupProfessionalDesign()
         addSubmitButton()
     }
     
-    // MARK: - 🎨 Professional Design Setup
+    // MARK: - Professional Design Setup
     private func setupProfessionalDesign() {
         title = "Apply as Provider"
-        registerBtn.isEnabled = true
+        // Safety check if outlet is connected
+        if let regBtn = registerBtn {
+            regBtn.isEnabled = true
+        }
         
-        // 1. إنزال المحتوى للأسفل (Header View)
-        // هذا هو الحل لإنزال المحتوى وجعله في "النص" بصرياً
         let headerView = UIView(frame: CGRect(x: 0, y: 0, width: view.frame.width, height: 50))
         headerView.backgroundColor = .clear
         tableView.tableHeaderView = headerView
         
-        // 2. الخلفية وإزالة الخطوط
         view.backgroundColor = UIColor(red: 248/255, green: 249/255, blue: 253/255, alpha: 1.0)
         tableView.separatorStyle = .none
         
-        // 3. تعبئة البيانات
-        nameLabel.text = userName
-        emailLabel.text = userEmail
-        phoneLabel.text = userPhone
+        nameLabel?.text = userName
+        emailLabel?.text = userEmail
+        phoneLabel?.text = userPhone
         
-        // تنسيق النصوص العلوية
         [nameLabel, emailLabel, phoneLabel].forEach {
             $0?.font = .systemFont(ofSize: 16, weight: .medium)
             $0?.textColor = .darkGray
         }
         
-        // 4. تحسين مربع النص (Bio)
         tellUsTxt.delegate = self
         tellUsTxt.text = "Tell us about yourself..."
         tellUsTxt.textColor = .placeholderText
@@ -108,19 +97,16 @@ class ApplyProviderTableViewController: UITableViewController,
         tellUsTxt.layer.borderColor = UIColor.systemGray5.cgColor
         tellUsTxt.backgroundColor = .white
         tellUsTxt.textContainerInset = UIEdgeInsets(top: 12, left: 10, bottom: 12, right: 10)
-        // ظل خفيف
         tellUsTxt.layer.shadowColor = UIColor.black.cgColor
         tellUsTxt.layer.shadowOpacity = 0.05
         tellUsTxt.layer.shadowOffset = CGSize(width: 0, height: 3)
         tellUsTxt.layer.shadowRadius = 5
         
-        // 5. تحسين القوائم المنسدلة
         categoryMenu.setTitle("Select Category", for: .normal)
         skillLevelMenu.setTitle("Skill Level", for: .normal)
         styleMenuButton(categoryMenu)
         styleMenuButton(skillLevelMenu)
         
-        // 6. تحسين نصوص الرفع
         [idUpload, workPortfolioUpload, certificateUpload].forEach {
             $0?.text = "Upload"
             $0?.textColor = brandColor
@@ -129,7 +115,6 @@ class ApplyProviderTableViewController: UITableViewController,
         }
     }
     
-    // دالة مساعدة لتصميم الأزرار كقوائم
     private func styleMenuButton(_ button: UIButton) {
         button.backgroundColor = .white
         button.layer.cornerRadius = 14
@@ -138,18 +123,15 @@ class ApplyProviderTableViewController: UITableViewController,
         button.setTitleColor(.label, for: .normal)
         button.titleLabel?.font = UIFont.systemFont(ofSize: 16, weight: .medium)
         
-        // إضافة سهم
         button.setImage(UIImage(systemName: "chevron.down"), for: .normal)
         button.tintColor = brandColor
         button.semanticContentAttribute = .forceRightToLeft
         
-        // تنسيق داخلي
         var config = UIButton.Configuration.plain()
         config.contentInsets = NSDirectionalEdgeInsets(top: 12, leading: 12, bottom: 12, trailing: 12)
         button.configuration = config
         button.contentHorizontalAlignment = .fill
         
-        // ظل خفيف
         button.layer.shadowColor = UIColor.black.cgColor
         button.layer.shadowOpacity = 0.05
         button.layer.shadowOffset = CGSize(width: 0, height: 3)
@@ -158,22 +140,18 @@ class ApplyProviderTableViewController: UITableViewController,
 
     // MARK: - Add Submit Button (Footer)
     private func addSubmitButton() {
-        // مساحة سفلية كافية
         let footerView = UIView(frame: CGRect(x: 0, y: 0, width: tableView.frame.width, height: 120))
         footerView.backgroundColor = .clear
         
         let submitBtn = UIButton(type: .system)
-        // جعل الزر عريضاً وفي المنتصف
         submitBtn.frame = CGRect(x: 20, y: 30, width: tableView.frame.width - 40, height: 55)
         submitBtn.setTitle("Submit Application", for: .normal)
         submitBtn.titleLabel?.font = UIFont.boldSystemFont(ofSize: 18)
         
-        // تصميم الزر البنفسجي
         submitBtn.backgroundColor = brandColor
         submitBtn.setTitleColor(.white, for: .normal)
         submitBtn.layer.cornerRadius = 14
         
-        // ظل للزر
         submitBtn.layer.shadowColor = brandColor.cgColor
         submitBtn.layer.shadowOpacity = 0.4
         submitBtn.layer.shadowOffset = CGSize(width: 0, height: 6)
@@ -209,7 +187,8 @@ class ApplyProviderTableViewController: UITableViewController,
 
     // MARK: - Data Fetching
     private func fetchCategoriesFromAdmin() {
-        Firestore.firestore().collection("categories").getDocuments { snapshot, _ in
+        Firestore.firestore().collection("categories").getDocuments { [weak self] snapshot, _ in
+            guard let self = self else { return }
             self.categories = snapshot?.documents.compactMap { $0["name"] as? String } ?? []
             let actions = self.categories.map { category in
                 UIAction(title: category) { _ in
@@ -225,7 +204,8 @@ class ApplyProviderTableViewController: UITableViewController,
     private func setupSkillMenu() {
         let levels = ["Beginner", "Intermediate", "Advanced", "Expert"]
         let actions = levels.map { level in
-            UIAction(title: level) { _ in
+            UIAction(title: level) { [weak self] _ in
+                guard let self = self else { return }
                 self.selectedSkill = level
                 self.skillLevelMenu.setTitle(level, for: .normal)
             }
@@ -248,13 +228,15 @@ class ApplyProviderTableViewController: UITableViewController,
     private func showUploadMenu() {
         let alert = UIAlertController(title: "Upload Document", message: "Choose file type", preferredStyle: .actionSheet)
 
-        alert.addAction(UIAlertAction(title: "PDF Document", style: .default) { _ in
+        alert.addAction(UIAlertAction(title: "PDF Document", style: .default) { [weak self] _ in
+            guard let self = self else { return }
             let picker = UIDocumentPickerViewController(forOpeningContentTypes: [.pdf])
             picker.delegate = self
             self.present(picker, animated: true)
         })
 
-        alert.addAction(UIAlertAction(title: "Photo/Image", style: .default) { _ in
+        alert.addAction(UIAlertAction(title: "Photo/Image", style: .default) { [weak self] _ in
+            guard let self = self else { return }
             let picker = UIImagePickerController()
             picker.sourceType = .photoLibrary
             picker.delegate = self
@@ -291,45 +273,68 @@ class ApplyProviderTableViewController: UITableViewController,
     }
 
     // MARK: - MAIN SUBMIT ACTION
-    @objc private func submitButtonTapped() { registerTapped(registerBtn) }
+    @objc private func submitButtonTapped() {
+        print("🔘 Submit button tapped!")
+        // Pass the UIBarButtonItem securely
+        registerTapped(registerBtn ?? self)
+    }
     
     @IBAction func registerTapped(_ sender: Any) {
-        if let errorMessage = validateForm() { showAlert(errorMessage, title: "Missing Information"); return }
+        print("🚀 registerTapped called")
         
-        registerBtn.isEnabled = false
-        submitButton?.isEnabled = false
-        submitButton?.backgroundColor = .systemGray
-        
-        let loading = UIAlertController(title: nil, message: "Submitting Application...", preferredStyle: .alert)
-        present(loading, animated: true)
-        
-        // استخدام UID المستخدم الحالي بدلاً من إنشاء حساب جديد
-        guard let uid = Auth.auth().currentUser?.uid else {
-            loading.dismiss(animated: true)
-            resetButtons()
-            showAlert("You must be logged in to apply", title: "Error")
+        // Validate form first
+        if let errorMessage = validateForm() {
+            print("❌ Validation failed: \(errorMessage)")
+            showAlert(errorMessage, title: "Missing Information")
             return
         }
         
-        // رفع الملفات مباشرة
+        print("✅ Validation passed")
+        
+        // Disable buttons
+        registerBtn?.isEnabled = false
+        submitButton?.isEnabled = false
+        submitButton?.backgroundColor = .systemGray
+        
+        // Show loading
+        let loading = UIAlertController(title: nil, message: "Submitting Application...", preferredStyle: .alert)
+        present(loading, animated: true)
+        
+        print("📤 Starting submission process...")
+        
+        // Get current user ID or generate one for new user
+        let uid = Auth.auth().currentUser?.uid ?? UUID().uuidString
+        print("🆔 Using UID: \(uid)")
+        
+        // Upload files
         uploadFiles(uid: uid, loadingAlert: loading)
     }
     
     private func resetButtons() {
-        registerBtn.isEnabled = true
-        submitButton?.isEnabled = true
-        submitButton?.backgroundColor = brandColor
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self else { return }
+            self.registerBtn?.isEnabled = true
+            self.submitButton?.isEnabled = true
+            self.submitButton?.backgroundColor = self.brandColor
+        }
     }
 
     // MARK: - Upload Logic
     private func uploadFiles(uid: String, loadingAlert: UIAlertController) {
+        print("📁 Starting file uploads...")
+        
         let group = DispatchGroup()
         var uploadedUrls: [String: String] = [:]
         var uploadError = false
         let files = [("idCardURL", idCardURL), ("portfolioURL", portfolioURL), ("certificateURL", certificateURL)]
 
         for (key, fileURL) in files {
-            guard let fileURL = fileURL else { continue }
+            guard let fileURL = fileURL else {
+                print("⚠️ No file for \(key)")
+                continue
+            }
+            
+            print("⬆️ Uploading \(key)...")
             group.enter()
             
             let isPDF = fileURL.pathExtension.lowercased() == "pdf"
@@ -338,23 +343,37 @@ class ApplyProviderTableViewController: UITableViewController,
             
             do {
                 let data = try Data(contentsOf: fileURL)
+                print("📦 Data loaded for \(key): \(data.count) bytes")
+                
+                // Use [weak self] inside closure to prevent leaks
                 cloudinary.createUploader().upload(data: data, uploadPreset: uploadPreset) { result, error in
                     if isPDF && isAccessing { fileURL.stopAccessingSecurityScopedResource() }
                     
-                    if let url = result?.secureUrl { uploadedUrls[key] = url }
-                    else { uploadError = true }
+                    if let url = result?.secureUrl {
+                        uploadedUrls[key] = url
+                        print("✅ \(key) uploaded: \(url)")
+                    } else {
+                        uploadError = true
+                        print("❌ Failed to upload \(key): \(error?.localizedDescription ?? "unknown")")
+                    }
                     group.leave()
                 }
-            } catch { uploadError = true; group.leave() }
+            } catch {
+                uploadError = true
+                print("❌ Error reading file \(key): \(error)")
+                group.leave()
+            }
         }
 
-        group.notify(queue: .main) {
+        group.notify(queue: .main) { [weak self] in
+            guard let self = self else { return }
+            print("📊 All uploads completed. Success: \(!uploadError)")
+            
             if uploadError {
                 loadingAlert.dismiss(animated: true)
                 self.resetButtons()
                 self.showAlert("Failed to upload documents.", title: "Upload Error")
             } else {
-                // 3. Save to Firestore
                 self.saveRequest(uid: uid, urls: uploadedUrls, loadingAlert: loadingAlert)
             }
         }
@@ -362,19 +381,12 @@ class ApplyProviderTableViewController: UITableViewController,
 
     // MARK: - Firestore Saving
     private func saveRequest(uid: String, urls: [String: String], loadingAlert: UIAlertController) {
+        print("💾 Saving to Firestore...")
+        
         let bioText = tellUsTxt.textColor == .placeholderText ? "" : tellUsTxt.text ?? ""
         let db = Firestore.firestore()
         
-        // 1. تحديث حالة المستخدم فقط
-        db.collection("users").document(uid).updateData([
-            "providerRequestStatus": "pending"
-        ]) { error in
-            if let error = error {
-                print("Error updating user status: \(error)")
-            }
-        }
-        
-        // 2. إنشاء طلب المزود
+        // Create provider request data
         let requestData: [String: Any] = [
             "uid": uid,
             "name": userName ?? "",
@@ -390,12 +402,31 @@ class ApplyProviderTableViewController: UITableViewController,
             "createdAt": FieldValue.serverTimestamp()
         ]
         
-        db.collection("provider_requests").document(uid).setData(requestData) { error in
+        print("📝 Request data: \(requestData)")
+        
+        // Save to provider_requests collection
+        db.collection("provider_requests").document(uid).setData(requestData) { [weak self] error in
+            guard let self = self else { return }
             loadingAlert.dismiss(animated: true)
+            
             if let error = error {
+                print("❌ Firestore error: \(error.localizedDescription)")
                 self.resetButtons()
                 self.showAlert(error.localizedDescription, title: "Database Error")
             } else {
+                print("✅ Application saved successfully!")
+                
+                // If user is logged in, update their status
+                if Auth.auth().currentUser != nil {
+                    db.collection("users").document(uid).updateData([
+                        "providerRequestStatus": "pending"
+                    ]) { error in
+                        if let error = error {
+                            print("⚠️ Could not update user status: \(error)")
+                        }
+                    }
+                }
+                
                 self.showSuccessAlert()
             }
         }
@@ -405,24 +436,34 @@ class ApplyProviderTableViewController: UITableViewController,
     private func showSuccessAlert() {
         let alert = UIAlertController(
             title: "Application Submitted ✓",
-            message: "Your provider application has been submitted successfully. Please wait until the admin approves your request. You can check your status in the Service tab.",
+            message: "Your provider application has been submitted successfully. Please wait until the admin approves your request.",
             preferredStyle: .alert
         )
-        alert.addAction(UIAlertAction(title: "OK", style: .default) { _ in
+        alert.addAction(UIAlertAction(title: "OK", style: .default) { [weak self] _ in
+            guard let self = self else { return }
             self.navigationController?.popViewController(animated: true)
+            
+            // Navigate to login screen
+            if let sceneDelegate = UIApplication.shared.connectedScenes.first?.delegate as? SceneDelegate,
+               let window = sceneDelegate.window {
+                let storyboard = UIStoryboard(name: "Main", bundle: nil)
+                // ENSURE LoginViewController ID exists in Storyboard
+                if let loginVC = storyboard.instantiateViewController(withIdentifier: "SignInViewController") as? UIViewController {
+                    loginVC.modalPresentationStyle = .fullScreen
+                    window.rootViewController = loginVC
+                    window.makeKeyAndVisible()
+                }
+            }
         })
         present(alert, animated: true)
     }
-    
-    private func navigateToSignIn() {
-        // لم يعد مستخدماً
-        navigationController?.popViewController(animated: true)
-    }
 
     private func showAlert(_ message: String, title: String) {
-        let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
-        alert.addAction(UIAlertAction(title: "OK", style: .default))
-        present(alert, animated: true)
+        DispatchQueue.main.async {
+            let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
+            alert.addAction(UIAlertAction(title: "OK", style: .default))
+            self.present(alert, animated: true)
+        }
     }
 
     private func validateForm() -> String? {

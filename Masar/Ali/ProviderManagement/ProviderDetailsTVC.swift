@@ -1,191 +1,482 @@
 import UIKit
 
+import FirebaseFirestore
+
+import FirebaseAuth
+
+
+
 class ProviderDetailsTVC: UITableViewController {
-
-    // MARK: - Properties
-    var provider: Provider? // The provider to display
+    
+    
+    
+    var provider: Provider?
+    
     var isNewProvider: Bool = false
-
-    // MARK: - IBOutlets
-    // Header Section (Top Blue Box in your screenshot)
-    @IBOutlet weak var profileImageView: UIImageView?
-    @IBOutlet weak var headerProviderNameLabel: UILabel?
-    @IBOutlet weak var headerStatusLabel: UILabel?
     
-    // Personal Information Section (Middle Section)
-    @IBOutlet weak var fullNameTextField: UITextField?
-    @IBOutlet weak var emailTextField: UITextField?
-    @IBOutlet weak var phoneTextField: UITextField?
-    @IBOutlet weak var usernameTextField: UITextField?
-    
-    // Account Status Section (Bottom Section)
-    @IBOutlet weak var statusMenuButton: UIButton?
-    @IBOutlet weak var aboutButton: UIButton? // The "About" button in your screenshot
-    
-    // Track current status
     private var currentStatus: String = "Active"
     
-    // MARK: - Lifecycle
+    let brandColor = UIColor(red: 98/255, green: 84/255, blue: 243/255, alpha: 1.0)
+    
+    
+    
+    // Header outlets
+    
+    @IBOutlet weak var profileImageView: UIImageView!
+    
+    @IBOutlet weak var usernameLabel: UILabel!
+    
+    @IBOutlet weak var roleLabel: UILabel!
+    
+    @IBOutlet weak var statusBadge: UILabel!
+    
+    
+    
+    // Cell outlets for static cells
+    
+    @IBOutlet weak var fullNameValueLabel: UILabel!
+    
+    @IBOutlet weak var emailValueLabel: UILabel!
+    
+    @IBOutlet weak var phoneValueLabel: UILabel!
+    
+    @IBOutlet weak var usernameValueLabel: UILabel!
+    
+    
+    
+    // Footer outlets
+    
+    @IBOutlet weak var statusButton: UIButton!
+    
+    @IBOutlet weak var aboutButton: UIButton!
+    
+    @IBOutlet weak var saveButton: UIButton!
+    
+    
+    
     override func viewDidLoad() {
+        
         super.viewDidLoad()
-        setupUI()
+        
+        setupNavigation()
+        
+        setupTableView()
+        
         setupStatusMenu()
-        loadProviderData()
-    }
-
-    private func setupUI() {
-        // Making the profile image circular
-        if let profileImageView = profileImageView {
-            profileImageView.layer.cornerRadius = profileImageView.frame.width / 2
-            profileImageView.clipsToBounds = true
-            profileImageView.contentMode = .scaleAspectFill
-            profileImageView.backgroundColor = .systemGray5 // Placeholder color
-            navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .save, target: self, action: #selector(saveButtonTapped))
+        
+        setupUI()
+        
+        loadData()
+        
+        if #available(iOS 15.0, *) {
+            
+            tableView.sectionHeaderTopPadding = 0
+            
         }
         
-        // Update title based on mode
-        self.title = isNewProvider ? "Add New Provider" : "Provider Details"
     }
     
-    private func loadProviderData() {
-        if let provider = provider {
-            // Load existing provider data
-            headerProviderNameLabel?.text = provider.fullName
-            fullNameTextField?.text = provider.fullName
-            emailTextField?.text = provider.email
-            phoneTextField?.text = provider.phone
-            usernameTextField?.text = provider.username
-            
-            // Set status
-            let statusColor: UIColor = (provider.status == "Active") ? .systemBlue : .systemRed
-            updateStatus(to: provider.status, color: statusColor)
-        } else {
-            // Empty fields for new provider
-            headerProviderNameLabel?.text = "New Provider"
-            fullNameTextField?.text = ""
-            emailTextField?.text = ""
-            phoneTextField?.text = ""
-            usernameTextField?.text = ""
-            
-            updateStatus(to: "Active", color: .systemBlue)
-        }
+    
+    
+    private func setupNavigation() {
+        
+        title = "Provider Details"
+        
+        let appearance = UINavigationBarAppearance()
+        
+        appearance.configureWithOpaqueBackground()
+        
+        appearance.backgroundColor = brandColor
+        
+        appearance.titleTextAttributes = [.foregroundColor: UIColor.white]
+        
+        appearance.largeTitleTextAttributes = [.foregroundColor: UIColor.white]
+        
+        appearance.shadowColor = .clear
+        
+        navigationController?.navigationBar.standardAppearance = appearance
+        
+        navigationController?.navigationBar.scrollEdgeAppearance = appearance
+        
+        navigationController?.navigationBar.tintColor = .white
+        
     }
-
-    // MARK: - Status Menu Setup
+    
+    
+    
+    private func setupTableView() {
+        
+        tableView.backgroundColor = UIColor(red: 248/255, green: 249/255, blue: 253/255, alpha: 1.0)
+        
+        tableView.separatorStyle = .none
+        
+    }
+    
+    
+    
+    private func setupUI() {
+        
+        // Setup profile image
+        
+        profileImageView?.contentMode = .scaleAspectFill
+        
+        profileImageView?.layer.cornerRadius = 45
+        
+        profileImageView?.clipsToBounds = true
+        
+        profileImageView?.layer.borderWidth = 3
+        
+        profileImageView?.layer.borderColor = brandColor.withAlphaComponent(0.3).cgColor
+        
+        
+        
+        // Setup status badge
+        
+        statusBadge?.font = .systemFont(ofSize: 13, weight: .semibold)
+        
+        statusBadge?.textAlignment = .center
+        
+        statusBadge?.layer.cornerRadius = 12
+        
+        statusBadge?.clipsToBounds = true
+        
+        
+        
+        // Setup status button
+        
+        statusButton?.layer.cornerRadius = 12
+        
+        statusButton?.titleLabel?.font = .systemFont(ofSize: 16, weight: .semibold)
+        
+        statusButton?.contentEdgeInsets = UIEdgeInsets(top: 14, left: 24, bottom: 14, right: 24)
+        
+        statusButton?.showsMenuAsPrimaryAction = true
+        
+        
+        
+        // Setup about button
+        
+        aboutButton?.layer.cornerRadius = 12
+        
+        aboutButton?.titleLabel?.font = .systemFont(ofSize: 16, weight: .semibold)
+        
+        aboutButton?.contentEdgeInsets = UIEdgeInsets(top: 14, left: 24, bottom: 14, right: 24)
+        
+        aboutButton?.backgroundColor = UIColor.systemGray6
+        
+        aboutButton?.setTitleColor(brandColor, for: .normal)
+        
+        
+        
+        // Setup save button with better style
+        
+        saveButton?.backgroundColor = brandColor
+        
+        saveButton?.setTitleColor(.white, for: .normal)
+        
+        saveButton?.titleLabel?.font = .systemFont(ofSize: 17, weight: .bold)
+        
+        saveButton?.layer.cornerRadius = 16
+        
+        saveButton?.layer.shadowColor = brandColor.cgColor
+        
+        saveButton?.layer.shadowOffset = CGSize(width: 0, height: 4)
+        
+        saveButton?.layer.shadowRadius = 12
+        
+        saveButton?.layer.shadowOpacity = 0.3
+        
+        saveButton?.contentEdgeInsets = UIEdgeInsets(top: 16, left: 24, bottom: 16, right: 24)
+        
+        saveButton?.addTarget(self, action: #selector(saveButtonTapped), for: .touchUpInside)
+        
+        
+        
+        // Add press animation
+        
+        saveButton?.addTarget(self, action: #selector(buttonTouchDown), for: .touchDown)
+        
+        saveButton?.addTarget(self, action: #selector(buttonTouchUp), for: [.touchUpInside, .touchUpOutside, .touchCancel])
+        
+    }
+    
+    
+    
+    @objc private func buttonTouchDown(_ sender: UIButton) {
+        
+        UIView.animate(withDuration: 0.1) {
+            
+            self.saveButton?.transform = CGAffineTransform(scaleX: 0.95, y: 0.95)
+            
+        }
+        
+    }
+    
+    
+    
+    @objc private func buttonTouchUp(_ sender: UIButton) {
+        
+        UIView.animate(withDuration: 0.1) {
+            
+            self.saveButton?.transform = .identity
+            
+        }
+        
+    }
+    
+    
+    
     private func setupStatusMenu() {
-        guard let statusMenuButton = statusMenuButton else { return }
         
-        let activeAction = UIAction(
-            title: "Active",
-            image: UIImage(systemName: "checkmark.circle")
-        ) { [weak self] _ in
-            self?.updateStatus(to: "Active", color: .systemBlue)
-        }
-        
-        let suspendAction = UIAction(
-            title: "Suspend",
-            image: UIImage(systemName: "pause.circle"),
-            attributes: .destructive
-        ) { [weak self] _ in
-            self?.updateStatus(to: "Suspend", color: .systemRed)
-        }
-
-        let menu = UIMenu(title: "Change Status", children: [activeAction, suspendAction])
-        statusMenuButton.menu = menu
-        statusMenuButton.showsMenuAsPrimaryAction = true
-    }
-
-    private func updateStatus(to status: String, color: UIColor) {
-        currentStatus = status
-        
-        // Update Button
-        statusMenuButton?.setTitle(status, for: .normal)
-        statusMenuButton?.setTitleColor(color, for: .normal)
-        
-        // Update Header Label
-        headerStatusLabel?.text = status
-        headerStatusLabel?.textColor = color
-        
-        // Animation for smooth transition
-        if let btn = statusMenuButton {
-            UIView.transition(with: btn, duration: 0.3, options: .transitionCrossDissolve, animations: nil)
-        }
-    }
-
-    // MARK: - Table View Delegate
-    override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        tableView.deselectRow(at: indexPath, animated: true)
-    }
-    // MARK: - Actions
-
-        @IBAction func aboutButtonTapped(_ sender: UIButton) {
-            // Option 1: Using a Segue (If you created a segue in Storyboard)
-            // self.performSegue(withIdentifier: "goToAboutScreen", sender: self)
+        let actions = [
             
-            // Option 2: Programmatic Navigation (Once you create the AboutViewController)
-            /*
-            let storyboard = UIStoryboard(name: "Main", bundle: nil)
-            if let aboutVC = storyboard.instantiateViewController(withIdentifier: "AboutViewController") as? AboutViewController {
-                self.navigationController?.pushViewController(aboutVC, animated: true)
+            UIAction(title: "Active", image: UIImage(systemName: "checkmark.circle.fill")) { [weak self] _ in
+                
+                self?.currentStatus = "Active"
+                
+                self?.updateStatusUI()
+                
+            },
+            
+            UIAction(title: "Suspend", image: UIImage(systemName: "pause.circle.fill")) { [weak self] _ in
+                
+                self?.currentStatus = "Suspend"
+                
+                self?.updateStatusUI()
+                
             }
-            */
             
-            // Temporary Placeholder: Show an alert so you know the button works
-            let alert = UIAlertController(
-                title: "Coming Soon",
-                message: "The About screen for this provider is under development.",
-                preferredStyle: .alert
-            )
-            alert.addAction(UIAlertAction(title: "OK", style: .default))
-            present(alert, animated: true)
-            
-        }
-    @objc private func saveButtonTapped() {
-        // 1. Collect data from your labels/UI
-        // Note: If you allow editing, these should be UIFields. If they are just labels,
-        // we use the current text or the original provider data.
-        let name = fullNameTextField?.text ?? ""
-        let email = emailTextField?.text ?? ""
-        let phone = phoneTextField?.text ?? ""
-        let username = usernameTextField?.text ?? ""
-        let status = currentStatus // Captured from the menu selection
+        ]
         
-        // 2. Validate data (Optional but recommended)
-        if name.isEmpty || email.isEmpty {
-            showAlert(message: "Please ensure Name and Email are provided.")
-            return
-        }
+        statusButton?.menu = UIMenu(children: actions)
         
-        // 3. Create or Update the Provider object
-        let updatedProvider = Provider(
-            fullName: name,
-            email: email,
-            phone: phone,
-            username: username,
-            category: provider?.category ?? "",
-            status: status,
-            imageName: "default_profile",
-            roleType: "Provider"
-        )
-
-        
-        // 4. Save to your Data Source (API, Firebase, or CoreData)
-        if isNewProvider {
-            print("Saving new provider: \(updatedProvider.fullName)")
-            // Call your create service here
-        } else {
-            print("Updating existing provider: \(updatedProvider.fullName)")
-            // Call your update service here
-        }
-        
-        // 5. Dismiss or Pop back to the list
-        navigationController?.popViewController(animated: true)
     }
-
-    // Helper for validation alerts
-    private func showAlert(message: String) {
-        let alert = UIAlertController(title: "Notice", message: message, preferredStyle: .alert)
+    
+    
+    
+    private func loadData() {
+        
+        guard let provider = provider else { return }
+        
+        
+        
+        // Update header
+        
+        profileImageView?.image = UIImage(systemName: "person.crop.circle.fill")
+        
+        profileImageView?.tintColor = brandColor.withAlphaComponent(0.5)
+        
+        usernameLabel?.text = provider.username.isEmpty ? "N/A" : provider.username
+        
+        roleLabel?.text = provider.role.isEmpty ? "Provider" : provider.role
+        
+        
+        
+        // Update cell values with ACTUAL data
+        
+        fullNameValueLabel?.text = provider.fullName.isEmpty ? "N/A" : provider.fullName
+        
+        emailValueLabel?.text = provider.email.isEmpty ? "N/A" : provider.email
+        
+        phoneValueLabel?.text = provider.phone.isEmpty ? "N/A" : provider.phone
+        
+        usernameValueLabel?.text = provider.username.isEmpty ? "N/A" : provider.username
+        
+        
+        
+        // Update status
+        
+        currentStatus = provider.status
+        
+        updateStatusUI()
+        
+        
+        
+        // Force UI update
+        
+        DispatchQueue.main.async {
+            
+            self.tableView.reloadData()
+            
+        }
+        
+    }
+    
+    
+    
+    private func updateStatusUI() {
+        
+        let color: UIColor = currentStatus == "Active" ? .systemGreen : .systemOrange
+        
+        
+        
+        // Update badge in header
+        
+        statusBadge?.text = currentStatus
+        
+        statusBadge?.textColor = color
+        
+        statusBadge?.backgroundColor = color.withAlphaComponent(0.15)
+        
+        
+        
+        // Update status button
+        
+        statusButton?.setTitle(currentStatus, for: .normal)
+        
+        statusButton?.backgroundColor = color.withAlphaComponent(0.15)
+        
+        statusButton?.setTitleColor(color, for: .normal)
+        
+    }
+    
+    
+    
+    @IBAction func aboutButtonTapped(_ sender: UIButton) {
+        
+        guard let provider = provider else { return }
+        
+        
+        
+        let alert = UIAlertController(
+            
+            title: "About \(provider.fullName)",
+            
+            message: "Category: \(provider.category)\nStatus: \(provider.status)\n\nThe full About screen is under development.",
+            
+            preferredStyle: .alert
+            
+        )
+        
         alert.addAction(UIAlertAction(title: "OK", style: .default))
+        
         present(alert, animated: true)
+        
+    }
+    
+    
+    
+    @objc private func saveButtonTapped(_ sender: UIButton) {
+        
+        guard let uid = provider?.uid else {
+            
+            showAlert(title: "Error", message: "Provider ID not found")
+            
+            return
+            
+        }
+        
+        
+        
+        saveButton?.isEnabled = false
+        
+        saveButton?.alpha = 0.6
+        
+        
+        
+        Firestore.firestore().collection("users").document(uid).updateData(["status": currentStatus]) { [weak self] error in
+            
+            guard let self = self else { return }
+            
+            
+            
+            self.saveButton?.isEnabled = true
+            
+            self.saveButton?.alpha = 1.0
+            
+            
+            
+            if let error {
+                
+                print("❌ \(error.localizedDescription)")
+                
+                self.showAlert(title: "Error", message: "Failed to update status.")
+                
+            } else {
+                
+                print("✅ Status updated to \(self.currentStatus)")
+                
+                
+                
+                // Update provider object
+                
+                self.provider?.status = self.currentStatus
+                
+                
+                
+                if self.currentStatus == "Suspend" {
+                    
+                    self.kickUserFromApp(uid: uid)
+                    
+                }
+                
+                
+                
+                self.showAlert(title: "Success", message: "Provider status updated to \(self.currentStatus)")
+                
+            }
+            
+        }
+        
+    }
+    
+    
+    
+    private func kickUserFromApp(uid: String) {
+        
+        if let currentUser = Auth.auth().currentUser, currentUser.uid == uid {
+            
+            do {
+                
+                try Auth.auth().signOut()
+                
+                navigateToLogin()
+                
+            } catch {
+                
+                print("❌ \(error.localizedDescription)")
+                
+            }
+            
+        }
+        
+    }
+    
+    
+    
+    private func navigateToLogin() {
+        
+        DispatchQueue.main.async {
+            
+            let storyboard = UIStoryboard(name: "Main", bundle: nil)
+            
+            if let loginVC = storyboard.instantiateViewController(withIdentifier: "LoginViewController") as? UIViewController {
+                
+                loginVC.modalPresentationStyle = .fullScreen
+                
+                if let sceneDelegate = UIApplication.shared.connectedScenes.first?.delegate as? SceneDelegate {
+                    
+                    sceneDelegate.window?.rootViewController = loginVC
+                    
+                    sceneDelegate.window?.makeKeyAndVisible()
+                    
+                }
+                
+            }
+            
+        }
+        
+    }
+    
+    
+    
+    private func showAlert(title: String, message: String) {
+        
+        let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
+        
+        alert.addAction(UIAlertAction(title: "OK", style: .default))
+        
+        present(alert, animated: true)
+        
     }
 }

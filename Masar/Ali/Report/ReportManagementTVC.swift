@@ -4,6 +4,7 @@ import FirebaseFirestore
 class ReportManagementTVC: UITableViewController {
     
     var reports: [[String: Any]] = []
+    var reportDocumentIDs: [String] = [] // 🔥 لحفظ الـ Document IDs
     let brandColor = UIColor(red: 98/255, green: 84/255, blue: 243/255, alpha: 1.0)
     
     override func viewDidLoad() {
@@ -32,18 +33,28 @@ class ReportManagementTVC: UITableViewController {
         navigationController?.navigationBar.tintColor = .white
         navigationController?.navigationBar.prefersLargeTitles = true
         
-        // 🔥 التعديل 1: إزالة الخطوط الفاصلة
         tableView.separatorStyle = .none
-        
-        // 🔥 التعديل 3 (جزئي): زيادة ارتفاع الخلية قليلاً لاستيعاب المسافات الجديدة
-        tableView.rowHeight = 100 // زدناها من 90 إلى 100
+        tableView.rowHeight = 100
     }
     
     func fetchReports() {
         let db = Firestore.firestore()
         db.collection("reports").order(by: "timestamp", descending: true).addSnapshotListener { [weak self] (snapshot, error) in
-            if let error = error { print(error); return }
-            self?.reports = snapshot?.documents.map { $0.data() } ?? []
+            if let error = error {
+                print("❌ Error fetching reports: \(error.localizedDescription)")
+                return
+            }
+            
+            guard let documents = snapshot?.documents else {
+                print("⚠️ No reports found")
+                return
+            }
+            
+            // 🔥 حفظ البيانات والـ Document IDs
+            self?.reports = documents.map { $0.data() }
+            self?.reportDocumentIDs = documents.map { $0.documentID }
+            
+            print("✅ Fetched \(documents.count) reports")
             self?.tableView.reloadData()
         }
     }
@@ -67,11 +78,33 @@ class ReportManagementTVC: UITableViewController {
         let email = report["email"] as? String ?? "No Email"
         
         cell.configure(id: displayId, name: name, email: email)
-        
-        // 🔥 التعديل 2: إزالة السهم الخارجي (لأننا وضعنا واحداً داخل الخلية)
         cell.accessoryType = .none
         
         return cell
+    }
+    
+    // 🔥 Swipe to Delete
+    override func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
+        if editingStyle == .delete {
+            let documentID = reportDocumentIDs[indexPath.row]
+            
+            print("🗑️ Deleting report with ID: \(documentID)")
+            
+            let db = Firestore.firestore()
+            db.collection("reports").document(documentID).delete { [weak self] error in
+                if let error = error {
+                    print("❌ Error deleting report: \(error.localizedDescription)")
+                    
+                    // عرض رسالة خطأ للمستخدم
+                    let alert = UIAlertController(title: "Error", message: "Failed to delete report. Please try again.", preferredStyle: .alert)
+                    alert.addAction(UIAlertAction(title: "OK", style: .default))
+                    self?.present(alert, animated: true)
+                } else {
+                    print("✅ Report deleted successfully from Firebase")
+                    // لا حاجة لحذف يدوي من الـ Array لأن الـ Listener سيحدث تلقائياً
+                }
+            }
+        }
     }
     
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {

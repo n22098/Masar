@@ -60,7 +60,7 @@ class CategoryCardCell: UITableViewCell {
             containerView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
             containerView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
             containerView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -6),
-            containerView.heightAnchor.constraint(greaterThanOrEqualToConstant: 55), // لضمان ظهور الخلية بارتفاع مناسب
+            containerView.heightAnchor.constraint(greaterThanOrEqualToConstant: 55),
             
             titleLabel.centerYAnchor.constraint(equalTo: containerView.centerYAnchor),
             titleLabel.leadingAnchor.constraint(equalTo: containerView.leadingAnchor, constant: 16),
@@ -91,21 +91,15 @@ class CategoryManagementTVC: UITableViewController {
     // MARK: - Properties
     private let db = Firestore.firestore()
     private var categories: [QueryDocumentSnapshot] = []
-    private var filteredCategories: [QueryDocumentSnapshot] = []
-    private var isSearching = false
     weak var delegate: CategoryManagerDelegate?
     
     // لون التطبيق الأساسي
     let brandColor = UIColor(red: 98/255, green: 84/255, blue: 243/255, alpha: 1.0)
     
-    // Search Controller
-    private let searchController = UISearchController(searchResultsController: nil)
-    
     // MARK: - Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
         setupUI()
-        setupSearchController()
         
         // 🛠️ هام جداً: ضبط ارتفاع الصفوف لتظهر بشكل صحيح
         tableView.rowHeight = UITableView.automaticDimension
@@ -140,22 +134,6 @@ class CategoryManagementTVC: UITableViewController {
         tableView.separatorStyle = .none
     }
     
-    private func setupSearchController() {
-        searchController.searchResultsUpdater = self
-        searchController.obscuresBackgroundDuringPresentation = false
-        searchController.searchBar.placeholder = "Search categories"
-        searchController.searchBar.tintColor = brandColor
-        
-        // تحسين مظهر شريط البحث
-        if let textField = searchController.searchBar.value(forKey: "searchField") as? UITextField {
-            textField.backgroundColor = .white
-            textField.textColor = .black
-        }
-        
-        navigationItem.searchController = searchController
-        definesPresentationContext = true
-    }
-    
     // MARK: - Firebase Logic
     private func startFirebaseListener() {
         print("🔥 Starting Firestore Listener for Categories...")
@@ -175,7 +153,7 @@ class CategoryManagementTVC: UITableViewController {
             
             print("✅ Successfully fetched \(documents.count) categories.")
             self.categories = documents
-            self.filterCategories()
+            self.tableView.reloadData()
             self.delegate?.didUpdateCategories()
         }
     }
@@ -207,22 +185,10 @@ class CategoryManagementTVC: UITableViewController {
             }
         }
     }
-    
-    private func filterCategories() {
-        if isSearching, let searchText = searchController.searchBar.text, !searchText.isEmpty {
-            filteredCategories = categories.filter { doc in
-                let name = doc.get("name") as? String ?? ""
-                return name.localizedCaseInsensitiveContains(searchText)
-            }
-        } else {
-            filteredCategories = categories
-        }
-        tableView.reloadData()
-    }
 
     // MARK: - Table View Data Source
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return filteredCategories.count
+        return categories.count
     }
     
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
@@ -230,7 +196,7 @@ class CategoryManagementTVC: UITableViewController {
             return UITableViewCell()
         }
         
-        let doc = filteredCategories[indexPath.row]
+        let doc = categories[indexPath.row]
         let name = doc.get("name") as? String ?? "Unknown"
         cell.configure(name: name)
         
@@ -240,7 +206,7 @@ class CategoryManagementTVC: UITableViewController {
     // MARK: - Swipe to Delete
     override func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
         if editingStyle == .delete {
-            let docID = filteredCategories[indexPath.row].documentID
+            let docID = categories[indexPath.row].documentID
             db.collection("categories").document(docID).delete { error in
                 if let error = error {
                     print("❌ Error deleting: \(error.localizedDescription)")
@@ -254,7 +220,7 @@ class CategoryManagementTVC: UITableViewController {
     // MARK: - Table View Delegate (الانتقال للبروفايدرز)
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         // 1. استخراج بيانات التصنيف المختار
-        let doc = filteredCategories[indexPath.row]
+        let doc = categories[indexPath.row]
         let categoryName = doc.get("name") as? String ?? "Unknown"
         let categoryID = doc.documentID
         
@@ -269,13 +235,5 @@ class CategoryManagementTVC: UITableViewController {
         
         // 4. الانتقال للشاشة التالية
         navigationController?.pushViewController(providersVC, animated: true)
-    }
-}
-
-// MARK: - Search Controller Delegate
-extension CategoryManagementTVC: UISearchResultsUpdating {
-    func updateSearchResults(for searchController: UISearchController) {
-        isSearching = searchController.isActive
-        filterCategories()
     }
 }
