@@ -4,20 +4,80 @@
 //
 //  Created by BP-36-201-10 on 20/12/2025.
 //
-
 import UIKit
 
 class showSeekerDetailsCell: UITableViewCell {
-
-    override func awakeFromNib() {
-        super.awakeFromNib()
-        // Initialization code
+    
+    private let containerView = UIView()
+    private let nameLabel = UILabel()
+    private let chevronImageView = UIImageView()
+    
+    override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
+        super.init(style: style, reuseIdentifier: reuseIdentifier)
+        setupUI()
     }
-
-    override func setSelected(_ selected: Bool, animated: Bool) {
-        super.setSelected(selected, animated: animated)
-
-        // Configure the view for the selected state
+    
+    required init?(coder: NSCoder) {
+        super.init(coder: coder)
+        setupUI()
     }
-
+    
+    private func setupUI() {
+        backgroundColor = .clear
+        selectionStyle = .none
+        
+        // Card Setup
+        containerView.backgroundColor = .white
+        containerView.layer.cornerRadius = 12
+        containerView.layer.shadowColor = UIColor.black.cgColor
+        containerView.layer.shadowOpacity = 0.05
+        containerView.layer.shadowOffset = CGSize(width: 0, height: 2)
+        containerView.layer.shadowRadius = 4
+        containerView.translatesAutoresizingMaskIntoConstraints = false
+        
+        contentView.addSubview(containerView)
+        
+        // Name Label
+        nameLabel.font = .systemFont(ofSize: 16, weight: .semibold)
+        nameLabel.textColor = .black
+        nameLabel.translatesAutoresizingMaskIntoConstraints = false
+        
+        // Arrow Icon
+        let config = UIImage.SymbolConfiguration(weight: .semibold)
+        chevronImageView.image = UIImage(systemName: "chevron.right", withConfiguration: config)
+        chevronImageView.tintColor = UIColor.lightGray.withAlphaComponent(0.6)
+        chevronImageView.contentMode = .scaleAspectFit
+        chevronImageView.translatesAutoresizingMaskIntoConstraints = false
+        
+        containerView.addSubview(nameLabel)
+        containerView.addSubview(chevronImageView)
+        
+        // Constraints
+        NSLayoutConstraint.activate([
+            containerView.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 6),
+            containerView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
+            containerView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
+            containerView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -6),
+            containerView.heightAnchor.constraint(greaterThanOrEqualToConstant: 60),
+            
+            nameLabel.centerYAnchor.constraint(equalTo: containerView.centerYAnchor),
+            nameLabel.leadingAnchor.constraint(equalTo: containerView.leadingAnchor, constant: 20),
+            
+            chevronImageView.centerYAnchor.constraint(equalTo: containerView.centerYAnchor),
+            chevronImageView.trailingAnchor.constraint(equalTo: containerView.trailingAnchor, constant: -16),
+            chevronImageView.widthAnchor.constraint(equalToConstant: 8),
+            chevronImageView.heightAnchor.constraint(equalToConstant: 14)
+        ])
+    }
+    
+    func configure(name: String) {
+        nameLabel.text = name
+    }
+    
+    override func setHighlighted(_ highlighted: Bool, animated: Bool) {
+        super.setHighlighted(highlighted, animated: animated)
+        UIView.animate(withDuration: 0.2) {
+            self.containerView.transform = highlighted ? CGAffineTransform(scaleX: 0.98, y: 0.98) : .identity
+        }
+    }
 }
