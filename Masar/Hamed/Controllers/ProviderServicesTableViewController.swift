@@ -1,11 +1,11 @@
 import UIKit
+import FirebaseAuth // 🔥 1. إضافة مكتبة المصادقة لجلب رقم المستخدم
 
 class ProviderServicesTableViewController: UITableViewController {
     
     // MARK: - Properties
     let brandColor = UIColor(red: 0.35, green: 0.34, blue: 0.91, alpha: 1.0)
     
-    // 👇 التعديل 1: المصفوفة تبدأ فارغة لانتظار البيانات من Firebase
     var myServices: [ServiceModel] = []
     
     var selectedServiceIndex: Int?
@@ -19,17 +19,24 @@ class ProviderServicesTableViewController: UITableViewController {
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         setupNavigationBar()
-        
-        // 👇 التعديل 2: جلب البيانات من Firebase في كل مرة تظهر الشاشة
         fetchServicesFromFirebase()
     }
     
     // MARK: - Firebase Fetching
     func fetchServicesFromFirebase() {
-        // إضافة مؤشر تحميل بسيط في العنوان (اختياري)
         self.title = "Updating..."
         
-        ServiceManager.shared.fetchAllServices { [weak self] services in
+        // 🔥 جلب UID المستخدم الحالي
+        guard let currentProviderId = Auth.auth().currentUser?.uid else {
+            DispatchQueue.main.async {
+                self.title = "Services"
+                self.showAlert("Unable to fetch user ID", title: "Error")
+            }
+            return
+        }
+        
+        // 🎯 جلب الخدمات الخاصة بهذا المزود فقط
+        ServiceManager.shared.fetchServicesForProvider(providerId: currentProviderId) { [weak self] services in
             DispatchQueue.main.async {
                 self?.title = "Services"
                 self?.myServices = services
@@ -43,7 +50,6 @@ class ProviderServicesTableViewController: UITableViewController {
         setupNavigationBar()
         setupTableView()
         
-        // إضافة Refresh Control لسحب الشاشة وتحديث البيانات
         let refreshControl = UIRefreshControl()
         refreshControl.addTarget(self, action: #selector(handleRefresh), for: .valueChanged)
         tableView.refreshControl = refreshControl
@@ -156,12 +162,10 @@ class ProviderServicesTableViewController: UITableViewController {
         return UISwipeActionsConfiguration(actions: [deleteAction, editAction])
     }
     
-    // 👇 التعديل 3: دالة الحذف المرتبطة بـ Firebase
     private func deleteService(at indexPath: IndexPath) {
         let service = myServices[indexPath.row]
         let serviceName = service.name
         
-        // يجب التأكد من وجود ID للحذف
         guard let serviceId = service.id else { return }
         
         let alert = UIAlertController(
@@ -173,14 +177,12 @@ class ProviderServicesTableViewController: UITableViewController {
         alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
         alert.addAction(UIAlertAction(title: "Delete", style: .destructive) { [weak self] _ in
             
-            // الاتصال بـ Firebase للحذف
             ServiceManager.shared.deleteService(serviceId: serviceId) { error in
                 if let error = error {
                     print("Error deleting service: \(error.localizedDescription)")
                     return
                 }
                 
-                // التحديث في الواجهة بعد نجاح الحذف
                 DispatchQueue.main.async {
                     self?.myServices.remove(at: indexPath.row)
                     self?.tableView.deleteRows(at: [indexPath], with: .fade)
@@ -196,7 +198,6 @@ class ProviderServicesTableViewController: UITableViewController {
         if segue.identifier == "editService" {
             if let destVC = segue.destination as? EditServiceTableViewController {
                 
-                // تمرير البيانات للشاشة التالية
                 if let indexPath = sender as? IndexPath {
                     let selectedService = myServices[indexPath.row]
                     destVC.serviceToEdit = selectedService
@@ -206,28 +207,34 @@ class ProviderServicesTableViewController: UITableViewController {
                     selectedServiceIndex = nil
                 }
                 
-                // 👇 التعديل 4: التعامل مع الحفظ (إضافة أو تحديث)
+                // 👇 التعديل هنا: إضافة providerId قبل الحفظ
                 destVC.onSaveComplete = { [weak self] updatedService in
                     guard let self = self else { return }
                     
+                    // 🔥🔥 FIX: Inject Provider ID Here 🔥🔥
+                    var finalService = updatedService
+                    if let currentUid = Auth.auth().currentUser?.uid {
+                        finalService.providerId = currentUid
+                    }
+                    
                     // إذا كان هناك ID، فهذا يعني تحديث
-                    if let _ = updatedService.id {
-                        ServiceManager.shared.updateService(updatedService) { error in
+                    if let _ = finalService.id {
+                        ServiceManager.shared.updateService(finalService) { error in
                             if let error = error {
                                 print("Error updating: \(error)")
                             } else {
                                 print("Successfully updated service")
-                                self.fetchServicesFromFirebase() // إعادة تحميل القائمة
+                                self.fetchServicesFromFirebase()
                             }
                         }
                     } else {
                         // إذا لم يكن هناك ID، فهذه إضافة جديدة
-                        ServiceManager.shared.addService(updatedService) { error in
+                        ServiceManager.shared.addService(finalService) { error in
                             if let error = error {
                                 print("Error adding: \(error)")
                             } else {
-                                print("Successfully added service")
-                                self.fetchServicesFromFirebase() // إعادة تحميل القائمة
+                                print("Successfully added service with Provider ID")
+                                self.fetchServicesFromFirebase()
                             }
                         }
                     }
@@ -242,7 +249,7 @@ class ProviderServicesTableViewController: UITableViewController {
 }
 
 // MARK: - Service Cell Class
-// (نفس الكلاس الخاص بك تماماً، لم يتغير)
+// (كما هو لم يتغير)
 class ServiceCell: UITableViewCell {
     
     private let containerView: UIView = {
@@ -310,7 +317,8 @@ class ServiceCell: UITableViewCell {
     }
     
     required init?(coder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
+        super.init(coder: coder)
+        setupUI()
     }
     
     private func setupUI() {
@@ -371,5 +379,14 @@ class ServiceCell: UITableViewCell {
         
         iconBackgroundView.backgroundColor = brandColor.withAlphaComponent(0.15)
         iconImageView.tintColor = brandColor
+    }
+}
+
+// MARK: - Helper Extension
+extension ProviderServicesTableViewController {
+    private func showAlert(_ message: String, title: String) {
+        let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: "OK", style: .default))
+        present(alert, animated: true)
     }
 }

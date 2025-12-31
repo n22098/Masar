@@ -535,7 +535,9 @@ class ServiceItemTableViewController: UITableViewController {
             destVC.providerData = self.providerData
             destVC.isReadOnlyMode = true
         } else if segue.identifier == "showReviews", let destVC = segue.destination as? RatingsReviewsViewController {
-            // Logic handled internally
+            // 🔥 تمرير بيانات المزود للصفحة
+            destVC.providerId = providerData?.id
+            destVC.providerName = providerData?.name ?? "Provider"
         }
     }
 }

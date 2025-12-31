@@ -17,6 +17,7 @@ struct BookingModel: Codable, Identifiable {
     let date: Date
     var status: BookingStatus
     let providerName: String
+    let providerId: String? // 🔥 إضافة معرف المزود
     let email: String
     let phoneNumber: String
     let price: Double

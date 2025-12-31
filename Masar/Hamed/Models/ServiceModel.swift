@@ -15,6 +15,9 @@ struct ServiceModel: Codable, Identifiable {
     var category: String
     var providerName: String?
     
+    // 🔥 NEW: Added providerId to link with profile
+    var providerId: String?
+    
     // 3. App Specific Data (Optional fields)
     var icon: String?
     var addOns: [String]?
@@ -24,14 +27,12 @@ struct ServiceModel: Codable, Identifiable {
     
     // MARK: - Computed Properties
     
-    // 4. Helper to display price as formatted string
     var formattedPrice: String {
         return String(format: "BHD %.3f", price)
     }
     
     // MARK: - Coding Keys
     
-    // 5. Mapping Keys for Firebase
     enum CodingKeys: String, CodingKey {
         case id
         case name = "title" // Maps Firebase "title" to Swift "name"
@@ -39,6 +40,7 @@ struct ServiceModel: Codable, Identifiable {
         case description
         case category
         case providerName
+        case providerId // 🔥 Make sure this matches the field name in Firestore (e.g., "uid" or "providerId")
         
         // Optional fields
         case icon
@@ -50,13 +52,13 @@ struct ServiceModel: Codable, Identifiable {
     
     // MARK: - Initializer
     
-    // 6. Manual Init for creating test data or new services
     init(id: String = UUID().uuidString,
          name: String,
          price: Double,
          description: String,
          category: String = "IT Solutions",
          providerName: String? = nil,
+         providerId: String? = nil, // 🔥 Added to init
          icon: String? = "briefcase.fill",
          addOns: [String]? = nil,
          deliveryTime: String? = nil,
@@ -69,6 +71,7 @@ struct ServiceModel: Codable, Identifiable {
         self.description = description
         self.category = category
         self.providerName = providerName
+        self.providerId = providerId // 🔥
         self.icon = icon
         self.addOns = addOns
         self.deliveryTime = deliveryTime

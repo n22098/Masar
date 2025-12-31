@@ -39,7 +39,16 @@ class BookingHistoryTableViewController: UITableViewController {
     
     // MARK: - Firebase Fetching
     func fetchBookingsFromFirebase() {
-        ServiceManager.shared.fetchAllBookings { [weak self] bookings in
+        // 🔥 Get current user email
+        guard let currentUserEmail = UserManager.shared.currentUser?.email else {
+            print("⚠️ No logged in user")
+            return
+        }
+        
+        print("🔍 Fetching bookings for seeker: \(currentUserEmail)")
+        
+        // ✅ Fetch bookings for this seeker only
+        ServiceManager.shared.fetchBookingsForSeeker(seekerEmail: currentUserEmail) { [weak self] bookings in
             guard let self = self else { return }
             self.allBookings = bookings
             self.filterBookings()
@@ -241,6 +250,7 @@ class BookingHistoryTableViewController: UITableViewController {
            let destVC = segue.destination as? RatingViewController,
            let booking = sender as? BookingModel {
             destVC.bookingName = booking.serviceName
+            destVC.providerId = booking.providerId // 🔥 إضافة providerId
         }
     }
 }

@@ -9,6 +9,7 @@ class RatingViewController: UIViewController {
     
     // MARK: - Properties
     var bookingName: String?
+    var providerId: String? // 🔥 إضافة معرف المزود
     var selectedRating: Double = 0.0
     
     // MARK: - Lifecycle
@@ -20,11 +21,38 @@ class RatingViewController: UIViewController {
     
     private func setupUI() {
         title = "Rate \(bookingName ?? "Service")"
-        // تحسين شكل مربع النص
+        view.backgroundColor = UIColor(red: 248/255, green: 248/255, blue: 252/255, alpha: 1.0)
+        
+        // 🎨 تحسين Navigation Bar
+        let appearance = UINavigationBarAppearance()
+        appearance.configureWithOpaqueBackground()
+        appearance.backgroundColor = UIColor(red: 0.35, green: 0.34, blue: 0.91, alpha: 1.0)
+        appearance.titleTextAttributes = [.foregroundColor: UIColor.white]
+        appearance.largeTitleTextAttributes = [
+            .foregroundColor: UIColor.white,
+            .font: UIFont.systemFont(ofSize: 34, weight: .bold)
+        ]
+        appearance.shadowColor = .clear
+        
+        navigationController?.navigationBar.standardAppearance = appearance
+        navigationController?.navigationBar.scrollEdgeAppearance = appearance
+        navigationController?.navigationBar.compactAppearance = appearance
+        navigationController?.navigationBar.tintColor = .white
+        
+        // 🎨 تحسين شكل مربع النص
         feedbackTextView.layer.borderWidth = 1
         feedbackTextView.layer.borderColor = UIColor.systemGray5.cgColor
-        feedbackTextView.layer.cornerRadius = 12
-        feedbackTextView.textContainerInset = UIEdgeInsets(top: 10, left: 10, bottom: 10, right: 10)
+        feedbackTextView.layer.cornerRadius = 16
+        feedbackTextView.backgroundColor = .white
+        feedbackTextView.textContainerInset = UIEdgeInsets(top: 16, left: 16, bottom: 16, right: 16)
+        feedbackTextView.font = UIFont.systemFont(ofSize: 16, weight: .regular)
+        feedbackTextView.textColor = .darkText
+        
+        // ظل خفيف
+        feedbackTextView.layer.shadowColor = UIColor.black.cgColor
+        feedbackTextView.layer.shadowOpacity = 0.06
+        feedbackTextView.layer.shadowOffset = CGSize(width: 0, height: 4)
+        feedbackTextView.layer.shadowRadius = 8
     }
     
     private func setupStarButtons() {
@@ -96,8 +124,8 @@ class RatingViewController: UIViewController {
         // إيقاف الزر لمنع التكرار
         sender.isEnabled = false
         
-        // استخدام السيرفس الجديد
-        RatingService.shared.uploadRating(stars: selectedRating, feedback: feedback, bookingName: bName) { [weak self] error in
+        // 🔥 تمرير providerId للسيرفس
+        RatingService.shared.uploadRating(stars: selectedRating, feedback: feedback, bookingName: bName, providerId: providerId) { [weak self] error in
             sender.isEnabled = true
             
             if let error = error {

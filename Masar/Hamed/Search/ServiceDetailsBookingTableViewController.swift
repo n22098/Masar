@@ -110,6 +110,7 @@ class ServiceDetailsBookingTableViewController: UITableViewController {
         let price = Double(priceString) ?? 0.0
         let date = datePicker.date
         let providerName = providerData?.name ?? "Unknown"
+        let providerId = providerData?.id // 🔥 إضافة provider ID
         
         let currentUser = UserManager.shared.currentUser
         let seekerName = currentUser?.name ?? "Guest"
@@ -126,6 +127,7 @@ class ServiceDetailsBookingTableViewController: UITableViewController {
             date: date,
             status: .upcoming,
             providerName: providerName,
+            providerId: providerId, // 🔥 تمرير provider ID
             email: seekerEmail,
             phoneNumber: seekerPhone,
             price: price,

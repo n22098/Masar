@@ -311,10 +311,10 @@
             </objects>
             <point key="canvasLocation" x="1051" y="2750"/>
         </scene>
-        <!--View Controller-->
+        <!--Seeker Service View Controller-->
         <scene sceneID="rD5-90-kZb">
             <objects>
-                <viewController id="ttx-Ee-VfV" sceneMemberID="viewController">
+                <viewController id="ttx-Ee-VfV" customClass="SeekerServiceViewController" customModule="Masar" customModuleProvider="target" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="adU-wn-wvX">
                         <rect key="frame" x="0.0" y="0.0" width="393" height="852"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
@@ -963,12 +963,6 @@
                                                 </button>
                                             </subviews>
                                         </tableViewCellContentView>
-                                        <connections>
-                                            <outlet property="bookingButton" destination="AZR-G5-uaM" id="1YA-4k-akn"/>
-                                            <outlet property="detailsLabel" destination="81n-6T-129" id="E5q-Lk-nMQ"/>
-                                            <outlet property="priceLabel" destination="tAl-e6-XDH" id="czS-r3-bQX"/>
-                                            <outlet property="serviceNameLabel" destination="ttE-XY-6jB" id="kZN-6f-grA"/>
-                                        </connections>
                                     </tableViewCell>
                                 </cells>
                             </tableViewSection>
@@ -1010,7 +1004,7 @@
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <stackView opaque="NO" contentMode="scaleToFill" fixedFrame="YES" axis="vertical" distribution="fillProportionally" spacing="15" translatesAutoresizingMaskIntoConstraints="NO" id="Ghw-Bx-bWw">
-                                <rect key="frame" x="30" y="202" width="114.33333333333331" height="297.66666666666669"/>
+                                <rect key="frame" x="30" y="202.00000000000003" width="114.33333333333331" height="297.66666666666674"/>
                                 <subviews>
                                     <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="person.fill" catalog="system" translatesAutoresizingMaskIntoConstraints="NO" id="lLe-Zt-Gel">
                                         <rect key="frame" x="0.0" y="1.6666666666666661" width="114.33333333333333" height="17"/>
@@ -1317,10 +1311,6 @@
                                                 <constraint firstItem="wgw-LP-H14" firstAttribute="top" secondItem="IpH-f7-5Nf" secondAttribute="topMargin" id="TdZ-Nt-HhX"/>
                                             </constraints>
                                         </tableViewCellContentView>
-                                        <connections>
-                                            <outlet property="priceLabel" destination="mwF-rm-zJ3" id="jfA-cW-6Fp"/>
-                                            <outlet property="serviceNameLabel" destination="Xys-HX-8vx" id="IsC-qM-rLC"/>
-                                        </connections>
                                     </tableViewCell>
                                 </cells>
                             </tableViewSection>
@@ -1354,7 +1344,7 @@
                 </tableViewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="3Ge-ia-CpB" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="3048" y="-1182"/>
+            <point key="canvasLocation" x="3054" y="-1182"/>
         </scene>
         <!--Data-->
         <scene sceneID="s7a-JK-ODj">
@@ -1977,10 +1967,7 @@
                                 </tableViewCellContentView>
                                 <connections>
                                     <outlet property="bookButton" destination="YRw-Gg-NgO" id="G90-th-VF2"/>
-                                    <outlet property="containerView" destination="Qom-Bc-HyA" id="eeO-ao-liT"/>
-                                    <outlet property="serviceImageView" destination="1G6-uZ-yEd" id="PZT-Av-jUb"/>
                                     <outlet property="serviceNameLabel" destination="LJd-j3-Bpj" id="Veh-Pb-ZcK"/>
-                                    <outlet property="servicePriceLabel" destination="tP9-7Y-EAA" id="6qg-2i-fWb"/>
                                 </connections>
                             </tableViewCell>
                         </prototypes>
@@ -2167,11 +2154,6 @@
                         </constraints>
                     </view>
                     <navigationItem key="navigationItem" title="Rating and Reviews" id="sQK-vM-Owd"/>
-                    <connections>
-                        <outlet property="averageRatingLabel" destination="whd-4y-W04" id="ME2-Cd-vMs"/>
-                        <outlet property="tableView" destination="8Sw-A9-tyM" id="QjF-7c-pKG"/>
-                        <outlet property="totalRatingsLabel" destination="lzP-p1-iEX" id="bhu-kv-9sb"/>
-                    </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="jC3-Sn-8Jj" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
@@ -2199,10 +2181,10 @@
             <color white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
         </systemColor>
         <systemColor name="systemGrayColor">
-            <color red="0.5568627451" green="0.5568627451" blue="0.57647058819999997" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+            <color red="0.55686274509803924" green="0.55686274509803924" blue="0.57647058823529407" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
         </systemColor>
         <systemColor name="systemIndigoColor">
-            <color red="0.34509803919999998" green="0.33725490200000002" blue="0.83921568629999999" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+            <color red="0.34509803921568627" green="0.33725490196078434" blue="0.83921568627450982" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
         </systemColor>
         <systemColor name="systemYellowColor">
             <color red="1" green="0.80000000000000004" blue="0.0" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>

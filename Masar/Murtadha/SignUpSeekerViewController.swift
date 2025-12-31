@@ -13,13 +13,13 @@ class SignUpSeekerViewController: UIViewController, UITextFieldDelegate {
     @IBOutlet weak var confirmPasswordTextField: UITextField!
     @IBOutlet weak var applyAsProviderSwitch: UISwitch!
     
-    // 👇 اربط العناصر الجديدة
     @IBOutlet weak var signUpButton: UIButton!
     @IBOutlet weak var logoImageView: UIImageView!
 
     let db = Firestore.firestore()
     private let brandColor = UIColor(red: 98/255, green: 84/255, blue: 243/255, alpha: 1.0)
 
+    // MARK: - Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
         setupDelegates()
@@ -30,15 +30,17 @@ class SignUpSeekerViewController: UIViewController, UITextFieldDelegate {
 
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
+        // إعادة السويتش لوضعه الطبيعي عند العودة لهذه الصفحة
         applyAsProviderSwitch.setOn(false, animated: false)
     }
     
-    // MARK: - 🎨 Professional UI
+    // MARK: - 🎨 Professional UI Setup
     private func setupProfessionalUI() {
+        // إخفاء الكيبورد عند الضغط في الخارج
         view.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(dismissKeyboard)))
         view.backgroundColor = .systemBackground
 
-        // تصميم الحقول
+        // تنسيق الحقول
         styleTextField(nameTextField, iconName: "person")
         styleTextField(emailTextField, iconName: "envelope")
         styleTextField(phoneNumberTextField, iconName: "phone")
@@ -46,7 +48,7 @@ class SignUpSeekerViewController: UIViewController, UITextFieldDelegate {
         styleTextField(passwordTextField, iconName: "lock")
         styleTextField(confirmPasswordTextField, iconName: "lock.shield")
         
-        // زر التسجيل
+        // تنسيق زر التسجيل
         if let btn = signUpButton {
             btn.backgroundColor = brandColor
             btn.setTitle("Sign Up", for: .normal)
@@ -59,10 +61,10 @@ class SignUpSeekerViewController: UIViewController, UITextFieldDelegate {
             btn.layer.shadowRadius = 8
         }
         
-        // زر التبديل
+        // لون زر التبديل
         applyAsProviderSwitch.onTintColor = brandColor
         
-        // الشعار
+        // تنسيق الشعار
         logoImageView?.contentMode = .scaleAspectFit
     }
     
@@ -86,7 +88,7 @@ class SignUpSeekerViewController: UIViewController, UITextFieldDelegate {
     
     @objc func dismissKeyboard() { view.endEditing(true) }
 
-    // MARK: - Logic (كما هو) 👇
+    // MARK: - Delegates Setup
     private func setupDelegates() {
         let textFields = [nameTextField, emailTextField, phoneNumberTextField, usernameTextField, passwordTextField, confirmPasswordTextField]
         for (index, textField) in textFields.enumerated() {
@@ -106,16 +108,22 @@ class SignUpSeekerViewController: UIViewController, UITextFieldDelegate {
             nextResponder.becomeFirstResponder()
         } else {
             textField.resignFirstResponder()
+            // إذا ضغط Enter في آخر حقل، يحاول التسجيل
             signUpBtn(UIButton())
         }
         return true
     }
     
+    // MARK: - Actions
+
+    // 1. زر التسجيل العادي (للسيكر)
     @IBAction func signUpBtn(_ sender: UIButton) {
+        // إذا كان السويتش مفعلاً، نمنع التسجيل من هنا ونطلب منه استخدام السويتش للانتقال
         if applyAsProviderSwitch.isOn {
-            showAlert("Please complete provider information first.")
+            showAlert("Please wait while we redirect you to provider application, or turn off the switch to register as a regular user.")
             return
         }
+        
         guard validateInputs() else { return }
 
         let email = emailTextField.text!.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -129,24 +137,40 @@ class SignUpSeekerViewController: UIViewController, UITextFieldDelegate {
                 self.showAlert("Email, Username, or Phone Number is already in use.")
                 return
             }
+            // إنشاء المستخدم في Firebase Auth
             Auth.auth().createUser(withEmail: email, password: password) { authResult, error in
-                if let error = error { self.showAlert("Error: \(error.localizedDescription)"); return }
+                if let error = error {
+                    self.showAlert("Error: \(error.localizedDescription)")
+                    return
+                }
                 guard let uid = authResult?.user.uid else { return }
+                
+                // حفظ البيانات في Firestore كـ Seeker
                 let userData: [String: Any] = [
                     "uid": uid, "name": name, "email": email, "username": username, "phone": phone,
                     "role": "seeker", "createdAt": FieldValue.serverTimestamp()
                 ]
                 self.db.collection("users").document(uid).setData(userData) { error in
-                    if let error = error { self.showAlert("Failed: \(error.localizedDescription)") }
-                    else { self.showSuccessAndRedirect() }
+                    if let error = error {
+                        self.showAlert("Failed: \(error.localizedDescription)")
+                    } else {
+                        self.showSuccessAndRedirect()
+                    }
                 }
             }
         }
     }
 
+    // 2. زر التبديل (للانتقال لصفحة البروفايدر) - 🔥 تم التعديل هنا 🔥
     @IBAction func switchBtn(_ sender: UISwitch) {
+        // إذا أغلق المستخدم السويتش، لا تفعل شيئاً
         guard sender.isOn else { return }
-        guard validateInputs() else { sender.setOn(false, animated: true); return }
+        
+        // التحقق من صحة البيانات أولاً
+        guard validateInputs() else {
+            sender.setOn(false, animated: true) // إرجاع الزر لوضعه الطبيعي
+            return
+        }
 
         let name = nameTextField.text!.trimmingCharacters(in: .whitespacesAndNewlines)
         let email = emailTextField.text!.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -154,25 +178,44 @@ class SignUpSeekerViewController: UIViewController, UITextFieldDelegate {
         let username = usernameTextField.text!.trimmingCharacters(in: .whitespacesAndNewlines)
         let password = passwordTextField.text!
 
+        // التحقق من عدم وجود المستخدم مسبقاً
         checkIfUserDataExists(email: email, username: username, phone: phone) { exists in
             if exists {
                 self.showAlert("Email, Username, or Phone Number is already in use.")
                 sender.setOn(false, animated: true)
                 return
             }
+            
+            // 🔥 الانتقال للصفحة التالية باستخدام Storyboard ID
             let storyboard = UIStoryboard(name: "Main", bundle: nil)
-            guard let providerVC = storyboard.instantiateViewController(withIdentifier: "ApplyProviderTableViewController") as? ApplyProviderTableViewController else {
-                sender.setOn(false, animated: true); return
+            
+            // تأكد من وضع ID للشاشة الثانية باسم "ApplyProviderTableViewController" في الستوري بورد
+            if let providerVC = storyboard.instantiateViewController(withIdentifier: "ApplyProviderTableViewController") as? ApplyProviderTableViewController {
+                
+                // نقل البيانات
+                providerVC.userName = name
+                providerVC.userEmail = email
+                providerVC.userPhone = phone
+                providerVC.userUsername = username
+                providerVC.userPassword = password
+                
+                // محاولة الانتقال (Push أو Modal)
+                if let nav = self.navigationController {
+                    nav.pushViewController(providerVC, animated: true)
+                } else {
+                    providerVC.modalPresentationStyle = .fullScreen
+                    self.present(providerVC, animated: true, completion: nil)
+                }
+                
+            } else {
+                // رسالة خطأ للمطور إذا نسيت وضع الـ ID
+                self.showAlert("Development Error: Please set Storyboard ID 'ApplyProviderTableViewController' in Main.storyboard")
+                sender.setOn(false, animated: true)
             }
-            providerVC.userName = name
-            providerVC.userEmail = email
-            providerVC.userPhone = phone
-            providerVC.userUsername = username
-            providerVC.userPassword = password
-            self.navigationController?.pushViewController(providerVC, animated: true)
         }
     }
     
+    // MARK: - Helpers
     func showSuccessAndRedirect() {
         let alert = UIAlertController(title: "Success!", message: "Account created successfully.", preferredStyle: .alert)
         alert.addAction(UIAlertAction(title: "OK", style: .default) { _ in
@@ -188,9 +231,18 @@ class SignUpSeekerViewController: UIViewController, UITextFieldDelegate {
     
     func validateInputs() -> Bool {
         let fields = [nameTextField, emailTextField, usernameTextField, phoneNumberTextField, passwordTextField, confirmPasswordTextField]
-        if fields.contains(where: { $0?.text?.isEmpty ?? true }) { showAlert("All fields are required."); return false }
-        if passwordTextField.text != confirmPasswordTextField.text { showAlert("Passwords do not match."); return false }
-        if (passwordTextField.text?.count ?? 0) < 6 { showAlert("Password must be at least 6 characters."); return false }
+        if fields.contains(where: { $0?.text?.isEmpty ?? true }) {
+            showAlert("All fields are required.")
+            return false
+        }
+        if passwordTextField.text != confirmPasswordTextField.text {
+            showAlert("Passwords do not match.")
+            return false
+        }
+        if (passwordTextField.text?.count ?? 0) < 6 {
+            showAlert("Password must be at least 6 characters.")
+            return false
+        }
         return true
     }
 
@@ -211,9 +263,13 @@ class SignUpSeekerViewController: UIViewController, UITextFieldDelegate {
 
     @objc private func togglePasswordVisibility(_ sender: UIButton) {
         sender.isSelected.toggle()
-        if let textField = sender.superview as? UITextField { textField.isSecureTextEntry.toggle() }
-        else if sender == passwordTextField.rightView as? UIButton { passwordTextField.isSecureTextEntry.toggle() }
-        else if sender == confirmPasswordTextField.rightView as? UIButton { confirmPasswordTextField.isSecureTextEntry.toggle() }
+        if let textField = sender.superview as? UITextField {
+            textField.isSecureTextEntry.toggle()
+        } else if sender == passwordTextField.rightView as? UIButton {
+            passwordTextField.isSecureTextEntry.toggle()
+        } else if sender == confirmPasswordTextField.rightView as? UIButton {
+            confirmPasswordTextField.isSecureTextEntry.toggle()
+        }
     }
 
     func checkIfUserDataExists(email: String, username: String, phone: String, completion: @escaping (Bool) -> Void) {
@@ -221,7 +277,9 @@ class SignUpSeekerViewController: UIViewController, UITextFieldDelegate {
             Filter.whereField("email", isEqualTo: email),
             Filter.whereField("username", isEqualTo: username),
             Filter.whereField("phone", isEqualTo: phone)
-        ])).getDocuments { snapshot, _ in completion(!(snapshot?.documents.isEmpty ?? true)) }
+        ])).getDocuments { snapshot, _ in
+            completion(!(snapshot?.documents.isEmpty ?? true))
+        }
     }
 
     func showAlert(_ message: String) {

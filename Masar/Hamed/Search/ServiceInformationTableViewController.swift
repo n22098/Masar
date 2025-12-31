@@ -7,12 +7,18 @@ class ServiceInformationTableViewController: UITableViewController {
     var receivedServicePrice: String?
     var receivedServiceDetails: String?
     
-    // 👇 NEW: Variable to hold the Service Items (Add-ons)
+    // Variable to hold the Service Items (Add-ons)
     var receivedServiceItems: [String]?
     
     var providerData: ServiceProviderModel?
     
     let brandColor = UIColor(red: 0.35, green: 0.34, blue: 0.91, alpha: 1.0)
+    
+    // MARK: - ✅ THE FIX IS HERE
+    // This initializer is required to prevent the "Fatal error: init(coder:) has not been implemented" crash.
+    required init?(coder: NSCoder) {
+        super.init(coder: coder)
+    }
     
     // MARK: - Header View
     private lazy var headerView: UIView = {
@@ -105,7 +111,6 @@ class ServiceInformationTableViewController: UITableViewController {
         return label
     }()
     
-    // Make this accessible to the class
     private let serviceDetailsLabel: UILabel = {
         let label = UILabel()
         label.font = UIFont.systemFont(ofSize: 15, weight: .regular)
@@ -230,6 +235,7 @@ class ServiceInformationTableViewController: UITableViewController {
         serviceCardView.addSubview(serviceDetailsLabel)
         serviceCardView.addSubview(requestButton)
         
+        // Ensure the container is large enough to fit content + padding
         containerView.frame = CGRect(x: 0, y: 0, width: view.frame.width, height: 340)
         tableView.tableFooterView = containerView
         
@@ -349,7 +355,7 @@ class ServiceInformationTableViewController: UITableViewController {
         performSegue(withIdentifier: "showBooking", sender: nil)
     }
     
-    // ✅ MARK: - Navigation with Fix
+    // MARK: - Navigation
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
         if segue.identifier == "showBooking" {
             if let destVC = segue.destination as? ServiceDetailsBookingTableViewController {
@@ -363,8 +369,7 @@ class ServiceInformationTableViewController: UITableViewController {
                 
                 destVC.providerData = self.providerData
                 
-                // 👇 NEW FIX: Pass the Service Items (Add-ons) to the Booking Screen
-                // We join the array into a single string (e.g. "Hosting, Domain, SSL")
+                // Pass the Service Items (Add-ons) to the Booking Screen
                 if let items = receivedServiceItems {
                     destVC.receivedServiceItems = items.joined(separator: ", ")
                 } else {
@@ -374,6 +379,7 @@ class ServiceInformationTableViewController: UITableViewController {
         }
     }
     
+    // TableView Config (Empty because you are using Header/Footer for content)
     override func numberOfSections(in tableView: UITableView) -> Int {
         return 0
     }

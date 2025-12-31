@@ -300,27 +300,19 @@ class ApplyProviderTableViewController: UITableViewController,
         submitButton?.isEnabled = false
         submitButton?.backgroundColor = .systemGray
         
-        let loading = UIAlertController(title: nil, message: "Creating Account & Uploading...", preferredStyle: .alert)
+        let loading = UIAlertController(title: nil, message: "Submitting Application...", preferredStyle: .alert)
         present(loading, animated: true)
         
-        guard let email = userEmail, let password = userPassword else {
+        // استخدام UID المستخدم الحالي بدلاً من إنشاء حساب جديد
+        guard let uid = Auth.auth().currentUser?.uid else {
             loading.dismiss(animated: true)
             resetButtons()
-            showAlert("User data missing", title: "Error"); return
+            showAlert("You must be logged in to apply", title: "Error")
+            return
         }
-
-        // 1. Create User in Firebase Auth
-        Auth.auth().createUser(withEmail: email, password: password) { authResult, error in
-            if let error = error {
-                loading.dismiss(animated: true)
-                self.resetButtons()
-                self.showAlert(error.localizedDescription, title: "Auth Error"); return
-            }
-            guard let uid = authResult?.user.uid else { return }
-            
-            // 2. Start Uploading Files to Cloudinary
-            self.uploadFiles(uid: uid, loadingAlert: loading)
-        }
+        
+        // رفع الملفات مباشرة
+        uploadFiles(uid: uid, loadingAlert: loading)
     }
     
     private func resetButtons() {
@@ -371,26 +363,34 @@ class ApplyProviderTableViewController: UITableViewController,
     // MARK: - Firestore Saving
     private func saveRequest(uid: String, urls: [String: String], loadingAlert: UIAlertController) {
         let bioText = tellUsTxt.textColor == .placeholderText ? "" : tellUsTxt.text ?? ""
-        let batch = Firestore.firestore().batch()
+        let db = Firestore.firestore()
         
-        // 1. User Document
-        let userData: [String: Any] = [
-            "uid": uid, "name": self.userName ?? "", "username": self.userUsername ?? "",
-            "email": self.userEmail ?? "", "phone": self.userPhone ?? "", "role": "seeker",
-            "providerRequestStatus": "pending", "createdAt": FieldValue.serverTimestamp()
-        ]
-        batch.setData(userData, forDocument: Firestore.firestore().collection("users").document(uid))
-
-        // 2. Provider Request Document
+        // 1. تحديث حالة المستخدم فقط
+        db.collection("users").document(uid).updateData([
+            "providerRequestStatus": "pending"
+        ]) { error in
+            if let error = error {
+                print("Error updating user status: \(error)")
+            }
+        }
+        
+        // 2. إنشاء طلب المزود
         let requestData: [String: Any] = [
-            "uid": uid, "name": userName ?? "", "email": userEmail ?? "", "phone": userPhone ?? "",
-            "category": selectedCategory ?? "", "skillLevel": selectedSkill ?? "", "bio": bioText,
-            "idCardURL": urls["idCardURL"] ?? "", "portfolioURL": urls["portfolioURL"] ?? "",
-            "certificateURL": urls["certificateURL"] ?? "", "status": "pending", "createdAt": FieldValue.serverTimestamp()
+            "uid": uid,
+            "name": userName ?? "",
+            "email": userEmail ?? "",
+            "phone": userPhone ?? "",
+            "category": selectedCategory ?? "",
+            "skillLevel": selectedSkill ?? "",
+            "bio": bioText,
+            "idCardURL": urls["idCardURL"] ?? "",
+            "portfolioURL": urls["portfolioURL"] ?? "",
+            "certificateURL": urls["certificateURL"] ?? "",
+            "status": "pending",
+            "createdAt": FieldValue.serverTimestamp()
         ]
-        batch.setData(requestData, forDocument: Firestore.firestore().collection("provider_requests").document(uid))
-
-        batch.commit { error in
+        
+        db.collection("provider_requests").document(uid).setData(requestData) { error in
             loadingAlert.dismiss(animated: true)
             if let error = error {
                 self.resetButtons()
@@ -403,16 +403,20 @@ class ApplyProviderTableViewController: UITableViewController,
 
     // MARK: - Helpers
     private func showSuccessAlert() {
-        let alert = UIAlertController(title: "Request Submitted Successfully ✓", message: "Your request is under review.", preferredStyle: .alert)
-        alert.addAction(UIAlertAction(title: "Go to Login", style: .default) { _ in self.navigateToSignIn() })
+        let alert = UIAlertController(
+            title: "Application Submitted ✓",
+            message: "Your provider application has been submitted successfully. Please wait until the admin approves your request. You can check your status in the Service tab.",
+            preferredStyle: .alert
+        )
+        alert.addAction(UIAlertAction(title: "OK", style: .default) { _ in
+            self.navigationController?.popViewController(animated: true)
+        })
         present(alert, animated: true)
     }
-
+    
     private func navigateToSignIn() {
-        if let nav = self.navigationController { nav.popToRootViewController(animated: true) }
-        else if let vc = storyboard?.instantiateViewController(withIdentifier: "SignInViewController") {
-            (UIApplication.shared.connectedScenes.first?.delegate as? SceneDelegate)?.window?.rootViewController = vc
-        }
+        // لم يعد مستخدماً
+        navigationController?.popViewController(animated: true)
     }
 
     private func showAlert(_ message: String, title: String) {

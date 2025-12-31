@@ -1,5 +1,6 @@
 import UIKit
 import FirebaseFirestore
+import FirebaseAuth
 
 class SearchTableViewController: UITableViewController {
     
@@ -7,7 +8,6 @@ class SearchTableViewController: UITableViewController {
     private let searchController = UISearchController(searchResultsController: nil)
     
     private lazy var categorySegment: UISegmentedControl = {
-        // Start with just "All" - categories will be added from Firebase
         let sc = UISegmentedControl(items: ["All"])
         sc.selectedSegmentIndex = 0
         
@@ -34,7 +34,6 @@ class SearchTableViewController: UITableViewController {
     private var filteredProviders: [ServiceProviderModel] = []
     private var isAscending = true
     
-    // 🔥 New: Array to hold category names from Firebase
     private var categoryNames: [String] = ["All"]
     
     let db = Firestore.firestore()
@@ -46,7 +45,6 @@ class SearchTableViewController: UITableViewController {
         setupSearchController()
         setupTableView()
         
-        // 🔥 Fetch categories first, then providers
         fetchCategoriesFromFirebase()
         fetchProvidersFromFirebase()
     }
@@ -58,11 +56,13 @@ class SearchTableViewController: UITableViewController {
     
     // MARK: - Firebase Fetching 📡
     
-    // 🔥 New: Fetch categories from Firebase
     private func fetchCategoriesFromFirebase() {
         print("⏳ Fetching categories from Firebase...")
         
-        Firestore.firestore().collection("categories").addSnapshotListener { [weak self] snapshot, error in
+        // 🔥 FIX: Added .order(by: "createdAt") to hide old/ghost categories
+        Firestore.firestore().collection("categories")
+            .order(by: "createdAt", descending: false)
+            .addSnapshotListener { [weak self] snapshot, error in
             guard let self = self else { return }
             
             if let error = error {
@@ -70,12 +70,8 @@ class SearchTableViewController: UITableViewController {
                 return
             }
             
-            guard let documents = snapshot?.documents else {
-                print("⚠️ No categories found")
-                return
-            }
+            guard let documents = snapshot?.documents else { return }
             
-            // Extract category names from documents
             var fetchedCategories: [String] = ["All"]
             for document in documents {
                 if let categoryName = document.data()["name"] as? String {
@@ -83,29 +79,20 @@ class SearchTableViewController: UITableViewController {
                 }
             }
             
-            // Update UI on main thread
             DispatchQueue.main.async {
                 self.categoryNames = fetchedCategories
                 self.updateCategorySegment()
-                print("✅ Successfully loaded \(fetchedCategories.count - 1) categories from Firebase!")
             }
         }
     }
     
-    // 🔥 New: Update the segment control with fetched categories
     private func updateCategorySegment() {
-        // Remove all segments
         categorySegment.removeAllSegments()
-        
-        // Add all categories
         for (index, categoryName) in categoryNames.enumerated() {
             categorySegment.insertSegment(withTitle: categoryName, at: index, animated: false)
         }
-        
-        // Select the first segment (All)
         categorySegment.selectedSegmentIndex = 0
         
-        // Reapply styling after updating segments
         categorySegment.setTitleTextAttributes([
             .foregroundColor: UIColor.gray,
             .font: UIFont.systemFont(ofSize: 14, weight: .medium)
@@ -115,90 +102,115 @@ class SearchTableViewController: UITableViewController {
             .font: UIFont.systemFont(ofSize: 14, weight: .semibold)
         ], for: .selected)
         
-        // Refresh the filtered list
         filterProvidersByCategory()
     }
     
+    // 🔥 FIX: Merging Services with Provider Profile to show Real Name & Image
+    // ✅ EXCLUDE current user's services from search results
     private func fetchProvidersFromFirebase() {
-        print("⏳ Fetching data from Firebase...")
+        print("⏳ Fetching data (Services + Profiles)...")
         
-        ServiceManager.shared.fetchAllServices { [weak self] services in
+        // 🔥 Get current user ID
+        guard let currentUserId = Auth.auth().currentUser?.uid else {
+            print("⚠️ No logged in user")
+            return
+        }
+        
+        let group = DispatchGroup()
+        
+        var fetchedServices: [ServiceModel] = []
+        var providersDataMap: [String: [String: Any]] = [:] // UID -> Profile Data
+        
+        // 1. Fetch Services
+        group.enter()
+        ServiceManager.shared.fetchAllServices { services in
+            // ✅ Filter out current user's services
+            fetchedServices = services.filter { service in
+                guard let providerId = service.providerId else { return false }
+                return providerId != currentUserId
+            }
+            print("✅ Filtered services - Total: \(services.count), Shown: \(fetchedServices.count)")
+            group.leave()
+        }
+        
+        // 2. Fetch Approved Provider Profiles
+        group.enter()
+        db.collection("provider_requests").whereField("status", isEqualTo: "approved").getDocuments { snapshot, error in
+            if let documents = snapshot?.documents {
+                for doc in documents {
+                    let data = doc.data()
+                    // Assuming 'uid' matches the providerId in ServiceModel
+                    if let uid = data["uid"] as? String {
+                        providersDataMap[uid] = data
+                    }
+                }
+            }
+            group.leave()
+        }
+        
+        // 3. Merge Data
+        group.notify(queue: .main) { [weak self] in
             guard let self = self else { return }
             
-            var providersMap: [String: [ServiceModel]] = [:]
+            var groupedServices: [String: [ServiceModel]] = [:]
             
-            for service in services {
-                let pName = service.providerName ?? "Unknown Provider"
-                
-                if providersMap[pName] == nil {
-                    providersMap[pName] = []
+            for service in fetchedServices {
+                // Ensure service has a providerId
+                if let pId = service.providerId, !pId.isEmpty {
+                    if groupedServices[pId] == nil {
+                        groupedServices[pId] = []
+                    }
+                    groupedServices[pId]?.append(service)
                 }
-                providersMap[pName]?.append(service)
             }
             
             var newProviders: [ServiceProviderModel] = []
             
-            for (providerName, providerServices) in providersMap {
-                let role = providerServices.first?.category ?? "Service Provider"
+            for (providerId, services) in groupedServices {
+                // Get Profile Data
+                let profile = providersDataMap[providerId]
+                
+                // Get Real Name (Fallback to "Unknown" only if profile missing)
+                let realName = profile?["name"] as? String ?? "Unknown Provider"
+                
+                // Get Real Category
+                let realCategory = profile?["category"] as? String ?? services.first?.category ?? "Service Provider"
+                
+                // Get Other Info
+                let realPhone = profile?["phone"] as? String ?? "N/A"
+                let realBio = profile?["bio"] as? String ?? "Provider from Firebase"
+                let realExp = profile?["skillLevel"] as? String ?? "N/A"
+                let portfolioUrl = profile?["portfolioURL"] as? String // Usage depends on your image loader
                 
                 let provider = ServiceProviderModel(
-                    id: UUID().uuidString,
-                    name: providerName,
-                    role: role,
-                    imageName: "person.circle.fill",
+                    id: providerId,
+                    name: realName,
+                    role: realCategory,
+                    imageName: "person.circle.fill", // Update this if you implement URL image loading
                     rating: 5.0,
-                    skills: providerServices.map { $0.name },
+                    skills: services.map { $0.name },
                     availability: "Available",
                     location: "Online",
-                    phone: "N/A",
-                    services: providerServices,
-                    aboutMe: "Provider from Firebase",
+                    phone: realPhone,
+                    services: services,
+                    aboutMe: realBio,
                     portfolio: [],
                     certifications: [],
                     reviews: [],
-                    experience: "N/A",
+                    experience: realExp,
                     completedProjects: 0
                 )
+                
                 newProviders.append(provider)
             }
             
-            DispatchQueue.main.async {
-                self.allProviders = newProviders
-                self.filterProvidersByCategory()
-                print("✅ Successfully loaded \(newProviders.count) providers from Firebase!")
-            }
+            self.allProviders = newProviders
+            self.filterProvidersByCategory()
+            print("✅ Loaded \(newProviders.count) providers (excluding current user)")
         }
     }
     
-    // 🔥 دالة جديدة لجلب متوسط التقييم
-    func fetchAverageRating(for providerId: String, completion: @escaping (Double, Int) -> Void) {
-        db.collection("ratings")
-            .whereField("providerId", isEqualTo: providerId)
-            .getDocuments { (snapshot, error) in
-                if let error = error {
-                    print("Error fetching ratings: \(error)")
-                    completion(0.0, 0)
-                    return
-                }
-                
-                guard let documents = snapshot?.documents, !documents.isEmpty else {
-                    completion(0.0, 0)
-                    return
-                }
-                
-                var totalStars = 0.0
-                for doc in documents {
-                    if let stars = doc.data()["stars"] as? Double {
-                        totalStars += stars
-                    }
-                }
-                
-                let average = totalStars / Double(documents.count)
-                completion(average, documents.count)
-            }
-    }
-    
-    // MARK: - Setup
+    // MARK: - Setup UI
     private func setupNavigationBar() {
         navigationController?.navigationBar.prefersLargeTitles = true
         navigationItem.largeTitleDisplayMode = .always
@@ -289,22 +301,17 @@ class SearchTableViewController: UITableViewController {
         filterProvidersByCategory()
     }
     
-    // 🔥 Modified: Dynamic filtering based on Firebase categories
     private func filterProvidersByCategory() {
         let selectedIndex = categorySegment.selectedSegmentIndex
         var categoryProviders: [ServiceProviderModel] = []
         
         if selectedIndex == 0 {
-            // "All" is always at index 0
             categoryProviders = allProviders
         } else if selectedIndex < categoryNames.count {
-            // Get the selected category name
             let selectedCategory = categoryNames[selectedIndex]
             
-            // Filter providers whose role matches this category
             categoryProviders = allProviders.filter { provider in
-                provider.role.lowercased().contains(selectedCategory.lowercased()) ||
-                selectedCategory.lowercased().contains(provider.role.lowercased())
+                provider.role.lowercased().contains(selectedCategory.lowercased())
             }
         } else {
             categoryProviders = allProviders
@@ -332,8 +339,6 @@ class SearchTableViewController: UITableViewController {
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "ProviderCell", for: indexPath) as! ProviderTableCell
         let provider = filteredProviders[indexPath.row]
-        
-        // 🔥 تمرير الـ SearchTableViewController للـ cell
         cell.parentViewController = self
         cell.configure(with: provider)
         return cell
@@ -369,7 +374,6 @@ extension SearchTableViewController: UISearchResultsUpdating {
 // MARK: - Provider Cell
 class ProviderTableCell: UITableViewCell {
     
-    // 🔥 مرجع للـ parent view controller
     weak var parentViewController: SearchTableViewController?
     
     private let containerView: UIView = {
@@ -411,8 +415,6 @@ class ProviderTableCell: UITableViewCell {
         return label
     }()
     
-    // ❌ REMOVED: ratingLabel
-    
     private let viewButton: UIButton = {
         let btn = UIButton(type: .system)
         btn.setTitle("view services", for: .normal)
@@ -440,7 +442,6 @@ class ProviderTableCell: UITableViewCell {
         containerView.addSubview(avatarImageView)
         containerView.addSubview(nameLabel)
         containerView.addSubview(roleLabel)
-        // ❌ REMOVED: containerView.addSubview(ratingLabel)
         containerView.addSubview(viewButton)
         
         NSLayoutConstraint.activate([
@@ -461,8 +462,6 @@ class ProviderTableCell: UITableViewCell {
             roleLabel.topAnchor.constraint(equalTo: nameLabel.bottomAnchor, constant: 2),
             roleLabel.leadingAnchor.constraint(equalTo: nameLabel.leadingAnchor),
             
-            // ❌ REMOVED: Constraints for ratingLabel
-            
             viewButton.centerYAnchor.constraint(equalTo: containerView.centerYAnchor),
             viewButton.trailingAnchor.constraint(equalTo: containerView.trailingAnchor, constant: -12),
             viewButton.widthAnchor.constraint(equalToConstant: 110),
@@ -473,8 +472,6 @@ class ProviderTableCell: UITableViewCell {
     func configure(with provider: ServiceProviderModel) {
         nameLabel.text = provider.name
         roleLabel.text = provider.role
-        
-        // ❌ REMOVED: Rating fetching logic
         
         if let image = UIImage(named: provider.imageName) {
             avatarImageView.image = image
