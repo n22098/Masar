@@ -14,7 +14,6 @@
 		0C0E58712F02C03700DD26F4 /* FirebaseAuthCombine-Community in Frameworks */ = {isa = PBXBuildFile; productRef = 0C0E58702F02C03700DD26F4 /* FirebaseAuthCombine-Community */; };
 		0C0E58742F02C07C00DD26F4 /* Cloudinary in Frameworks */ = {isa = PBXBuildFile; productRef = 0C0E58732F02C07C00DD26F4 /* Cloudinary */; };
 		D23145CA2F03391800080A6F /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = D23145C82F03391800080A6F /* Localizable.strings */; };
-		D2B866112F04748600C7D845 /* ProviderMessagesTableViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D2B866102F04748600C7D845 /* ProviderMessagesTableViewController.swift */; };
 		D3A73EA72EF06C9200DF628A /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = D3A73EA62EF06C9200DF628A /* FirebaseAuth */; };
 		D3A73EA92EF06C9200DF628A /* FirebaseFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = D3A73EA82EF06C9200DF628A /* FirebaseFirestore */; };
 		DE69E8CF2EFD461100F1AF96 /* FirebaseDatabase in Frameworks */ = {isa = PBXBuildFile; productRef = DE69E8CE2EFD461100F1AF96 /* FirebaseDatabase */; };
@@ -25,7 +24,6 @@
 		507E416D2EE15769002B7336 /* Masar.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Masar.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		D23145C92F03391800080A6F /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/Localizable.strings; sourceTree = "<group>"; };
 		D23145CB2F03393100080A6F /* ar */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ar; path = ar.lproj/Localizable.strings; sourceTree = "<group>"; };
-		D2B866102F04748600C7D845 /* ProviderMessagesTableViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProviderMessagesTableViewController.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -80,7 +78,6 @@
 		507E41642EE15769002B7336 = {
 			isa = PBXGroup;
 			children = (
-				D2B866102F04748600C7D845 /* ProviderMessagesTableViewController.swift */,
 				D23145C82F03391800080A6F /* Localizable.strings */,
 				507E416F2EE15769002B7336 /* Masar */,
 				0C0E58672F02C01B00DD26F4 /* Frameworks */,
@@ -186,7 +183,6 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				D2B866112F04748600C7D845 /* ProviderMessagesTableViewController.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -591,28 +591,77 @@ class PaymentViewController: UIViewController {
     @objc private func purchaseButtonTapped() {
         view.endEditing(true)
         
-        // Validation for Benefit Pay
+        // ✅ Validation for Credit Card
+        if selectedPaymentMethod == .creditCard {
+            let cardNumber = cardNumberTextField.text?.trimmingCharacters(in: .whitespaces) ?? ""
+            let validThru = validThruTextField.text?.trimmingCharacters(in: .whitespaces) ?? ""
+            let cvc = cvcTextField.text?.trimmingCharacters(in: .whitespaces) ?? ""
+            let pin = pinTextField.text?.trimmingCharacters(in: .whitespaces) ?? ""
+            
+            if cardNumber.isEmpty {
+                showAlert(title: "Missing Information", message: "Please enter your card number.")
+                return
+            }
+            if cardNumber.count < 13 {
+                showAlert(title: "Invalid Card Number", message: "Card number must be at least 13 digits.")
+                return
+            }
+            if validThru.isEmpty {
+                showAlert(title: "Missing Information", message: "Please enter the expiry date (MM/YY).")
+                return
+            }
+            if validThru.count < 5 {
+                showAlert(title: "Invalid Date", message: "Please enter a valid expiry date (MM/YY).")
+                return
+            }
+            if cvc.isEmpty {
+                showAlert(title: "Missing Information", message: "Please enter the CVC code.")
+                return
+            }
+            if cvc.count < 3 {
+                showAlert(title: "Invalid CVC", message: "CVC must be 3 digits.")
+                return
+            }
+            if pin.isEmpty {
+                showAlert(title: "Missing Information", message: "Please enter your PIN.")
+                return
+            }
+            if pin.count < 4 {
+                showAlert(title: "Invalid PIN", message: "PIN must be 4 digits.")
+                return
+            }
+        }
+        
+        // ✅ Validation for Benefit Pay
         if selectedPaymentMethod == .benefitPay {
             if benefitSegmentControl.selectedSegmentIndex == 0 {
                 // IBAN Check
-                if (ibanSuffixTextField.text?.count ?? 0) != 8 {
-                    let alert = UIAlertController(title: "Invalid IBAN", message: "Please enter exactly 8 digits.", preferredStyle: .alert)
-                    alert.addAction(UIAlertAction(title: "OK", style: .default))
-                    present(alert, animated: true)
+                let iban = ibanSuffixTextField.text?.trimmingCharacters(in: .whitespaces) ?? ""
+                if iban.isEmpty {
+                    showAlert(title: "Missing Information", message: "Please enter your IBAN number.")
+                    return
+                }
+                if iban.count != 8 {
+                    showAlert(title: "Invalid IBAN", message: "Please enter exactly 8 digits.")
                     return
                 }
             } else {
                 // Phone Check
-                if (benefitPhoneTextField.text?.isEmpty ?? true) {
-                    let alert = UIAlertController(title: "Missing Phone", message: "Please enter your phone number.", preferredStyle: .alert)
-                    alert.addAction(UIAlertAction(title: "OK", style: .default))
-                    present(alert, animated: true)
+                let phone = benefitPhoneTextField.text?.trimmingCharacters(in: .whitespaces) ?? ""
+                if phone.isEmpty {
+                    showAlert(title: "Missing Information", message: "Please enter your phone number.")
+                    return
+                }
+                if phone.count < 8 {
+                    showAlert(title: "Invalid Phone Number", message: "Please enter a valid phone number.")
                     return
                 }
             }
         }
         
-        // Save booking to Firebase here
+        // ✅ Apple Pay doesn't need validation - proceed directly
+        
+        // Save booking to Firebase
         if let booking = bookingData {
             ServiceManager.shared.saveBooking(booking: booking) { [weak self] success in
                 DispatchQueue.main.async {
@@ -626,6 +675,12 @@ class PaymentViewController: UIViewController {
                 }
             }
         }
+    }
+    
+    private func showAlert(title: String, message: String) {
+        let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: "OK", style: .default))
+        present(alert, animated: true)
     }
 }
 

@@ -11,18 +11,27 @@ class ServiceManager {
     
     // MARK: - Save Booking (حفظ الحجز)
     func saveBooking(booking: BookingModel, completion: @escaping (Bool) -> Void) {
+        print("💾 [ServiceManager] Starting to save booking...")
+        print("📋 [ServiceManager] Booking details:")
+        print("   - Service: \(booking.serviceName)")
+        print("   - Seeker: \(booking.seekerName)")
+        print("   - Email: \(booking.email)")
+        print("   - Status: \(booking.status.rawValue)")
+        print("   - Date: \(booking.dateString)")
+        
         do {
             let _ = try db.collection("bookings").addDocument(from: booking) { error in
                 if let error = error {
-                    print("❌ Error saving booking: \(error.localizedDescription)")
+                    print("❌ [ServiceManager] Error saving booking: \(error.localizedDescription)")
                     completion(false)
                 } else {
-                    print("✅ Booking saved successfully")
+                    print("✅ [ServiceManager] Booking saved successfully to Firebase!")
+                    print("🔔 [ServiceManager] Snapshot listener should trigger now...")
                     completion(true)
                 }
             }
         } catch {
-            print("❌ Encoding error: \(error.localizedDescription)")
+            print("❌ [ServiceManager] Encoding error: \(error.localizedDescription)")
             completion(false)
         }
     }
@@ -47,9 +56,10 @@ class ServiceManager {
     
     // MARK: - Fetch Bookings for Seeker (حجوزات المستخدم فقط)
     func fetchBookingsForSeeker(seekerEmail: String, completion: @escaping ([BookingModel]) -> Void) {
+        print("🔍 Starting fetch for email: \(seekerEmail)")
+        
         db.collection("bookings")
             .whereField("email", isEqualTo: seekerEmail)
-            .order(by: "date", descending: false)
             .addSnapshotListener { snapshot, error in
                 if let error = error {
                     print("❌ Error fetching seeker bookings: \(error.localizedDescription)")
@@ -58,15 +68,25 @@ class ServiceManager {
                 }
                 
                 guard let documents = snapshot?.documents else {
-                    print("No bookings found for seeker")
+                    print("⚠️ No documents in snapshot")
                     completion([])
                     return
                 }
                 
+                print("📦 Found \(documents.count) documents")
+                
                 let bookings = documents.compactMap { document -> BookingModel? in
-                    try? document.data(as: BookingModel.self)
+                    do {
+                        let booking = try document.data(as: BookingModel.self)
+                        print("✅ Decoded booking: \(booking.serviceName)")
+                        return booking
+                    } catch {
+                        print("❌ Failed to decode booking: \(error)")
+                        return nil
+                    }
                 }
-                print("✅ Fetched \(bookings.count) bookings for seeker: \(seekerEmail)")
+                
+                print("✅ Successfully fetched \(bookings.count) bookings for: \(seekerEmail)")
                 completion(bookings)
             }
     }

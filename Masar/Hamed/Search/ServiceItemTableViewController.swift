@@ -343,7 +343,13 @@ class ServiceItemTableViewController: UITableViewController {
     
     // MARK: - Actions
     @objc private func ratingTapped() {
-        performSegue(withIdentifier: "showReviews", sender: providerData)
+        print("⭐ Rating tapped - navigating to reviews")
+        
+        let ratingsVC = RatingsReviewsViewController()
+        ratingsVC.providerId = providerData?.id
+        ratingsVC.providerName = providerData?.name ?? "Provider"
+        
+        navigationController?.pushViewController(ratingsVC, animated: true)
     }
     
     @objc private func menuTapped() {

@@ -29,8 +29,6 @@ class BookingHistoryTableViewController: UITableViewController {
         setupUI()
         
         tableView.register(ModernBookingHistoryCell.self, forCellReuseIdentifier: "ModernBookingHistoryCell")
-        
-        // استدعاء البيانات عند التحميل
         fetchBookingsFromFirebase()
     }
     
@@ -41,22 +39,11 @@ class BookingHistoryTableViewController: UITableViewController {
     
     // MARK: - Firebase Fetching
     func fetchBookingsFromFirebase() {
-        // 🔥 Get current user email
-        guard let currentUserEmail = UserManager.shared.currentUser?.email else {
-            print("⚠️ No logged in user")
-            return
-        }
-        
-        print("🔍 Fetching bookings for seeker: \(currentUserEmail)")
-        
-        // ✅ Fetch bookings for this seeker only
-        ServiceManager.shared.fetchBookingsForSeeker(seekerEmail: currentUserEmail) { [weak self] bookings in
+        ServiceManager.shared.fetchAllBookings { [weak self] bookings in
             guard let self = self else { return }
-            
-            // 🔥 التعديل المهم هنا: نقلنا كل تحديثات البيانات والواجهة للـ Main Thread
+            self.allBookings = bookings
+            self.filterBookings()
             DispatchQueue.main.async {
-                self.allBookings = bookings
-                self.filterBookings() // هذا يحدث الواجهة ويظهر رسالة "No History" إذا كانت القائمة فارغة
                 self.tableView.reloadData()
             }
         }
@@ -150,8 +137,7 @@ class BookingHistoryTableViewController: UITableViewController {
             
             NSLayoutConstraint.activate([
                 stackView.centerXAnchor.constraint(equalTo: emptyView.centerXAnchor),
-                // رفعنا الرسالة للأعلى قليلاً لتفادي التداخل مع الهيدر لو كان الجدول قصيراً
-                stackView.centerYAnchor.constraint(equalTo: emptyView.centerYAnchor, constant: 20),
+                stackView.centerYAnchor.constraint(equalTo: emptyView.centerYAnchor, constant: -50),
                 stackView.leadingAnchor.constraint(equalTo: emptyView.leadingAnchor, constant: 40),
                 stackView.trailingAnchor.constraint(equalTo: emptyView.trailingAnchor, constant: -40)
             ])
@@ -255,7 +241,6 @@ class BookingHistoryTableViewController: UITableViewController {
            let destVC = segue.destination as? RatingViewController,
            let booking = sender as? BookingModel {
             destVC.bookingName = booking.serviceName
-            destVC.providerId = booking.providerId // 🔥 إضافة providerId
         }
     }
 }

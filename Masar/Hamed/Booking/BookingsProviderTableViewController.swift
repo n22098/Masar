@@ -16,35 +16,6 @@ class BookingsProviderTableViewController: UITableViewController {
         return sc
     }()
     
-    // Empty state view
-    private let emptyStateView: UIView = {
-        let view = UIView()
-        view.backgroundColor = .clear
-        view.translatesAutoresizingMaskIntoConstraints = false
-        return view
-    }()
-    
-    private let emptyTitleLabel: UILabel = {
-        let label = UILabel()
-        label.text = "No bookings yet"
-        label.font = UIFont.systemFont(ofSize: 24, weight: .bold)
-        label.textColor = .black
-        label.textAlignment = .center
-        label.translatesAutoresizingMaskIntoConstraints = false
-        return label
-    }()
-    
-    private let emptyMessageLabel: UILabel = {
-        let label = UILabel()
-        label.text = "No history of bookings made on Masar"
-        label.font = UIFont.systemFont(ofSize: 16, weight: .regular)
-        label.textColor = .gray
-        label.textAlignment = .center
-        label.numberOfLines = 0
-        label.translatesAutoresizingMaskIntoConstraints = false
-        return label
-    }()
-    
     // MARK: - Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -84,7 +55,6 @@ class BookingsProviderTableViewController: UITableViewController {
         setupTableView()
         setupHeaderView()
         setupSegmentedControlStyle()
-        setupEmptyStateView()
         
         // إضافة Refresh Control (سحب للتحديث)
         let refreshControl = UIRefreshControl()
@@ -163,25 +133,6 @@ class BookingsProviderTableViewController: UITableViewController {
         segmentedControl.layer.borderColor = UIColor.systemGray5.cgColor
     }
     
-    private func setupEmptyStateView() {
-        emptyStateView.addSubview(emptyTitleLabel)
-        emptyStateView.addSubview(emptyMessageLabel)
-        
-        // Position labels within the empty state view
-        NSLayoutConstraint.activate([
-            emptyTitleLabel.centerXAnchor.constraint(equalTo: emptyStateView.centerXAnchor),
-            emptyTitleLabel.centerYAnchor.constraint(equalTo: emptyStateView.centerYAnchor, constant: -20),
-            emptyTitleLabel.leadingAnchor.constraint(equalTo: emptyStateView.leadingAnchor, constant: 40),
-            emptyTitleLabel.trailingAnchor.constraint(equalTo: emptyStateView.trailingAnchor, constant: -40),
-            
-            emptyMessageLabel.topAnchor.constraint(equalTo: emptyTitleLabel.bottomAnchor, constant: 12),
-            emptyMessageLabel.leadingAnchor.constraint(equalTo: emptyStateView.leadingAnchor, constant: 40),
-            emptyMessageLabel.trailingAnchor.constraint(equalTo: emptyStateView.trailingAnchor, constant: -40)
-        ])
-        
-        emptyStateView.isHidden = true
-    }
-    
     @objc private func segmentChanged(_ sender: UISegmentedControl) {
         updateListForCurrentSegment()
     }
@@ -199,16 +150,6 @@ class BookingsProviderTableViewController: UITableViewController {
     
     private func filterBookings(for status: BookingStatus) {
         filteredBookings = allBookings.filter { $0.status == status }
-        
-        // Show or hide empty state based on filtered bookings
-        if filteredBookings.isEmpty {
-            tableView.backgroundView = emptyStateView
-            emptyStateView.isHidden = false
-        } else {
-            tableView.backgroundView = nil
-            emptyStateView.isHidden = true
-        }
-        
         tableView.reloadData()
     }
     
