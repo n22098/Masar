@@ -39,23 +39,29 @@ class ProviderManagementVC: UITableViewController {
 
     // MARK: - Firestore
     private func observeProviders() {
-        listener = db.collection("providers")
+        print("🔍 [ProviderManagement] Starting to observe approved providers...")
+        
+        listener = db.collection("provider_requests")
+            .whereField("status", isEqualTo: "approved")
             .addSnapshotListener { [weak self] snapshot, error in
                 guard let self = self else { return }
 
                 if let error = error {
-                    print("❌ Error fetching providers: \(error.localizedDescription)")
+                    print("❌ [ProviderManagement] Error fetching providers: \(error.localizedDescription)")
                     return
                 }
 
                 guard let documents = snapshot?.documents else {
-                    print("⚠️ No provider documents found")
+                    print("⚠️ [ProviderManagement] No approved provider documents found")
                     self.providers = []
-                    self.tableView.reloadData()
+                    DispatchQueue.main.async {
+                        self.tableView.reloadData()
+                        self.showEmptyState()
+                    }
                     return
                 }
 
-                print("✅ Found \(documents.count) providers")
+                print("✅ [ProviderManagement] Found \(documents.count) approved providers")
 
                 self.providers = documents.compactMap {
                     Provider(uid: $0.documentID, dictionary: $0.data())
@@ -63,9 +69,24 @@ class ProviderManagementVC: UITableViewController {
 
                 DispatchQueue.main.async {
                     self.tableView.reloadData()
-                    print("📱 Table reloaded with \(self.providers.count) providers")
+                    self.hideEmptyState()
+                    print("📱 [ProviderManagement] Table reloaded with \(self.providers.count) providers")
                 }
             }
+    }
+    
+    private func showEmptyState() {
+        let emptyLabel = UILabel(frame: tableView.bounds)
+        emptyLabel.text = "No approved providers yet"
+        emptyLabel.textAlignment = .center
+        emptyLabel.textColor = .gray
+        emptyLabel.font = UIFont.systemFont(ofSize: 18, weight: .medium)
+        emptyLabel.tag = 999
+        tableView.backgroundView = emptyLabel
+    }
+    
+    private func hideEmptyState() {
+        tableView.backgroundView = nil
     }
 
     // MARK: - TableView DataSource

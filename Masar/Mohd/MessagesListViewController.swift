@@ -5,7 +5,7 @@ import FirebaseAuth
 final class MessagesListViewController: UIViewController {
 
     private let tableView = UITableView()
-    private var conversations: [Conversation] = []
+    private var conversations: [MessageConversation] = []  // ✅ Changed to MessageConversation
 
     private let db = Firestore.firestore()
     private var listener: ListenerRegistration?
@@ -115,7 +115,7 @@ final class MessagesListViewController: UIViewController {
             .addSnapshotListener { [weak self] snapshot, error in
                 guard let self = self, let documents = snapshot?.documents else { return }
                 
-                var newConversations: [Conversation] = []
+                var newConversations: [MessageConversation] = []  // ✅ Changed
                 let group = DispatchGroup()
 
                 for doc in documents {
@@ -132,14 +132,18 @@ final class MessagesListViewController: UIViewController {
                     self.db.collection("users").document(otherUserId).getDocument { userSnap, _ in
                         defer { group.leave() }
                         let userData = userSnap?.data()
-                        let otherUser = User(
-                            id: otherUserId,
-                            name: userData?["name"] as? String ?? "Unknown",
-                            email: userData?["email"] as? String ?? "",
-                            phone: userData?["phone"] as? String ?? "",
-                            profileImageName: userData?["profileImage"] as? String
+                        let userName = userData?["name"] as? String ?? "Unknown"
+                        let userEmail = userData?["email"] as? String ?? ""
+                        
+                        // ✅ Create MessageConversation instead of Conversation
+                        let conv = MessageConversation(
+                            id: conversationId,
+                            otherUserId: otherUserId,
+                            otherUserName: userName,
+                            otherUserEmail: userEmail,
+                            lastMessage: lastMessageText,
+                            lastUpdated: lastUpdatedDate
                         )
-                        let conv = Conversation(id: conversationId, user: otherUser, lastMessage: lastMessageText, lastUpdated: lastUpdatedDate)
                         newConversations.append(conv)
                     }
                 }
@@ -156,20 +160,24 @@ final class MessagesListViewController: UIViewController {
         db.collection("users").whereField("role", isEqualTo: "provider").getDocuments { [weak self] snapshot, _ in
             guard let self = self, let documents = snapshot?.documents else { return }
 
-            var fetchedList: [Conversation] = []
+            var fetchedList: [MessageConversation] = []  // ✅ Changed
             for doc in documents {
                 let data = doc.data()
                 let uid = data["uid"] as? String ?? doc.documentID
                 if uid == currentUid { continue }
 
-                let providerUser = User(
+                let providerName = data["name"] as? String ?? "Unknown Provider"
+                let providerEmail = data["email"] as? String ?? ""
+                
+                // ✅ Create MessageConversation instead of Conversation
+                let conversationItem = MessageConversation(
                     id: uid,
-                    name: data["name"] as? String ?? "Unknown Provider",
-                    email: data["email"] as? String ?? "",
-                    phone: data["phone"] as? String ?? "",
-                    profileImageName: data["profileImage"] as? String
+                    otherUserId: uid,
+                    otherUserName: providerName,
+                    otherUserEmail: providerEmail,
+                    lastMessage: "Tap to start chatting",
+                    lastUpdated: Date()
                 )
-                let conversationItem = Conversation(id: uid, user: providerUser, lastMessage: "Tap to start chatting", lastUpdated: Date())
                 fetchedList.append(conversationItem)
             }
             DispatchQueue.main.async {
@@ -194,8 +202,15 @@ extension MessagesListViewController: UITableViewDataSource, UITableViewDelegate
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
         let conversation = conversations[indexPath.row]
-        let chatVC = ChatViewController(conversation: conversation)
+        
+        // ✅ Use SimpleChatViewController instead of ChatViewController
+        let chatVC = SimpleChatViewController()
+        chatVC.conversationId = conversation.id
+        chatVC.otherUserId = conversation.otherUserId
+        chatVC.otherUserName = conversation.otherUserName
+        chatVC.title = conversation.otherUserName
         chatVC.hidesBottomBarWhenPushed = true
+        
         navigationController?.pushViewController(chatVC, animated: true)
     }
 }

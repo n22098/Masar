@@ -50,13 +50,12 @@ class ProvidersTableViewController: UITableViewController {
     
     // MARK: - Firebase Logic
     private func startProvidersListener() {
-        print("🔍 Fetching providers for Category: \(selectedCategory)")
-        print("🔍 Category ID: \(categoryID)")
+        print("🔍 Fetching approved providers for Category: \(selectedCategory)")
         
-        // جلب البروفايدرز الخاصين بهذا القسم فقط
-        db.collection("providers")
-            .whereField("categoryID", isEqualTo: categoryID)
-            .order(by: "createdAt", descending: false)
+        // ✅ جلب البروفايدرز المعتمدين فقط من provider_requests
+        db.collection("provider_requests")
+            .whereField("status", isEqualTo: "approved")
+            .whereField("category", isEqualTo: selectedCategory)
             .addSnapshotListener { [weak self] (querySnapshot, error) in
                 guard let self = self else { return }
                 
@@ -66,24 +65,44 @@ class ProvidersTableViewController: UITableViewController {
                 }
                 
                 guard let documents = querySnapshot?.documents else {
-                    print("⚠️ No providers found for this category")
+                    print("⚠️ No providers found for category: \(self.selectedCategory)")
                     self.providers = []
-                    self.tableView.reloadData()
+                    DispatchQueue.main.async {
+                        self.tableView.reloadData()
+                        self.showEmptyState()
+                    }
                     return
                 }
                 
-                print("✅ Found \(documents.count) providers for \(self.selectedCategory)")
+                print("✅ Found \(documents.count) approved providers for \(self.selectedCategory)")
                 
-                // طباعة تفاصيل كل بروفايدر للتأكد من البيانات
                 for (index, doc) in documents.enumerated() {
                     let name = doc.get("name") as? String ?? "Unknown"
-                    let catID = doc.get("categoryID") as? String ?? "N/A"
-                    print("   Provider #\(index + 1): \(name) | CategoryID: \(catID)")
+                    let category = doc.get("category") as? String ?? "N/A"
+                    print("   Provider #\(index + 1): \(name) | Category: \(category)")
                 }
                 
                 self.providers = documents
-                self.tableView.reloadData()
+                DispatchQueue.main.async {
+                    self.tableView.reloadData()
+                    self.hideEmptyState()
+                }
             }
+    }
+    
+    private func showEmptyState() {
+        let emptyLabel = UILabel(frame: tableView.bounds)
+        emptyLabel.text = "No approved providers\nin \(selectedCategory)"
+        emptyLabel.textAlignment = .center
+        emptyLabel.textColor = .gray
+        emptyLabel.numberOfLines = 2
+        emptyLabel.font = UIFont.systemFont(ofSize: 18, weight: .medium)
+        emptyLabel.tag = 999
+        tableView.backgroundView = emptyLabel
+    }
+    
+    private func hideEmptyState() {
+        tableView.backgroundView = nil
     }
     
     // MARK: - Table View Data Source

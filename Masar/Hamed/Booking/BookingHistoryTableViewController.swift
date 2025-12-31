@@ -29,6 +29,10 @@ class BookingHistoryTableViewController: UITableViewController {
         setupUI()
         
         tableView.register(ModernBookingHistoryCell.self, forCellReuseIdentifier: "ModernBookingHistoryCell")
+        
+        // ✅ عرض رسالة فارغة أولاً قبل جلب البيانات
+        updateBackgroundView()
+        
         fetchBookingsFromFirebase()
     }
     
@@ -39,12 +43,41 @@ class BookingHistoryTableViewController: UITableViewController {
     
     // MARK: - Firebase Fetching
     func fetchBookingsFromFirebase() {
-        ServiceManager.shared.fetchAllBookings { [weak self] bookings in
-            guard let self = self else { return }
-            self.allBookings = bookings
-            self.filterBookings()
+        print("📱 [History] Starting fetchBookingsFromFirebase")
+        
+        // 🔥 Get current user email
+        guard let currentUserEmail = UserManager.shared.currentUser?.email else {
+            print("⚠️ [History] No logged in user")
+            print("⚠️ [History] UserManager.shared.currentUser = \(String(describing: UserManager.shared.currentUser))")
+            // ✅ حتى لو ما في يوزر، نعرض الرسالة
             DispatchQueue.main.async {
+                self.allBookings = []
+                self.filterBookings()
                 self.tableView.reloadData()
+            }
+            return
+        }
+        
+        print("🔍 [History] Fetching bookings for seeker: \(currentUserEmail)")
+        
+        // ✅ Fetch bookings for this seeker only (NOT all bookings!)
+        ServiceManager.shared.fetchBookingsForSeeker(seekerEmail: currentUserEmail) { [weak self] bookings in
+            guard let self = self else { return }
+            
+            print("📦 [History] Received \(bookings.count) bookings from Firebase")
+            
+            // 🔥 نقلنا كل تحديثات البيانات والواجهة للـ Main Thread
+            DispatchQueue.main.async {
+                self.allBookings = bookings
+                print("💾 [History] Set allBookings count: \(self.allBookings.count)")
+                
+                self.filterBookings()
+                print("🔍 [History] After filtering, filteredBookings count: \(self.filteredBookings.count)")
+                
+                self.tableView.reloadData()
+                self.updateBackgroundView()
+                
+                print("✅ [History] UI updated successfully")
             }
         }
     }
@@ -89,21 +122,35 @@ class BookingHistoryTableViewController: UITableViewController {
     @objc func segmentChanged() {
         filterBookings()
         tableView.reloadData()
+        updateBackgroundView()
     }
     
     func filterBookings() {
+        let previousCount = filteredBookings.count
+        
         switch filterSegment.selectedSegmentIndex {
-        case 0: filteredBookings = allBookings.filter { $0.status == .upcoming }
-        case 1: filteredBookings = allBookings.filter { $0.status == .completed }
-        case 2: filteredBookings = allBookings.filter { $0.status == .canceled }
-        default: filteredBookings = allBookings
+        case 0:
+            filteredBookings = allBookings.filter { $0.status == .upcoming }
+            print("🔍 [Filter] Upcoming: \(filteredBookings.count) bookings")
+        case 1:
+            filteredBookings = allBookings.filter { $0.status == .completed }
+            print("🔍 [Filter] Completed: \(filteredBookings.count) bookings")
+        case 2:
+            filteredBookings = allBookings.filter { $0.status == .canceled }
+            print("🔍 [Filter] Canceled: \(filteredBookings.count) bookings")
+        default:
+            filteredBookings = allBookings
+            print("🔍 [Filter] All: \(filteredBookings.count) bookings")
         }
+        
+        print("📊 [Filter] Changed from \(previousCount) to \(filteredBookings.count)")
         updateBackgroundView()
     }
     
     func updateBackgroundView() {
         if filteredBookings.isEmpty {
             let emptyView = UIView(frame: tableView.bounds)
+            
             let stackView = UIStackView()
             stackView.axis = .vertical
             stackView.alignment = .center
@@ -137,7 +184,7 @@ class BookingHistoryTableViewController: UITableViewController {
             
             NSLayoutConstraint.activate([
                 stackView.centerXAnchor.constraint(equalTo: emptyView.centerXAnchor),
-                stackView.centerYAnchor.constraint(equalTo: emptyView.centerYAnchor, constant: -50),
+                stackView.centerYAnchor.constraint(equalTo: emptyView.centerYAnchor, constant: 20),
                 stackView.leadingAnchor.constraint(equalTo: emptyView.leadingAnchor, constant: 40),
                 stackView.trailingAnchor.constraint(equalTo: emptyView.trailingAnchor, constant: -40)
             ])
@@ -164,31 +211,63 @@ class BookingHistoryTableViewController: UITableViewController {
         let booking = filteredBookings[indexPath.row]
         cell.configure(with: booking)
         
-        // ⭐ Handle Rate Button Click
+        // ⭐ إضافة Rate button action
         cell.onRateTapped = { [weak self] in
-            self?.performSegue(withIdentifier: "showRate", sender: booking)
+            self?.showRatingScreen(for: booking)
         }
         
         return cell
     }
     
+    // ⭐ Navigate to Rating Screen
+    private func showRatingScreen(for booking: BookingModel) {
+        // ✅ التحقق من وجود providerId
+        guard let providerId = booking.providerId, !providerId.isEmpty else {
+            print("⚠️ [Rating] Provider ID is missing for booking: \(booking.serviceName)")
+            
+            // عرض رسالة للمستخدم
+            let alert = UIAlertController(
+                title: "Cannot Rate",
+                message: "This booking doesn't have provider information. This might be an old booking created before the update.",
+                preferredStyle: .alert
+            )
+            alert.addAction(UIAlertAction(title: "OK", style: .default))
+            present(alert, animated: true)
+            return
+        }
+        
+        print("⭐ [Rating] Opening rating screen for provider: \(providerId)")
+        
+        let ratingVC = RatingViewController()
+        ratingVC.bookingName = booking.serviceName
+        ratingVC.providerId = providerId
+        ratingVC.providerName = booking.providerName
+        
+        navigationController?.pushViewController(ratingVC, animated: true)
+    }
+    
     // MARK: - Delete Feature
     override func tableView(_ tableView: UITableView, trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
+        
         let deleteAction = UIContextualAction(style: .destructive, title: "Delete") { [weak self] (action, view, completionHandler) in
             self?.confirmDeletion(at: indexPath)
             completionHandler(true)
         }
+        
         deleteAction.backgroundColor = .systemRed
         deleteAction.image = UIImage(systemName: "trash.fill")
+        
         return UISwipeActionsConfiguration(actions: [deleteAction])
     }
     
     func confirmDeletion(at indexPath: IndexPath) {
         let alert = UIAlertController(title: "Delete Booking", message: "Are you sure you want to delete this booking history?", preferredStyle: .alert)
+        
         alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
         alert.addAction(UIAlertAction(title: "Delete", style: .destructive, handler: { [weak self] _ in
             self?.deleteBooking(at: indexPath)
         }))
+        
         present(alert, animated: true)
     }
     
@@ -198,17 +277,23 @@ class BookingHistoryTableViewController: UITableViewController {
         let bookingToDelete = filteredBookings[indexPath.row]
         guard let bookingId = bookingToDelete.id else { return }
         
+        // 1. Remove from Local Data
         filteredBookings.remove(at: indexPath.row)
+        
         if let index = allBookings.firstIndex(where: { $0.id == bookingId }) {
             allBookings.remove(at: index)
         }
         
+        // 2. Update Screen
         tableView.deleteRows(at: [indexPath], with: .left)
         updateBackgroundView()
         
+        // 3. Delete from Database
         Firestore.firestore().collection("bookings").document(bookingId).delete { error in
             if let error = error {
                 print("Error removing from Firestore: \(error)")
+            } else {
+                print("Successfully deleted from Firestore")
             }
         }
     }
@@ -216,6 +301,7 @@ class BookingHistoryTableViewController: UITableViewController {
     // MARK: - Navigation
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
+        
         if indexPath.row < filteredBookings.count {
             let selectedBooking = filteredBookings[indexPath.row]
             performSegue(withIdentifier: "showBookingDetails", sender: selectedBooking)
@@ -234,13 +320,6 @@ class BookingHistoryTableViewController: UITableViewController {
                 self.filterBookings()
                 self.tableView.reloadData()
             }
-        }
-        
-        // ⭐ Navigate to Rating Screen
-        if segue.identifier == "showRate",
-           let destVC = segue.destination as? RatingViewController,
-           let booking = sender as? BookingModel {
-            destVC.bookingName = booking.serviceName
         }
     }
 }
@@ -305,7 +384,7 @@ class ModernBookingHistoryCell: UITableViewCell {
         return label
     }()
     
-    // ⭐ زر التقييم
+    // ⭐ Rate Button
     private lazy var rateButton: UIButton = {
         let btn = UIButton(type: .system)
         btn.setTitle("Rate", for: .normal)
@@ -360,7 +439,7 @@ class ModernBookingHistoryCell: UITableViewCell {
             statusLabel.heightAnchor.constraint(equalToConstant: 24),
             statusLabel.widthAnchor.constraint(greaterThanOrEqualToConstant: 80),
             
-            // ⭐ مكان زر التقييم تحت Status
+            // ⭐ Rate Button below Status
             rateButton.topAnchor.constraint(equalTo: statusLabel.bottomAnchor, constant: 8),
             rateButton.trailingAnchor.constraint(equalTo: containerView.trailingAnchor, constant: -16),
             rateButton.widthAnchor.constraint(equalToConstant: 70),

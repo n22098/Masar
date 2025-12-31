@@ -2,133 +2,209 @@ import UIKit
 import FirebaseFirestore
 import FirebaseAuth
 
+// MARK: - Conversation Model (Only for Messages)
+struct MessageConversation {
+    let id: String
+    let otherUserId: String
+    let otherUserName: String
+    let otherUserEmail: String
+    let lastMessage: String
+    let lastUpdated: Date
+}
+
+// MARK: - Main View Controller
 class MessageProViewController: UIViewController {
 
-    private let tableView = UITableView()
-    private var conversations: [Conversation] = []
+    // MARK: - IBOutlets
+    @IBOutlet weak var tableView: UITableView!
+    @IBOutlet weak var emptyStateView: UIView!
+    
+    // MARK: - Properties
+    private var conversations: [MessageConversation] = []
     private let db = Firestore.firestore()
-
+    private let brandColor = UIColor(red: 98/255, green: 84/255, blue: 243/255, alpha: 1.0)
+    
+    // MARK: - Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        // 1. تغيير لون الخلفية للتأكد أن الكود يعمل
-        view.backgroundColor = .systemBackground
+        print("🟣 [MessagePro] View did load")
         
-        print("🟣 تم تحميل MessageProViewController بنجاح")
-        
-        setupHeader()
         setupTableView()
+        setupNavigationBar()
         startListeningForConversations()
     }
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-        // 2. إخفاء العنوان الأسود الكبير (System Navigation Bar)
-        navigationController?.isNavigationBarHidden = true
         navigationController?.setNavigationBarHidden(true, animated: animated)
     }
 
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
-        // إعادة إظهاره عند الخروج من الصفحة
-        navigationController?.isNavigationBarHidden = false
         navigationController?.setNavigationBarHidden(false, animated: animated)
     }
-
-    // --- بقية الكود (تصميم الهيدر والجدول) ---
     
-    private func setupHeader() {
-        let headerView = UIView()
-        headerView.translatesAutoresizingMaskIntoConstraints = false
-        headerView.backgroundColor = UIColor(red: 112/255, green: 79/255, blue: 217/255, alpha: 1) // لون بنفسجي
-
-        let titleLabel = UILabel()
-        titleLabel.text = "Incoming Messages" // العنوان الجديد
-        titleLabel.font = .systemFont(ofSize: 20, weight: .bold)
-        titleLabel.textColor = .white
-        titleLabel.translatesAutoresizingMaskIntoConstraints = false
-
-        headerView.addSubview(titleLabel)
-        view.addSubview(headerView)
-
-        NSLayoutConstraint.activate([
-            headerView.topAnchor.constraint(equalTo: view.topAnchor),
-            headerView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            headerView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            headerView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 60),
-
-            titleLabel.centerXAnchor.constraint(equalTo: headerView.centerXAnchor),
-            titleLabel.bottomAnchor.constraint(equalTo: headerView.bottomAnchor, constant: -16)
-        ])
-    }
-
+    // MARK: - Setup
     private func setupTableView() {
-        tableView.translatesAutoresizingMaskIntoConstraints = false
-        tableView.register(ConversationCell.self, forCellReuseIdentifier: "ConversationCell")
-        tableView.dataSource = self
-        tableView.delegate = self
-        tableView.separatorStyle = .singleLine
-        tableView.rowHeight = 80
-        tableView.backgroundColor = .clear
+        if tableView != nil {
+            tableView.delegate = self
+            tableView.dataSource = self
+            tableView.rowHeight = 80
+            tableView.separatorInset = UIEdgeInsets(top: 0, left: 88, bottom: 0, right: 0)
+            print("✅ [MessagePro] TableView configured from Storyboard")
+        } else {
+            print("⚠️ [MessagePro] TableView outlet not connected!")
+        }
         
-        view.addSubview(tableView)
-
-        NSLayoutConstraint.activate([
-            tableView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 60),
-            tableView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            tableView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            tableView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
-        ])
+        emptyStateView?.isHidden = true
     }
-
+    
+    private func setupNavigationBar() {
+        navigationController?.navigationBar.isHidden = true
+    }
+    
+    // MARK: - Firebase
     private func startListeningForConversations() {
-        guard let currentUid = Auth.auth().currentUser?.uid else { return }
+        guard let currentUid = Auth.auth().currentUser?.uid else {
+            print("❌ [MessagePro] No logged in user")
+            showEmptyState()
+            return
+        }
+        
+        print("🔍 [MessagePro] Listening for conversations for user: \(currentUid)")
         
         db.collection("conversations")
             .whereField("participants", arrayContains: currentUid)
-            .addSnapshotListener { [weak self] snapshot, _ in
-                guard let documents = snapshot?.documents else { return }
+            .addSnapshotListener { [weak self] snapshot, error in
+                guard let self = self else { return }
                 
-                var newConversations: [Conversation] = []
+                if let error = error {
+                    print("❌ [MessagePro] Error: \(error.localizedDescription)")
+                    self.showEmptyState()
+                    return
+                }
+                
+                guard let documents = snapshot?.documents else {
+                    print("⚠️ [MessagePro] No snapshot documents")
+                    self.showEmptyState()
+                    return
+                }
+                
+                print("📦 [MessagePro] Found \(documents.count) conversations")
+                
+                if documents.isEmpty {
+                    self.showEmptyState()
+                    self.conversations = []
+                    DispatchQueue.main.async {
+                        self.tableView?.reloadData()
+                    }
+                    return
+                }
+                
+                var newConversations: [MessageConversation] = []
                 let group = DispatchGroup()
 
                 for doc in documents {
                     let data = doc.data()
                     let conversationId = doc.documentID
-                    let lastMessage = (data["lastMessage"] as? String) ?? (data["LastMessage"] as? String) ?? ""
+                    let lastMessage = (data["lastMessage"] as? String) ?? (data["LastMessage"] as? String) ?? "Tap to start chatting"
                     let ts = (data["updatedAt"] as? Timestamp) ?? (data["lastUpdated"] as? Timestamp)
                     let date = ts?.dateValue() ?? Date()
                     let participants = data["participants"] as? [String] ?? []
+                    
+                    print("   📧 [MessagePro] Conversation: \(conversationId)")
 
                     if let otherUserId = participants.first(where: { $0 != currentUid }) {
                         group.enter()
-                        self?.db.collection("users").document(otherUserId).getDocument { userSnap, _ in
+                        self.db.collection("users").document(otherUserId).getDocument { userSnap, error in
                             defer { group.leave() }
-                            let name = userSnap?.data()?["name"] as? String ?? "Unknown"
-                            let user = User(id: otherUserId, name: name, email: "", phone: "", profileImageName: nil)
-                            newConversations.append(Conversation(id: conversationId, user: user, lastMessage: lastMessage, lastUpdated: date))
+                            
+                            if let error = error {
+                                print("   ❌ [MessagePro] Error fetching user \(otherUserId): \(error.localizedDescription)")
+                                return
+                            }
+                            
+                            let name = userSnap?.data()?["name"] as? String ?? "Unknown User"
+                            let email = userSnap?.data()?["email"] as? String ?? ""
+                            print("   👤 [MessagePro] Found user: \(name)")
+                            
+                            let conversation = MessageConversation(
+                                id: conversationId,
+                                otherUserId: otherUserId,
+                                otherUserName: name,
+                                otherUserEmail: email,
+                                lastMessage: lastMessage,
+                                lastUpdated: date
+                            )
+                            newConversations.append(conversation)
                         }
                     }
                 }
 
                 group.notify(queue: .main) {
-                    self?.conversations = newConversations.sorted(by: { $0.lastUpdated > $1.lastUpdated })
-                    self?.tableView.reloadData()
+                    self.conversations = newConversations.sorted(by: { $0.lastUpdated > $1.lastUpdated })
+                    print("✅ [MessagePro] Loaded \(self.conversations.count) conversations")
+                    self.hideEmptyState()
+                    self.tableView?.reloadData()
                 }
             }
     }
+    
+    // MARK: - Empty State
+    private func showEmptyState() {
+        DispatchQueue.main.async {
+            self.emptyStateView?.isHidden = false
+            self.tableView?.isHidden = true
+            print("📭 [MessagePro] Showing empty state")
+        }
+    }
+    
+    private func hideEmptyState() {
+        DispatchQueue.main.async {
+            self.emptyStateView?.isHidden = true
+            self.tableView?.isHidden = false
+            print("✅ [MessagePro] Hiding empty state")
+        }
+    }
 }
 
+// MARK: - TableView DataSource & Delegate
 extension MessageProViewController: UITableViewDataSource, UITableViewDelegate {
-    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int { conversations.count }
+    
+    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        let count = conversations.count
+        print("📊 [MessagePro] Number of rows: \(count)")
+        return count
+    }
+    
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(withIdentifier: "ConversationCell", for: indexPath) as! ConversationCell
-        cell.configure(with: conversations[indexPath.row])
+        guard let cell = tableView.dequeueReusableCell(withIdentifier: "ConversationCell", for: indexPath) as? ConversationCell else {
+            print("❌ [MessagePro] Failed to dequeue ConversationCell")
+            return UITableViewCell()
+        }
+        
+        let conversation = conversations[indexPath.row]
+        cell.configure(with: conversation)
+        
+        print("   🔧 [MessagePro] Configured cell for: \(conversation.otherUserName)")
+        
         return cell
     }
+    
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
-        let vc = ChatViewController(conversation: conversations[indexPath.row])
-        navigationController?.pushViewController(vc, animated: true)
+        
+        let conversation = conversations[indexPath.row]
+        print("👆 [MessagePro] Selected conversation with: \(conversation.otherUserName)")
+        
+        // ✅ Navigate to chat - Create a simple chat VC
+        let chatVC = SimpleChatViewController()
+        chatVC.conversationId = conversation.id
+        chatVC.otherUserId = conversation.otherUserId
+        chatVC.otherUserName = conversation.otherUserName
+        chatVC.title = conversation.otherUserName
+        
+        navigationController?.pushViewController(chatVC, animated: true)
     }
 }

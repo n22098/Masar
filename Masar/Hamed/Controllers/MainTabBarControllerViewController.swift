@@ -5,7 +5,7 @@ class MainTabBarController: UITabBarController {
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        // 1. إنشاء مستخدم تجريبي لتفعيل وضع "مقدم الخدمة"
+        // 1. إنشاء مستخدم تجريبي (لأغراض الاختبار)
         createTestUser()
         
         // 2. إعداد شكل الشريط
@@ -19,14 +19,14 @@ class MainTabBarController: UITabBarController {
         // التأكد من وجود مستخدم
         guard let user = UserManager.shared.currentUser else {
             createTestUser()
-            setupTabs() // إعادة المحاولة بعد الإنشاء
+            setupTabs()
             return
         }
         
         var controllers: [UIViewController] = []
         
         // ---------------------------------------------------------
-        // 1. Search (من الستوري بورد)
+        // 1. Search
         // ---------------------------------------------------------
         let searchVC = createFromProviderStoryboard(
             id: "SearchTableViewController",
@@ -36,7 +36,7 @@ class MainTabBarController: UITabBarController {
         controllers.append(searchVC)
         
         // ---------------------------------------------------------
-        // 2. History (✅ FIXED - استخدام الشاشة الحقيقية)
+        // 2. History
         // ---------------------------------------------------------
         let historyVC = createFromProviderStoryboard(
             id: "BookingHistoryTableViewController",
@@ -46,13 +46,9 @@ class MainTabBarController: UITabBarController {
         controllers.append(historyVC)
         
         // ---------------------------------------------------------
-        // 3. Messages (شاشة مؤقتة)
+        // 3. Messages (✅ تم التعديل حسب الصورة: MessageProViewController)
         // ---------------------------------------------------------
-        let messagesVC = createPlaceholderViewController(
-            title: "Messages",
-            icon: "message",
-            selectedIcon: "message.fill"
-        )
+        let messagesVC = createMessagesViewController()
         controllers.append(messagesVC)
         
         // ---------------------------------------------------------
@@ -87,12 +83,15 @@ class MainTabBarController: UITabBarController {
     
     // MARK: - Helper Methods
     
+    // ✅ تم إصلاح هذه الدالة لإزالة التحذير الأصفر
     private func createFromProviderStoryboard(id: String, title: String, icon: String) -> UIViewController {
         let storyboard = UIStoryboard(name: "Provider", bundle: nil)
+        
+        // نستخدم الطريقة القياسية المباشرة لتجنب التحذيرات
+        // ملاحظة: تأكد أن الـ ID موجود في الستوري بورد وإلا سيتوقف التطبيق (Crash)
         let vc = storyboard.instantiateViewController(withIdentifier: id)
         
         vc.title = title
-        
         let nav = UINavigationController(rootViewController: vc)
         nav.navigationBar.prefersLargeTitles = true
         vc.navigationItem.largeTitleDisplayMode = .always
@@ -102,18 +101,54 @@ class MainTabBarController: UITabBarController {
             image: UIImage(systemName: icon),
             tag: 0
         )
-        
         return nav
+    }
+    
+    // ✅ تم وضع الاسم الصحيح MessageProViewController
+    private func createMessagesViewController() -> UIViewController {
+        let storyboard = UIStoryboard(name: "Provider", bundle: nil)
+        
+        // استخدام الاسم كما ظهر في لقطة الشاشة
+        if let messagesVC = storyboard.instantiateViewController(withIdentifier: "MessageProViewController") as? UIViewController {
+            
+            messagesVC.title = "Messages"
+            let nav = UINavigationController(rootViewController: messagesVC)
+            nav.navigationBar.prefersLargeTitles = true
+            
+            nav.tabBarItem = UITabBarItem(
+                title: "Messages",
+                image: UIImage(systemName: "message"),
+                selectedImage: UIImage(systemName: "message.fill")
+            )
+            
+            return nav
+        }
+        
+        // في حال لم يجد الاسم، يطبع خطأ وينشئ شاشة مؤقتة
+        print("❌ Error: Could not find 'MessageProViewController' in Provider.storyboard")
+        
+        return createPlaceholderViewController(
+            title: "Messages",
+            icon: "message",
+            selectedIcon: "message.fill"
+        )
     }
     
     private func createPlaceholderViewController(title: String, icon: String, selectedIcon: String) -> UIViewController {
         let vc = UIViewController()
-        vc.view.backgroundColor = .white
+        vc.view.backgroundColor = .systemBackground
         vc.title = title
+        
+        let label = UILabel()
+        label.text = "\(title)\n(Not Found)"
+        label.textAlignment = .center
+        label.numberOfLines = 0
+        label.textColor = .gray
+        vc.view.addSubview(label)
+        label.frame = vc.view.bounds
         
         let nav = UINavigationController(rootViewController: vc)
         nav.navigationBar.prefersLargeTitles = true
-        vc.navigationItem.largeTitleDisplayMode = .always
         
         nav.tabBarItem = UITabBarItem(
             title: title,
@@ -127,7 +162,7 @@ class MainTabBarController: UITabBarController {
         if #available(iOS 15.0, *) {
             let appearance = UITabBarAppearance()
             appearance.configureWithOpaqueBackground()
-            appearance.backgroundColor = .white
+            appearance.backgroundColor = .systemBackground
             tabBar.standardAppearance = appearance
             tabBar.scrollEdgeAppearance = appearance
         }

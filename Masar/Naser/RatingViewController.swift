@@ -3,88 +3,14 @@ import FirebaseFirestore
 
 class RatingViewController: UIViewController {
     
-    // MARK: - UI Components
-    private let scrollView: UIScrollView = {
-        let sv = UIScrollView()
-        sv.translatesAutoresizingMaskIntoConstraints = false
-        sv.showsVerticalScrollIndicator = false
-        return sv
-    }()
+    // MARK: - IBOutlets (for Storyboard)
+    @IBOutlet weak var feedbackTextView: UITextView?
+    @IBOutlet weak var starStackView: UIStackView?
     
-    private let contentView: UIView = {
-        let view = UIView()
-        view.translatesAutoresizingMaskIntoConstraints = false
-        return view
-    }()
-    
-    private let profileImageView: UIImageView = {
-        let iv = UIImageView()
-        iv.image = UIImage(systemName: "person.circle.fill")
-        iv.tintColor = UIColor(red: 98/255, green: 84/255, blue: 243/255, alpha: 1.0)
-        iv.contentMode = .scaleAspectFit
-        iv.translatesAutoresizingMaskIntoConstraints = false
-        return iv
-    }()
-    
-    private let titleLabel: UILabel = {
-        let label = UILabel()
-        label.text = "Rate Your Experience"
-        label.font = UIFont.systemFont(ofSize: 20, weight: .bold)
-        label.textColor = .black
-        label.textAlignment = .center
-        label.translatesAutoresizingMaskIntoConstraints = false
-        return label
-    }()
-    
-    private let starsStackView: UIStackView = {
-        let stack = UIStackView()
-        stack.axis = .horizontal
-        stack.spacing = 12
-        stack.distribution = .fillEqually
-        stack.translatesAutoresizingMaskIntoConstraints = false
-        return stack
-    }()
-    
-    private let feedbackLabel: UILabel = {
-        let label = UILabel()
-        label.text = "Write Your Feedback:"
-        label.font = UIFont.systemFont(ofSize: 16, weight: .semibold)
-        label.textColor = .darkGray
-        label.translatesAutoresizingMaskIntoConstraints = false
-        return label
-    }()
-    
-    private let feedbackTextView: UITextView = {
-        let tv = UITextView()
-        tv.font = UIFont.systemFont(ofSize: 16)
-        tv.textColor = .darkText
-        tv.backgroundColor = .white
-        tv.layer.cornerRadius = 16
-        tv.layer.borderWidth = 1
-        tv.layer.borderColor = UIColor.systemGray5.cgColor
-        tv.textContainerInset = UIEdgeInsets(top: 16, left: 12, bottom: 16, right: 12)
-        tv.translatesAutoresizingMaskIntoConstraints = false
-        tv.layer.shadowColor = UIColor.black.cgColor
-        tv.layer.shadowOpacity = 0.05
-        tv.layer.shadowOffset = CGSize(width: 0, height: 2)
-        tv.layer.shadowRadius = 4
-        return tv
-    }()
-    
-    private let submitButton: UIButton = {
-        let btn = UIButton(type: .system)
-        btn.setTitle("Submit Rating", for: .normal)
-        btn.setTitleColor(.white, for: .normal)
-        btn.titleLabel?.font = UIFont.systemFont(ofSize: 18, weight: .bold)
-        btn.backgroundColor = UIColor(red: 98/255, green: 84/255, blue: 243/255, alpha: 1.0)
-        btn.layer.cornerRadius = 16
-        btn.translatesAutoresizingMaskIntoConstraints = false
-        btn.layer.shadowColor = UIColor.black.cgColor
-        btn.layer.shadowOpacity = 0.2
-        btn.layer.shadowOffset = CGSize(width: 0, height: 4)
-        btn.layer.shadowRadius = 8
-        return btn
-    }()
+    // MARK: - Programmatic UI Components (if not using Storyboard)
+    private var programmaticFeedbackTextView: UITextView?
+    private var programmaticStarStackView: UIStackView?
+    private var programmaticSubmitButton: UIButton?
     
     // MARK: - Properties
     var bookingName: String?
@@ -96,13 +22,19 @@ class RatingViewController: UIViewController {
     // MARK: - Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
-        setupUI()
+        
+        // Check if we're using Storyboard or Programmatic UI
+        if feedbackTextView == nil {
+            setupProgrammaticUI()
+        } else {
+            setupStoryboardUI()
+        }
+        
         setupStars()
-        setupActions()
     }
     
-    // MARK: - Setup
-    private func setupUI() {
+    // MARK: - Setup for Storyboard
+    private func setupStoryboardUI() {
         title = "Rating"
         view.backgroundColor = UIColor(red: 248/255, green: 248/255, blue: 252/255, alpha: 1.0)
         
@@ -120,21 +52,101 @@ class RatingViewController: UIViewController {
         navigationController?.navigationBar.scrollEdgeAppearance = appearance
         navigationController?.navigationBar.tintColor = .white
         
-        // Add subviews
-        view.addSubview(scrollView)
-        scrollView.addSubview(contentView)
-        
-        contentView.addSubview(profileImageView)
-        contentView.addSubview(titleLabel)
-        contentView.addSubview(starsStackView)
-        contentView.addSubview(feedbackLabel)
-        contentView.addSubview(feedbackTextView)
-        contentView.addSubview(submitButton)
-        
-        setupConstraints()
+        // Style the text view
+        if let textView = feedbackTextView {
+            textView.layer.borderWidth = 1
+            textView.layer.borderColor = UIColor.systemGray5.cgColor
+            textView.layer.cornerRadius = 16
+            textView.backgroundColor = .white
+            textView.textContainerInset = UIEdgeInsets(top: 16, left: 12, bottom: 16, right: 12)
+            textView.font = UIFont.systemFont(ofSize: 16)
+            textView.layer.shadowColor = UIColor.black.cgColor
+            textView.layer.shadowOpacity = 0.05
+            textView.layer.shadowOffset = CGSize(width: 0, height: 2)
+            textView.layer.shadowRadius = 4
+        }
     }
     
-    private func setupConstraints() {
+    // MARK: - Setup for Programmatic UI
+    private func setupProgrammaticUI() {
+        title = "Rating"
+        view.backgroundColor = UIColor(red: 248/255, green: 248/255, blue: 252/255, alpha: 1.0)
+        
+        // Navigation Bar
+        let appearance = UINavigationBarAppearance()
+        appearance.configureWithOpaqueBackground()
+        appearance.backgroundColor = brandColor
+        appearance.titleTextAttributes = [.foregroundColor: UIColor.white]
+        appearance.largeTitleTextAttributes = [
+            .foregroundColor: UIColor.white,
+            .font: UIFont.systemFont(ofSize: 34, weight: .bold)
+        ]
+        
+        navigationController?.navigationBar.standardAppearance = appearance
+        navigationController?.navigationBar.scrollEdgeAppearance = appearance
+        navigationController?.navigationBar.tintColor = .white
+        
+        // Create UI
+        let scrollView = UIScrollView()
+        scrollView.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(scrollView)
+        
+        let contentView = UIView()
+        contentView.translatesAutoresizingMaskIntoConstraints = false
+        scrollView.addSubview(contentView)
+        
+        let profileIcon = UIImageView()
+        profileIcon.image = UIImage(systemName: "person.circle.fill")
+        profileIcon.tintColor = brandColor
+        profileIcon.contentMode = .scaleAspectFit
+        profileIcon.translatesAutoresizingMaskIntoConstraints = false
+        
+        let titleLabel = UILabel()
+        titleLabel.text = "Rate Your Experience"
+        titleLabel.font = UIFont.systemFont(ofSize: 20, weight: .bold)
+        titleLabel.textAlignment = .center
+        titleLabel.translatesAutoresizingMaskIntoConstraints = false
+        
+        let starsStack = UIStackView()
+        starsStack.axis = .horizontal
+        starsStack.spacing = 12
+        starsStack.distribution = .fillEqually
+        starsStack.translatesAutoresizingMaskIntoConstraints = false
+        programmaticStarStackView = starsStack
+        
+        let feedbackLabel = UILabel()
+        feedbackLabel.text = "Write Your Feedback:"
+        feedbackLabel.font = UIFont.systemFont(ofSize: 16, weight: .semibold)
+        feedbackLabel.textColor = .darkGray
+        feedbackLabel.translatesAutoresizingMaskIntoConstraints = false
+        
+        let textView = UITextView()
+        textView.font = UIFont.systemFont(ofSize: 16)
+        textView.backgroundColor = .white
+        textView.layer.cornerRadius = 16
+        textView.layer.borderWidth = 1
+        textView.layer.borderColor = UIColor.systemGray5.cgColor
+        textView.textContainerInset = UIEdgeInsets(top: 16, left: 12, bottom: 16, right: 12)
+        textView.translatesAutoresizingMaskIntoConstraints = false
+        programmaticFeedbackTextView = textView
+        
+        let submitBtn = UIButton(type: .system)
+        submitBtn.setTitle("Submit Rating", for: .normal)
+        submitBtn.setTitleColor(.white, for: .normal)
+        submitBtn.titleLabel?.font = UIFont.systemFont(ofSize: 18, weight: .bold)
+        submitBtn.backgroundColor = brandColor
+        submitBtn.layer.cornerRadius = 16
+        submitBtn.translatesAutoresizingMaskIntoConstraints = false
+        submitBtn.addTarget(self, action: #selector(submitRatingTapped), for: .touchUpInside)
+        programmaticSubmitButton = submitBtn
+        
+        contentView.addSubview(profileIcon)
+        contentView.addSubview(titleLabel)
+        contentView.addSubview(starsStack)
+        contentView.addSubview(feedbackLabel)
+        contentView.addSubview(textView)
+        contentView.addSubview(submitBtn)
+        
         NSLayoutConstraint.activate([
             scrollView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
             scrollView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
@@ -147,59 +159,55 @@ class RatingViewController: UIViewController {
             contentView.bottomAnchor.constraint(equalTo: scrollView.bottomAnchor),
             contentView.widthAnchor.constraint(equalTo: scrollView.widthAnchor),
             
-            profileImageView.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 40),
-            profileImageView.centerXAnchor.constraint(equalTo: contentView.centerXAnchor),
-            profileImageView.widthAnchor.constraint(equalToConstant: 80),
-            profileImageView.heightAnchor.constraint(equalToConstant: 80),
+            profileIcon.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 40),
+            profileIcon.centerXAnchor.constraint(equalTo: contentView.centerXAnchor),
+            profileIcon.widthAnchor.constraint(equalToConstant: 80),
+            profileIcon.heightAnchor.constraint(equalToConstant: 80),
             
-            titleLabel.topAnchor.constraint(equalTo: profileImageView.bottomAnchor, constant: 16),
+            titleLabel.topAnchor.constraint(equalTo: profileIcon.bottomAnchor, constant: 16),
             titleLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 20),
             titleLabel.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -20),
             
-            starsStackView.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 24),
-            starsStackView.centerXAnchor.constraint(equalTo: contentView.centerXAnchor),
-            starsStackView.heightAnchor.constraint(equalToConstant: 50),
+            starsStack.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 24),
+            starsStack.centerXAnchor.constraint(equalTo: contentView.centerXAnchor),
+            starsStack.heightAnchor.constraint(equalToConstant: 50),
             
-            feedbackLabel.topAnchor.constraint(equalTo: starsStackView.bottomAnchor, constant: 32),
+            feedbackLabel.topAnchor.constraint(equalTo: starsStack.bottomAnchor, constant: 32),
             feedbackLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 20),
-            feedbackLabel.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -20),
             
-            feedbackTextView.topAnchor.constraint(equalTo: feedbackLabel.bottomAnchor, constant: 12),
-            feedbackTextView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 20),
-            feedbackTextView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -20),
-            feedbackTextView.heightAnchor.constraint(equalToConstant: 150),
+            textView.topAnchor.constraint(equalTo: feedbackLabel.bottomAnchor, constant: 12),
+            textView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 20),
+            textView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -20),
+            textView.heightAnchor.constraint(equalToConstant: 150),
             
-            submitButton.topAnchor.constraint(equalTo: feedbackTextView.bottomAnchor, constant: 32),
-            submitButton.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 20),
-            submitButton.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -20),
-            submitButton.heightAnchor.constraint(equalToConstant: 56),
-            submitButton.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -40)
+            submitBtn.topAnchor.constraint(equalTo: textView.bottomAnchor, constant: 32),
+            submitBtn.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 20),
+            submitBtn.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -20),
+            submitBtn.heightAnchor.constraint(equalToConstant: 56),
+            submitBtn.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -40)
         ])
     }
     
+    // MARK: - Setup Stars
     private func setupStars() {
+        let stack = starStackView ?? programmaticStarStackView
+        guard let stackView = stack else { return }
+        
+        // Clear existing stars
+        stackView.arrangedSubviews.forEach { $0.removeFromSuperview() }
+        
+        // Add 5 star buttons
         for i in 0..<5 {
             let button = UIButton(type: .system)
             button.setImage(UIImage(systemName: "star"), for: .normal)
             button.tintColor = .systemGray3
             button.tag = i
-            button.imageView?.contentMode = .scaleAspectFit
-            button.contentVerticalAlignment = .fill
-            button.contentHorizontalAlignment = .fill
             
             let tapGesture = UITapGestureRecognizer(target: self, action: #selector(handleStarTap(_:)))
             button.addGestureRecognizer(tapGesture)
             
-            starsStackView.addArrangedSubview(button)
+            stackView.addArrangedSubview(button)
         }
-    }
-    
-    private func setupActions() {
-        submitButton.addTarget(self, action: #selector(submitRatingTapped), for: .touchUpInside)
-        
-        // Dismiss keyboard on tap
-        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(dismissKeyboard))
-        view.addGestureRecognizer(tapGesture)
     }
     
     // MARK: - Actions
@@ -221,7 +229,10 @@ class RatingViewController: UIViewController {
     }
     
     private func updateStars() {
-        for (index, view) in starsStackView.arrangedSubviews.enumerated() {
+        let stack = starStackView ?? programmaticStarStackView
+        guard let stackView = stack else { return }
+        
+        for (index, view) in stackView.arrangedSubviews.enumerated() {
             guard let button = view as? UIButton else { continue }
             let btnIndex = Double(index)
             
@@ -238,13 +249,14 @@ class RatingViewController: UIViewController {
         }
     }
     
-    @objc private func submitRatingTapped() {
+    @IBAction func submitRatingTapped(_ sender: Any) {
         guard selectedRating > 0 else {
             showAlert(title: "Rating Required", message: "Please select a star rating before submitting.")
             return
         }
         
-        let feedback = feedbackTextView.text?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        let textView = feedbackTextView ?? programmaticFeedbackTextView
+        let feedback = textView?.text?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
         let serviceName = bookingName ?? "Service"
         
         guard let providerId = providerId else {
@@ -252,11 +264,19 @@ class RatingViewController: UIViewController {
             return
         }
         
-        submitButton.isEnabled = false
-        submitButton.setTitle("Submitting...", for: .normal)
+        // Disable button
+        if let btn = sender as? UIButton {
+            btn.isEnabled = false
+            btn.setTitle("Submitting...", for: .normal)
+        }
         
         let seekerId = UserManager.shared.currentUser?.email
         let seekerName = UserManager.shared.currentUser?.name
+        
+        print("⭐ [RatingVC] Submitting rating:")
+        print("   - Stars: \(selectedRating)")
+        print("   - Seeker: \(seekerName ?? "nil")")
+        print("   - Provider ID: \(providerId)")
         
         RatingService.shared.uploadRating(
             stars: selectedRating,
@@ -267,8 +287,10 @@ class RatingViewController: UIViewController {
             seekerName: seekerName
         ) { [weak self] error in
             DispatchQueue.main.async {
-                self?.submitButton.isEnabled = true
-                self?.submitButton.setTitle("Submit Rating", for: .normal)
+                if let btn = sender as? UIButton {
+                    btn.isEnabled = true
+                    btn.setTitle("Submit Rating", for: .normal)
+                }
                 
                 if let error = error {
                     self?.showAlert(title: "Error", message: "Failed to submit rating: \(error.localizedDescription)")
@@ -297,9 +319,5 @@ class RatingViewController: UIViewController {
         let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
         alert.addAction(UIAlertAction(title: "OK", style: .default))
         present(alert, animated: true)
-    }
-    
-    @objc private func dismissKeyboard() {
-        view.endEditing(true)
     }
 }

@@ -5,7 +5,7 @@ import FirebaseAuth
 class ProviderMessagesTableViewController: UITableViewController {
 
     // MARK: - Properties (المتغيرات)
-    private var conversations: [Conversation] = []
+    private var conversations: [MessageConversation] = []  // ✅ Changed to MessageConversation
     private let db = Firestore.firestore()
     private var listener: ListenerRegistration?
 
@@ -95,7 +95,7 @@ class ProviderMessagesTableViewController: UITableViewController {
                     return
                 }
                
-                var newConversations: [Conversation] = []
+                var newConversations: [MessageConversation] = []  // ✅ Changed
                 let group = DispatchGroup()
 
                 for doc in documents {
@@ -120,24 +120,19 @@ class ProviderMessagesTableViewController: UITableViewController {
                             defer { group.leave() }
                             
                             var userName = "Unknown User"
-                            var userImage: String? = nil
+                            var userEmail = ""
                             
                             if let userData = userSnap?.data() {
                                 userName = userData["name"] as? String ?? "Unknown"
-                                userImage = userData["profileImage"] as? String
+                                userEmail = userData["email"] as? String ?? ""
                             }
                             
-                            let otherUser = User(
-                                id: otherUserId,
-                                name: userName,
-                                email: "", // غير ضروري هنا
-                                phone: "",
-                                profileImageName: userImage
-                            )
-                            
-                            let conversation = Conversation(
+                            // ✅ Create MessageConversation instead of Conversation
+                            let conversation = MessageConversation(
                                 id: conversationId,
-                                user: otherUser,
+                                otherUserId: otherUserId,
+                                otherUserName: userName,
+                                otherUserEmail: userEmail,
                                 lastMessage: lastMessageText,
                                 lastUpdated: lastUpdatedDate
                             )
@@ -179,8 +174,13 @@ class ProviderMessagesTableViewController: UITableViewController {
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         let conversation = conversations[indexPath.row]
         
-        // فتح صفحة الشات
-        let chatVC = ChatViewController(conversation: conversation)
+        // ✅ Use SimpleChatViewController instead of ChatViewController
+        let chatVC = SimpleChatViewController()
+        chatVC.conversationId = conversation.id
+        chatVC.otherUserId = conversation.otherUserId
+        chatVC.otherUserName = conversation.otherUserName
+        chatVC.title = conversation.otherUserName
+        
         // إخفاء التبويب السفلي ليعطي مساحة أكبر للشات
         chatVC.hidesBottomBarWhenPushed = true
         

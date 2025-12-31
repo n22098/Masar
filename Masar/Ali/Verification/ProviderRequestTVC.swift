@@ -103,36 +103,85 @@ class ProviderRequestTVC: UITableViewController {
     
     // تحديث الحالة في الفايربيس
     private func updateRequestStatus(status: String) {
-        guard let uid = requestUID else { return }
-        
-        let batch = db.batch()
-        
-        // 1. تحديث حالة الطلب
-        let requestRef = db.collection("provider_requests").document(uid)
-        batch.updateData(["status": status], forDocument: requestRef)
-        
-        // 2. إذا تم القبول، نحدث حالة المستخدم في جدول Users ليصبح Provider
-        if status == "approved" {
-            let userRef = db.collection("users").document(uid)
-            batch.updateData([
-                "role": "provider",
-                "providerRequestStatus": "approved"
-            ], forDocument: userRef)
-        } else if status == "rejected" {
-             let userRef = db.collection("users").document(uid)
-             batch.updateData([
-                 "providerRequestStatus": "rejected"
-             ], forDocument: userRef)
+        guard let uid = requestUID else {
+            print("❌ No UID provided")
+            return
         }
         
-        // تنفيذ التحديثات
-        batch.commit { error in
+        print("🔄 Updating request status to: \(status) for UID: \(uid)")
+        
+        // 1. تحديث حالة الطلب في provider_requests
+        let requestRef = db.collection("provider_requests").document(uid)
+        requestRef.updateData(["status": status]) { [weak self] error in
+            guard let self = self else { return }
+            
             if let error = error {
-                print("Error updating status: \(error)")
-            } else {
-                print("Successfully updated status to \(status)")
-                self.navigationController?.popViewController(animated: true)
+                print("❌ Error updating request status: \(error.localizedDescription)")
+                self.showErrorAlert(message: "Failed to update status: \(error.localizedDescription)")
+                return
             }
+            
+            print("✅ Request status updated successfully")
+            
+            // 2. إذا تم القبول، نحدث حالة المستخدم في جدول Users
+            if status == "approved" {
+                self.updateUserRole(uid: uid)
+            } else {
+                // إذا تم الرفض، نرجع للصفحة السابقة مباشرة
+                DispatchQueue.main.async {
+                    self.navigationController?.popViewController(animated: true)
+                }
+            }
+        }
+    }
+    
+    private func updateUserRole(uid: String) {
+        let userRef = db.collection("users").document(uid)
+        
+        // نتحقق أولاً إذا المستخدم موجود
+        userRef.getDocument { [weak self] document, error in
+            guard let self = self else { return }
+            
+            if let error = error {
+                print("❌ Error checking user: \(error.localizedDescription)")
+                // حتى لو ما في user document، الـ request تم قبوله
+                DispatchQueue.main.async {
+                    self.navigationController?.popViewController(animated: true)
+                }
+                return
+            }
+            
+            if document?.exists == true {
+                // المستخدم موجود، نحدث role
+                userRef.updateData([
+                    "role": "provider",
+                    "providerRequestStatus": "approved"
+                ]) { error in
+                    if let error = error {
+                        print("❌ Error updating user role: \(error.localizedDescription)")
+                    } else {
+                        print("✅ User role updated to provider")
+                    }
+                    
+                    DispatchQueue.main.async {
+                        self.navigationController?.popViewController(animated: true)
+                    }
+                }
+            } else {
+                // المستخدم غير موجود في users collection
+                print("⚠️ User document doesn't exist, but request was approved")
+                DispatchQueue.main.async {
+                    self.navigationController?.popViewController(animated: true)
+                }
+            }
+        }
+    }
+    
+    private func showErrorAlert(message: String) {
+        DispatchQueue.main.async {
+            let alert = UIAlertController(title: "Error", message: message, preferredStyle: .alert)
+            alert.addAction(UIAlertAction(title: "OK", style: .default))
+            self.present(alert, animated: true)
         }
     }
     

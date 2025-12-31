@@ -12,7 +12,7 @@ import FirebaseAuth
 final class ProviderChatListViewController: UIViewController {
 
     private let tableView = UITableView()
-    private var conversations: [Conversation] = []
+    private var conversations: [MessageConversation] = []  // ✅ Changed to MessageConversation
     private let db = Firestore.firestore()
     private var listener: ListenerRegistration?
 
@@ -77,7 +77,7 @@ final class ProviderChatListViewController: UIViewController {
             .addSnapshotListener { [weak self] snapshot, error in
                 guard let self = self, let documents = snapshot?.documents else { return }
 
-                var loadedConversations: [Conversation] = []
+                var loadedConversations: [MessageConversation] = []  // ✅ Changed
                 let group = DispatchGroup()
 
                 for doc in documents {
@@ -92,18 +92,16 @@ final class ProviderChatListViewController: UIViewController {
                         defer { group.leave() }
 
                         let userData = userSnap?.data()
-                        let clientUser = User(
-                            id: clientId,
-                            name: userData?["name"] as? String ?? "Client",
-                            email: userData?["email"] as? String ?? "",
-                            phone: userData?["phone"] as? String ?? "",
-                            profileImageName: userData?["profileImage"] as? String
-                        )
-
-                        let conv = Conversation(
+                        let clientName = userData?["name"] as? String ?? "Client"
+                        let clientEmail = userData?["email"] as? String ?? ""
+                        
+                        // ✅ Create MessageConversation instead of Conversation
+                        let conv = MessageConversation(
                             id: conversationId,
-                            user: clientUser,
-                            lastMessage: data["lastMessage"] as? String ?? "",
+                            otherUserId: clientId,
+                            otherUserName: clientName,
+                            otherUserEmail: clientEmail,
+                            lastMessage: data["lastMessage"] as? String ?? "Tap to start chatting",
                             lastUpdated: (data["lastUpdated"] as? Timestamp)?.dateValue() ?? Date()
                         )
                         loadedConversations.append(conv)
@@ -126,14 +124,23 @@ extension ProviderChatListViewController: UITableViewDataSource, UITableViewDele
 
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: ConversationCell.reuseIdentifier, for: indexPath) as! ConversationCell
-        cell.configure(with: conversations[indexPath.row])
+        cell.configure(with: conversations[indexPath.row])  // ✅ Now passes MessageConversation
         return cell
     }
 
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
-        let chatVC = ChatViewController(conversation: conversations[indexPath.row])
+        
+        let conversation = conversations[indexPath.row]
+        
+        // ✅ Use SimpleChatViewController instead of ChatViewController
+        let chatVC = SimpleChatViewController()
+        chatVC.conversationId = conversation.id
+        chatVC.otherUserId = conversation.otherUserId
+        chatVC.otherUserName = conversation.otherUserName
+        chatVC.title = conversation.otherUserName
         chatVC.hidesBottomBarWhenPushed = true
+        
         navigationController?.pushViewController(chatVC, animated: true)
     }
 }
