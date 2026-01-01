@@ -125,14 +125,18 @@ class AdminDashboardViewController: UIViewController {
             }
     }
     
+    // MARK: - Chart Update Logic (Updated)
     private func updateChartFromFirebase() {
-        db.collection("bookings").getDocuments { (querySnapshot, error) in
+        db.collection("bookings").getDocuments { [weak self] (querySnapshot, error) in
+            guard let self = self else { return }
+            
             if let error = error {
                 print("❌ Chart Error: \(error.localizedDescription)")
                 return
             }
             
             guard let documents = querySnapshot?.documents, !documents.isEmpty else {
+                print("⚠️ No booking documents found.")
                 DispatchQueue.main.async {
                     self.chartView.segments = [ChartSegment(color: .systemGray4, value: 1.0, name: "No Bookings")]
                 }
@@ -140,18 +144,43 @@ class AdminDashboardViewController: UIViewController {
             }
             
             var counts: [String: Int] = [:]
+            
             for doc in documents {
-                let category = doc.get("category_name") as? String ?? "Other"
+                let data = doc.data()
+                
+                // Fallback Logic:
+                // 1. Try "category" (Ideal)
+                // 2. Try "category_name" (Old code)
+                // 3. Try "serviceName" (Exists in your DB screenshot)
+                // 4. Fallback to "Unknown"
+                var category = data["category"] as? String
+                               ?? data["category_name"] as? String
+                               ?? data["serviceName"] as? String
+                               ?? "Unknown"
+                
+                // Truncate long names (e.g., "iPhone 17 Pro...") to 12 chars so the chart looks clean
+                if category.count > 12 {
+                    category = String(category.prefix(12)) + ".."
+                }
+                
                 counts[category, default: 0] += 1
             }
             
             let total = CGFloat(documents.count)
-            let newSegments = counts.map { (category, count) in
-                ChartSegment(color: self.randomColor(), value: CGFloat(count) / total, name: category)
+            let newSegments = counts.map { (catName, count) -> ChartSegment in
+                let percentage = CGFloat(count) / total
+                return ChartSegment(
+                    color: self.randomColor(),
+                    value: percentage,
+                    name: catName
+                )
             }
             
+            // Sort by value so largest slices are first
+            let sortedSegments = newSegments.sorted { $0.value > $1.value }
+            
             DispatchQueue.main.async {
-                self.chartView.segments = newSegments
+                self.chartView.segments = sortedSegments
             }
         }
     }

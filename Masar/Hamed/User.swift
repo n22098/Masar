@@ -1,19 +1,18 @@
 import Foundation
 
-struct User: Codable {
+struct AppUser: Codable {
     let id: String
     var name: String
     var email: String
     var phone: String
+    var role: String
     var profileImageName: String?
     
-    // Every user is a seeker by default
+    // هل هو باحث نشط؟
     var isSeekerActive: Bool
-    
-    // Provider profile (optional - only if user is a provider)
+    // بروفايل مقدم الخدمة (اختياري)
     var providerProfile: ProviderProfile?
     
-    // Computed property to check if user is a provider
     var isProvider: Bool {
         return providerProfile != nil
     }
@@ -22,6 +21,7 @@ struct User: Codable {
          name: String,
          email: String,
          phone: String,
+         role: String = "seeker",
          profileImageName: String? = nil,
          isSeekerActive: Bool = true,
          providerProfile: ProviderProfile? = nil) {
@@ -30,19 +30,9 @@ struct User: Codable {
         self.name = name
         self.email = email
         self.phone = phone
+        self.role = role
         self.profileImageName = profileImageName
         self.isSeekerActive = isSeekerActive
         self.providerProfile = providerProfile
-    }
-    
-    // Custom Coding Keys
-    enum CodingKeys: String, CodingKey {
-        case id
-        case name
-        case email
-        case phone
-        case profileImageName
-        case isSeekerActive
-        case providerProfile
     }
 }

@@ -6,6 +6,10 @@ class ProviderManagementVC: UITableViewController {
     // MARK: - Properties
     private let db = Firestore.firestore()
     private var providers: [Provider] = []
+    
+    // 🔥 1. متغير جديد لتخزين التصنيفات التي سنجلبها من الداتابيس
+    private var categories: [String] = []
+    
     private var listener: ListenerRegistration?
     
     // Brand Color
@@ -16,7 +20,9 @@ class ProviderManagementVC: UITableViewController {
         super.viewDidLoad()
         setupNavigation()
         setupTableView()
-        observeProviders()
+        
+        // 🔥 2. بدلاً من استدعاء observeProviders مباشرة، نستدعي دالة تجلب التصنيفات أولاً
+        fetchCategoriesAndThenProviders()
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -48,13 +54,45 @@ class ProviderManagementVC: UITableViewController {
         tableView.tableFooterView = UIView()
     }
 
-    // MARK: - Firestore
+    // MARK: - Firestore Logic
+    
+    // 🔥 3. دالة جديدة لجلب التصنيفات أولاً
+    private func fetchCategoriesAndThenProviders() {
+        print("🔍 Fetching categories first...")
+        
+        db.collection("categories").getDocuments { [weak self] snapshot, error in
+            guard let self = self else { return }
+            
+            if let error = error {
+                print("❌ Error fetching categories: \(error.localizedDescription)")
+                // حتى لو فشل جلب التصنيفات، نحاول جلب البروفايدرز بقائمة فارغة أو افتراضية
+                self.observeProviders()
+                return
+            }
+            
+            // تخزين التصنيفات في المصفوفة مع تنظيف المسافات
+            if let docs = snapshot?.documents {
+                self.categories = docs.compactMap { doc in
+                    return (doc.get("name") as? String)?.trimmingCharacters(in: .whitespaces)
+                }
+            }
+            
+            print("✅ Categories loaded: \(self.categories)")
+            
+            // 🔥 4. الآن بعد أن أصبحت التصنيفات جاهزة، نستدعي البروفايدرز
+            self.observeProviders()
+        }
+    }
+
     private func observeProviders() {
         print("🔍 Fetching providers...")
         
-        // Fetching from 'provider_requests' where status is approved
-        listener = db.collection("provider_requests")
-            .whereField("status", isEqualTo: "approved")
+        // نتأكد من إزالة أي ليسنر قديم
+        listener?.remove()
+        
+        // FIX IS HERE: fetch both "approved" AND "Ban"
+        listener = db.collection("provider_requests") // أو users حسب ما تستخدم
+            .whereField("status", in: ["approved", "Ban"])
             .addSnapshotListener { [weak self] snapshot, error in
                 guard let self = self else { return }
 
@@ -73,8 +111,11 @@ class ProviderManagementVC: UITableViewController {
                     return
                 }
 
+                // 🔥 5. التعديل هنا: نمرر self.categories التي جلبناها في الخطوة السابقة
                 self.providers = documents.compactMap {
-                    Provider(uid: $0.documentID, dictionary: $0.data())
+                    Provider(uid: $0.documentID,
+                             dictionary: $0.data(),
+                             validCategories: self.categories) // ✅ تم الحل
                 }
 
                 DispatchQueue.main.async {
@@ -109,7 +150,6 @@ class ProviderManagementVC: UITableViewController {
     }
 
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        // Ensure your storyboard cell identifier is exactly "showProviderDetailsCell"
         let cell = tableView.dequeueReusableCell(withIdentifier: "showProviderDetailsCell", for: indexPath)
 
         let provider = providers[indexPath.row]
@@ -117,47 +157,38 @@ class ProviderManagementVC: UITableViewController {
         // Title (Name)
         cell.textLabel?.text = provider.fullName
         cell.textLabel?.font = .systemFont(ofSize: 17, weight: .semibold)
-        cell.textLabel?.textColor = .label
+        
+        // Change text color if Banned
+        if provider.status == "Ban" {
+            cell.textLabel?.textColor = .systemRed
+            cell.detailTextLabel?.text = "Banned - \(provider.category)"
+        } else {
+            cell.textLabel?.textColor = .label
+            cell.detailTextLabel?.text = provider.category
+        }
 
-        // Subtitle (Category)
-        cell.detailTextLabel?.text = provider.category
         cell.detailTextLabel?.textColor = .secondaryLabel
         cell.detailTextLabel?.font = .systemFont(ofSize: 15)
         
-        // Styling
         cell.accessoryType = .disclosureIndicator
         
         return cell
     }
     
-    // MARK: - TableView Delegate
-    override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        let selectedProvider = providers[indexPath.row]
-        // Triggers the segue and sends the specific provider object
-        performSegue(withIdentifier: "showProviderDetailsSegue", sender: selectedProvider)
-    }
-
     // MARK: - Navigation
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
         if segue.identifier == "showProviderDetailsSegue",
            let detailsVC = segue.destination as? ProviderDetailsTVC {
             
-            // 1. Try to get provider from sender (passed via performSegue)
             if let selectedProvider = sender as? Provider {
                 detailsVC.provider = selectedProvider
             }
-            // 2. Fallback: Get from selected row
             else if let indexPath = tableView.indexPathForSelectedRow {
                 detailsVC.provider = providers[indexPath.row]
             }
-            
-            // ✅ ERROR FIXED: The line 'detailsVC.isNewProvider = false' has been removed
-            
-            print("✅ Passing provider: \(detailsVC.provider?.fullName ?? "Unknown")")
         }
     }
 
-    // MARK: - Helpers
     private func showAlert(title: String, message: String) {
         let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
         alert.addAction(UIAlertAction(title: "OK", style: .default))

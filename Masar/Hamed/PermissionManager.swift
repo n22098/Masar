@@ -7,7 +7,7 @@ class PermissionManager {
     private init() {}
     
     /// Check if current user can access a specific feature
-    func canAccess(feature: Permission, user: User) -> Bool {
+    func canAccess(feature: Permission, user: AppUser) -> Bool {
         guard let provider = user.providerProfile else {
             return false
         }
@@ -16,7 +16,7 @@ class PermissionManager {
     }
     
     /// Get all available features for user
-    func getAvailableFeatures(for user: User) -> [Permission] {
+    func getAvailableFeatures(for user: AppUser) -> [Permission] {
         guard let provider = user.providerProfile else {
             return []
         }
@@ -25,7 +25,7 @@ class PermissionManager {
     }
     
     /// Check if user has any provider permissions
-    func hasProviderAccess(user: User) -> Bool {
+    func hasProviderAccess(user: AppUser) -> Bool {
         return user.isProvider
     }
 }

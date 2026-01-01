@@ -104,37 +104,47 @@ class ServiceDetailsBookingTableViewController: UITableViewController {
         navigationController?.pushViewController(paymentVC, animated: true)
     }
     
-    func createBookingModel() -> BookingModel {
-        let serviceName = receivedServiceName ?? "Unknown"
-        let priceString = receivedServicePrice?.replacingOccurrences(of: "BHD ", with: "") ?? "0"
-        let price = Double(priceString) ?? 0.0
-        let date = datePicker.date
-        let providerName = providerData?.name ?? "Unknown"
-        let providerId = providerData?.id // 🔥 إضافة provider ID
-        
-        let currentUser = UserManager.shared.currentUser
-        let seekerName = currentUser?.name ?? "Guest"
-        let seekerEmail = currentUser?.email ?? "no-email"
-        let seekerPhone = currentUser?.phone ?? "No Phone"
-        
-        let realDescription = receivedServiceDetails ?? "No details provided"
-        var itemsText = receivedServiceItems ?? "None"
-        if itemsText.isEmpty { itemsText = "None" }
-        
-        return BookingModel(
-            seekerName: seekerName,
-            serviceName: serviceName,
-            date: date,
-            status: .upcoming,
-            providerName: providerName,
-            providerId: providerId, // 🔥 تمرير provider ID
-            email: seekerEmail,
-            phoneNumber: seekerPhone,
-            price: price,
-            instructions: itemsText,
-            descriptionText: realDescription
-        )
-    }
+    // ... (الجزء العلوي كما هو بدون تغيير) ...
+
+        func createBookingModel() -> BookingModel {
+            let serviceName = receivedServiceName ?? "Unknown"
+            let priceString = receivedServicePrice?.replacingOccurrences(of: "BHD ", with: "") ?? "0"
+            let price = Double(priceString) ?? 0.0
+            let date = datePicker.date
+            let providerName = providerData?.name ?? "Unknown"
+            // تأكد أن providerData.id موجود، أو مرر نص فارغ
+            let providerId = providerData?.id ?? ""
+            
+            let currentUser = UserManager.shared.currentUser
+            let seekerName = currentUser?.name ?? "Guest"
+            let seekerEmail = currentUser?.email ?? "no-email"
+            let seekerPhone = currentUser?.phone ?? "No Phone"
+            let seekerId = currentUser?.id ?? "" // ✅ إضافة seekerId
+            
+            let realDescription = receivedServiceDetails ?? "No details provided"
+            var itemsText = receivedServiceItems ?? "None"
+            if itemsText.isEmpty { itemsText = "None" }
+            
+            // ✅ التصحيح هنا: استخدام المعاملات الصحيحة للمودل
+            return BookingModel(
+                id: UUID().uuidString,  // إنشاء ID مؤقت للحجز الجديد
+                serviceName: serviceName,
+                providerName: providerName,
+                seekerName: seekerName,
+                date: date,
+                status: .upcoming,
+                totalPrice: price,      // ✅ كان price وأصبح totalPrice
+                notes: itemsText,       // ✅ كان instructions وأصبح notes
+                email: seekerEmail,
+                phoneNumber: seekerPhone,
+                providerId: providerId,
+                seekerId: seekerId,     // ✅ تم إضافته
+                serviceId: "",          // ✅ تم إضافته (يمكنك تمرير الـ ID الحقيقي إذا كان متوفراً)
+                descriptionText: realDescription
+            )
+        }
+
+    // ... (باقي الكود كما هو) ...
     
     override func tableView(_ tableView: UITableView, willDisplay cell: UITableViewCell, forRowAt indexPath: IndexPath) {
         cell.backgroundColor = .clear

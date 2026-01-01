@@ -47,13 +47,12 @@ class BookingCell: UITableViewCell {
         statusLabel.text = model.status.rawValue
         placeLabel.text = "Bahrain" // Static or from model
 
-        // Status Colors
         switch model.status {
         case .upcoming:
             statusLabel.textColor = .systemBlue
         case .completed:
             statusLabel.textColor = .systemGreen
-        case .canceled:
+        case .canceled: // ✅ حذفنا .rejected من هنا
             statusLabel.textColor = .systemRed
         }
     }

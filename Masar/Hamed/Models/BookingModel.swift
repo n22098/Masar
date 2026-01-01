@@ -1,38 +1,49 @@
 import Foundation
 import FirebaseFirestore
 
-// Booking Status Enum
+// 1. الحالات
 enum BookingStatus: String, Codable {
     case upcoming = "Upcoming"
     case completed = "Completed"
     case canceled = "Canceled"
 }
 
-// Booking Model Struct
-struct BookingModel: Codable, Identifiable {
-    @DocumentID var id: String?
-    
-    let seekerName: String
+// 2. المودل الموحد
+struct BookingModel: Codable {
+    var id: String?
     let serviceName: String
+    let providerName: String
+    
+    // ✅ تم التعديل هنا: (let -> var) عشان تقدر تعدل الاسم قبل الحفظ
+    var seekerName: String
+    
     let date: Date
     var status: BookingStatus
-    let providerName: String
-    let providerId: String? // 🔥 إضافة معرف المزود
-    let email: String
-    let phoneNumber: String
-    let price: Double
-    let instructions: String?  // ✅ Changed to Optional
-    let descriptionText: String
+    let totalPrice: Double
+    let notes: String?
     
-    // Converts Date to String for display purposes
+    var email: String?
+    let phoneNumber: String?
+    let providerId: String?
+    var seekerId: String?
+    let serviceId: String?
+    let descriptionText: String?
+
+    // خاصية مساعدة للتعليمات (لحل مشكلة instructions missing)
+    var instructions: String? {
+        return notes
+    }
+
+    // تنسيق التاريخ للعرض
     var dateString: String {
         let formatter = DateFormatter()
-        formatter.dateStyle = .medium // Example: Dec 25, 2025
+        formatter.dateStyle = .medium
+        formatter.timeStyle = .short
         return formatter.string(from: date)
     }
     
-    // Converts Double to String for display purposes
+    // تنسيق السعر للعرض
     var priceString: String {
-        return String(format: "%.3f BHD", price) // Example: "50.000 BHD"
+        return String(format: "%.3f BHD", totalPrice)
     }
 }

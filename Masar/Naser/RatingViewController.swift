@@ -309,7 +309,29 @@ class RatingViewController: UIViewController {
         )
         
         alert.addAction(UIAlertAction(title: "Done", style: .default) { [weak self] _ in
-            self?.navigationController?.popViewController(animated: true)
+            guard let self = self else { return }
+            
+            // FIXED: Navigate to RatingsReviewsViewController to show the submitted rating
+            let ratingsVC = RatingsReviewsViewController()
+            ratingsVC.providerId = self.providerId
+            ratingsVC.providerName = self.providerName ?? "Provider"
+            
+            // Pop to root or previous controller, then push ratings view
+            if let navController = self.navigationController {
+                // Find if we're already in the navigation stack with ratings view
+                var viewControllers = navController.viewControllers
+                
+                // Remove the current rating view controller
+                if let index = viewControllers.firstIndex(of: self) {
+                    viewControllers.remove(at: index)
+                }
+                
+                // Add the ratings review controller
+                viewControllers.append(ratingsVC)
+                
+                // Set the new stack
+                navController.setViewControllers(viewControllers, animated: true)
+            }
         })
         
         present(alert, animated: true)

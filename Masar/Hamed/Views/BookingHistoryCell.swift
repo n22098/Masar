@@ -14,20 +14,19 @@ class BookingHistoryCell: UITableViewCell {
     }
 
     func configure(with booking: BookingModel) {
+        // التحقق من أن العناصر متصلة لتجنب الكراش
         guard serviceNameLabel != nil else { return }
 
         serviceNameLabel.text = booking.serviceName
         providerNameLabel.text = booking.providerName
         
-        // ✅ التصحيح: استخدمنا المترجم .dateString
         dateLabel.text = booking.dateString
-        
-        // ✅ التصحيح: استخدمنا المترجم .priceString
         priceLabel.text = booking.priceString
 
-        // ضبط الحالة
+        // ضبط النص
         statusLabel.text = booking.status.rawValue
         
+        // ✅ تم التعديل: حذفنا rejected لتتوافق مع المودل الجديد
         switch booking.status {
         case .upcoming:
             statusLabel.textColor = .systemOrange

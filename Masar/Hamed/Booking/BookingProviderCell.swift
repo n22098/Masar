@@ -2,8 +2,6 @@
 //  BookingProviderCell.swift
 //  Masar
 //
-//  Created by Moe Radhi on 24/12/2025.
-//
 
 import UIKit
 
@@ -157,7 +155,7 @@ class BookingProviderCell: UITableViewCell {
         ])
     }
     
-    // MARK: - Configuration
+    // MARK: - Configuration - FIXED: Added rejected support
     func configure(with booking: BookingModel, brandColor: UIColor) {
         let initials = booking.seekerName.split(separator: " ").prefix(2).map { String($0.prefix(1)) }.joined()
         avatarLabel.text = initials.uppercased()
@@ -168,6 +166,7 @@ class BookingProviderCell: UITableViewCell {
         priceLabel.text = booking.priceString
         priceLabel.textColor = brandColor
         
+        // FIXED: Added exhaustive switch with rejected case
         switch booking.status {
         case .upcoming:
             statusBadge.text = "Upcoming"

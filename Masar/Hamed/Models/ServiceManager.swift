@@ -15,7 +15,7 @@ class ServiceManager {
         print("📋 [ServiceManager] Booking details:")
         print("   - Service: \(booking.serviceName)")
         print("   - Seeker: \(booking.seekerName)")
-        print("   - Email: \(booking.email)")
+        print("   - Email: \(booking.email ?? "N/A")")
         print("   - Status: \(booking.status.rawValue)")
         print("   - Date: \(booking.dateString)")
         
@@ -48,7 +48,15 @@ class ServiceManager {
             }
             
             let bookings = documents.compactMap { document -> BookingModel? in
-                try? document.data(as: BookingModel.self)
+                do {
+                    var booking = try document.data(as: BookingModel.self)
+                    // ✅ تحديث الـ ID من Firebase
+                    booking.id = document.documentID
+                    return booking
+                } catch {
+                    print("❌ Failed to decode booking: \(error)")
+                    return nil
+                }
             }
             completion(bookings)
         }
@@ -77,7 +85,9 @@ class ServiceManager {
                 
                 let bookings = documents.compactMap { document -> BookingModel? in
                     do {
-                        let booking = try document.data(as: BookingModel.self)
+                        var booking = try document.data(as: BookingModel.self)
+                        // ✅ تحديث الـ ID من Firebase
+                        booking.id = document.documentID
                         print("✅ Decoded booking: \(booking.serviceName)")
                         return booking
                     } catch {
@@ -91,15 +101,57 @@ class ServiceManager {
             }
     }
     
+    // MARK: - Fetch Bookings for Provider (حجوزات Provider فقط) ✅ جديد
+    func fetchBookingsForProvider(providerId: String, completion: @escaping ([BookingModel]) -> Void) {
+        print("🔍 Starting fetch for provider: \(providerId)")
+        
+        db.collection("bookings")
+            .whereField("providerId", isEqualTo: providerId)
+            .addSnapshotListener { snapshot, error in
+                if let error = error {
+                    print("❌ Error fetching provider bookings: \(error.localizedDescription)")
+                    completion([])
+                    return
+                }
+                
+                guard let documents = snapshot?.documents else {
+                    print("⚠️ No documents in snapshot")
+                    completion([])
+                    return
+                }
+                
+                print("📦 Found \(documents.count) documents for provider")
+                
+                let bookings = documents.compactMap { document -> BookingModel? in
+                    do {
+                        var booking = try document.data(as: BookingModel.self)
+                        // ✅ CRITICAL: تحديث الـ ID من Firebase
+                        booking.id = document.documentID
+                        print("✅ Decoded booking: \(booking.serviceName) (ID: \(document.documentID))")
+                        return booking
+                    } catch {
+                        print("❌ Failed to decode booking: \(error)")
+                        return nil
+                    }
+                }
+                
+                print("✅ Successfully fetched \(bookings.count) bookings for provider: \(providerId)")
+                completion(bookings)
+            }
+    }
+    
     // MARK: - Update Status
     func updateBookingStatus(bookingId: String, newStatus: BookingStatus, completion: @escaping (Bool) -> Void) {
+        print("🔄 Updating booking \(bookingId) to status: \(newStatus.rawValue)")
+        
         db.collection("bookings").document(bookingId).updateData([
             "status": newStatus.rawValue
         ]) { error in
             if let error = error {
-                print("Error updating status: \(error)")
+                print("❌ Error updating status: \(error)")
                 completion(false)
             } else {
+                print("✅ Status updated successfully in Firebase")
                 completion(true)
             }
         }

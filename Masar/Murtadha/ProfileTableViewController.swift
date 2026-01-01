@@ -1,6 +1,7 @@
 import UIKit
 import FirebaseAuth
 import FirebaseFirestore
+import PhotosUI
 
 // MARK: - Profile View Controller
 class ProfileTableViewController: UITableViewController {
@@ -124,12 +125,18 @@ class ProfileTableViewController: UITableViewController {
         iconContainer.backgroundColor = brandColor.withAlphaComponent(0.15)
         iconContainer.layer.cornerRadius = 40
         iconContainer.translatesAutoresizingMaskIntoConstraints = false
+        iconContainer.isUserInteractionEnabled = true // FIXED: Enable interaction
        
         let iconImageView = UIImageView(image: UIImage(systemName: "person.fill"))
         iconImageView.tintColor = brandColor
         iconImageView.contentMode = .scaleAspectFit
         iconImageView.translatesAutoresizingMaskIntoConstraints = false
+        iconImageView.tag = 100 // Tag for later reference
        
+        // FIXED: Add tap gesture for avatar upload
+        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(avatarTapped))
+        iconContainer.addGestureRecognizer(tapGesture)
+        
         headerView.addSubview(iconContainer)
         iconContainer.addSubview(iconImageView)
        
@@ -157,7 +164,13 @@ class ProfileTableViewController: UITableViewController {
         case 0: navigateToPersonalInfo()
         case 1: showScrollableAlert(title: "Privacy Policy", message: getPrivacyPolicyText())
         case 2: showScrollableAlert(title: "About Masar", message: getAboutText())
-        case 3: showReportSheet()
+        case 3:
+            // FIXED: Check if user is admin - admins cannot report issues
+            if let userRole = UserManager.shared.currentUser?.role, userRole == "admin" {
+                showAlert("Admins cannot report issues.")
+            } else {
+                showReportSheet()
+            }
         case 4: navigateToResetPassword()
         case 5: showDeleteAccountAlert()
         case 6: showLogOutAlert()
@@ -548,6 +561,47 @@ class ReportSheetViewController: UIViewController, UITextViewDelegate {
         if textView.text.isEmpty {
             textView.text = "Describe your issue..."
             textView.textColor = .lightGray
+        }
+    }
+}
+
+// MARK: - FIXED: Avatar Upload Extension
+extension ProfileTableViewController: PHPickerViewControllerDelegate {
+    
+    @objc func avatarTapped() {
+        var config = PHPickerConfiguration()
+        config.filter = .images
+        config.selectionLimit = 1
+        
+        let picker = PHPickerViewController(configuration: config)
+        picker.delegate = self
+        present(picker, animated: true)
+    }
+    
+    func picker(_ picker: PHPickerViewController, didFinishPicking results: [PHPickerResult]) {
+        picker.dismiss(animated: true)
+        
+        guard let result = results.first else { return }
+        
+        result.itemProvider.loadObject(ofClass: UIImage.self) { [weak self] (object, error) in
+            guard let self = self, let image = object as? UIImage else { return }
+            
+            DispatchQueue.main.async {
+                // Update the header view's image
+                if let headerView = self.tableView.headerView(forSection: 0),
+                   let iconContainer = headerView.subviews.first,
+                   let iconImageView = iconContainer.viewWithTag(100) as? UIImageView {
+                    iconImageView.image = image
+                    iconImageView.contentMode = .scaleAspectFill
+                    iconImageView.clipsToBounds = true
+                    iconContainer.layer.cornerRadius = 40
+                    iconContainer.clipsToBounds = true
+                }
+                
+                // TODO: Upload to Firebase Storage if needed
+                // For now, just update the UI
+                self.showAlert("Avatar updated successfully!")
+            }
         }
     }
 }

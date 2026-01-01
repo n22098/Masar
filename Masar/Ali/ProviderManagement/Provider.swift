@@ -1,7 +1,13 @@
 import Foundation
 import FirebaseFirestore
 
-struct Provider {
+// 1. حذفنا Codable لأننا لا نحتاجه (نحن نقوم بالتحويل يدوياً)
+struct Provider: Identifiable {
+    
+    // 2. بروتوكول Identifiable يطلب متغير اسمه id
+    // نقوم بإنشائه كمتغير محسوب يرجع قيمة uid
+    var id: String { uid }
+    
     var uid: String
     var fullName: String
     var email: String
@@ -11,11 +17,11 @@ struct Provider {
     var status: String
     var imageName: String
     var role: String
-    var aboutMe: String      // ✅ Add this
-    var skills: String       // ✅ Add this
+    var aboutMe: String
+    var skills: String
     
 
-    // 1. Standard Initializer (for creating objects in code)
+    // --- Standard Initializer ---
     init(uid: String = UUID().uuidString,
          fullName: String,
          email: String,
@@ -25,8 +31,8 @@ struct Provider {
          status: String = "Active",
          imageName: String = "default_profile",
          role: String = "Provider",
-         aboutMe: String = "",      // ✅ Add this
-         skills: String = "") {     // ✅ Add this
+         aboutMe: String = "",
+         skills: String = "") {
         
         self.uid = uid
         self.fullName = fullName
@@ -37,31 +43,37 @@ struct Provider {
         self.status = status
         self.imageName = imageName
         self.role = role
-        self.aboutMe = aboutMe      // ✅ Add this
-        self.skills = skills        // ✅ Add this
+        self.aboutMe = aboutMe
+        self.skills = skills
     }
 
-    // 2. Firebase Initializer - Updated to match your ACTUAL Firebase fields
-    init?(uid: String, dictionary: [String: Any]) {
+    // --- Firebase Initializer (Smart Filter) ---
+    init?(uid: String, dictionary: [String: Any], validCategories: [String]) {
         self.uid = uid
         
-        // Map Firebase fields to struct properties
+        // تنظيف النص (لحل مشكلة المسافة في "Teaching ")
+        let rawCategory = (dictionary["category"] as? String ?? "").trimmingCharacters(in: .whitespaces)
+        
+        // التحقق من أن التصنيف موجود في القائمة
+        guard validCategories.contains(rawCategory) else {
+            return nil // تجاهل المستخدم إذا كان التصنيف خطأ
+        }
+        
+        self.category = rawCategory
+        
+        // باقي البيانات
         self.fullName = dictionary["name"] as? String ?? ""
         self.email = dictionary["email"] as? String ?? ""
         self.phone = dictionary["phone"] as? String ?? ""
         self.username = dictionary["name"] as? String ?? ""
-        self.category = dictionary["category"] as? String ?? ""
         self.status = dictionary["status"] as? String ?? "approved"
         self.imageName = dictionary["idCardURL"] as? String ?? "default_profile"
         self.role = "Provider"
-        self.aboutMe = dictionary["aboutMe"] as? String ?? ""      // ✅ Add this
-        self.skills = dictionary["skills"] as? String ?? ""        // ✅ Add this
-        
-        // Debug print to see what we're getting
-        print("📝 Provider created: \(self.fullName), Category: \(self.category), Status: \(self.status)")
+        self.aboutMe = dictionary["aboutMe"] as? String ?? ""
+        self.skills = dictionary["skills"] as? String ?? ""
     }
-
-    // 3. Dictionary for Saving (Maps your code back to Firebase keys)
+    
+    // قاموس للحفظ (اختياري، تحتاجه فقط إذا كنت ترفع البيانات للفايربيس من التطبيق)
     var dictionary: [String: Any] {
         return [
             "name": fullName,
@@ -71,8 +83,8 @@ struct Provider {
             "status": status,
             "idCardURL": imageName,
             "role": role,
-            "aboutMe": aboutMe,      // ✅ Add this
-            "skills": skills         // ✅ Add this
+            "aboutMe": aboutMe,
+            "skills": skills
         ]
     }
 }
