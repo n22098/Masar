@@ -11,7 +11,8 @@ class SignUpSeekerViewController: UIViewController, UITextFieldDelegate {
     @IBOutlet weak var usernameTextField: UITextField!
     @IBOutlet weak var passwordTextField: UITextField!
     @IBOutlet weak var confirmPasswordTextField: UITextField!
-    @IBOutlet weak var applyAsProviderSwitch: UISwitch!
+    
+    // ❌ تم حذف أوتليت السويتش (applyAsProviderSwitch)
     
     @IBOutlet weak var signUpButton: UIButton!
     @IBOutlet weak var logoImageView: UIImageView!
@@ -28,11 +29,7 @@ class SignUpSeekerViewController: UIViewController, UITextFieldDelegate {
         setupProfessionalUI()
     }
 
-    override func viewWillAppear(_ animated: Bool) {
-        super.viewWillAppear(animated)
-        // إعادة السويتش لوضعه الطبيعي عند العودة لهذه الصفحة
-        applyAsProviderSwitch.setOn(false, animated: false)
-    }
+    // تم حذف viewWillAppear لأنه كان يستخدم لإعادة تعيين السويتش فقط
     
     // MARK: - 🎨 Professional UI Setup
     private func setupProfessionalUI() {
@@ -61,8 +58,7 @@ class SignUpSeekerViewController: UIViewController, UITextFieldDelegate {
             btn.layer.shadowRadius = 8
         }
         
-        // لون زر التبديل
-        applyAsProviderSwitch.onTintColor = brandColor
+        // تم حذف كود تنسيق السويتش
         
         // تنسيق الشعار
         logoImageView?.contentMode = .scaleAspectFit
@@ -116,13 +112,9 @@ class SignUpSeekerViewController: UIViewController, UITextFieldDelegate {
     
     // MARK: - Actions
 
-    // 1. زر التسجيل العادي (للسيكر)
+    // زر التسجيل (تم تعديله لإزالة منطق السويتش)
     @IBAction func signUpBtn(_ sender: UIButton) {
-        // إذا كان السويتش مفعلاً، نمنع التسجيل من هنا ونطلب منه استخدام السويتش للانتقال
-        if applyAsProviderSwitch.isOn {
-            showAlert("Please wait while we redirect you to provider application, or turn off the switch to register as a regular user.")
-            return
-        }
+        // ❌ تم حذف الشرط الذي يتحقق من السويتش
         
         guard validateInputs() else { return }
 
@@ -161,59 +153,7 @@ class SignUpSeekerViewController: UIViewController, UITextFieldDelegate {
         }
     }
 
-    // 2. زر التبديل (للانتقال لصفحة البروفايدر) - 🔥 تم التعديل هنا 🔥
-    @IBAction func switchBtn(_ sender: UISwitch) {
-        // إذا أغلق المستخدم السويتش، لا تفعل شيئاً
-        guard sender.isOn else { return }
-        
-        // التحقق من صحة البيانات أولاً
-        guard validateInputs() else {
-            sender.setOn(false, animated: true) // إرجاع الزر لوضعه الطبيعي
-            return
-        }
-
-        let name = nameTextField.text!.trimmingCharacters(in: .whitespacesAndNewlines)
-        let email = emailTextField.text!.trimmingCharacters(in: .whitespacesAndNewlines)
-        let phone = phoneNumberTextField.text!.trimmingCharacters(in: .whitespacesAndNewlines)
-        let username = usernameTextField.text!.trimmingCharacters(in: .whitespacesAndNewlines)
-        let password = passwordTextField.text!
-
-        // التحقق من عدم وجود المستخدم مسبقاً
-        checkIfUserDataExists(email: email, username: username, phone: phone) { exists in
-            if exists {
-                self.showAlert("Email, Username, or Phone Number is already in use.")
-                sender.setOn(false, animated: true)
-                return
-            }
-            
-            // 🔥 الانتقال للصفحة التالية باستخدام Storyboard ID
-            let storyboard = UIStoryboard(name: "Main", bundle: nil)
-            
-            // تأكد من وضع ID للشاشة الثانية باسم "ApplyProviderTableViewController" في الستوري بورد
-            if let providerVC = storyboard.instantiateViewController(withIdentifier: "ApplyProviderTableViewController") as? ApplyProviderTableViewController {
-                
-                // نقل البيانات
-                providerVC.userName = name
-                providerVC.userEmail = email
-                providerVC.userPhone = phone
-                providerVC.userUsername = username
-                providerVC.userPassword = password
-                
-                // محاولة الانتقال (Push أو Modal)
-                if let nav = self.navigationController {
-                    nav.pushViewController(providerVC, animated: true)
-                } else {
-                    providerVC.modalPresentationStyle = .fullScreen
-                    self.present(providerVC, animated: true, completion: nil)
-                }
-                
-            } else {
-                // رسالة خطأ للمطور إذا نسيت وضع الـ ID
-                self.showAlert("Development Error: Please set Storyboard ID 'ApplyProviderTableViewController' in Main.storyboard")
-                sender.setOn(false, animated: true)
-            }
-        }
-    }
+    // ❌ تم حذف دالة switchBtn بالكامل لأن الزر لم يعد موجوداً
     
     // MARK: - Helpers
     func showSuccessAndRedirect() {

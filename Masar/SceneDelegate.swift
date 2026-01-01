@@ -101,9 +101,10 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
             selectedImage: UIImage(systemName: "clock.fill")
         )
 
-        // ✅ Messages (FIXED): تحميل من Provider.storyboard بدل UIViewController فاضي
-        let providerStoryboard = UIStoryboard(name: "Provider", bundle: nil)
-        let messagesVC = providerStoryboard.instantiateViewController(withIdentifier: "ProviderMessagesTableViewController")
+        // ✅ Messages (FIXED): تم التعديل هنا لاستخدام الكنترولر الموحد الجديد
+        // تأكد أنك وضعت Storyboard ID بـ "ConversationsViewController" في Main.storyboard
+        let messageStoryboard = UIStoryboard(name: "Main", bundle: nil)
+        let messagesVC = messageStoryboard.instantiateViewController(withIdentifier: "ConversationsViewController")
         let messagesNav = UINavigationController(rootViewController: messagesVC)
         messagesNav.tabBarItem = UITabBarItem(
             title: NSLocalizedString("Messages", comment: ""),

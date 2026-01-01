@@ -1,32 +1,23 @@
 import UIKit
+import FirebaseAuth // 🔥 ضروري للتحقق من المستخدم الحقيقي
 
 class MainTabBarController: UITabBarController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        // 1. إنشاء مستخدم تجريبي (لأغراض الاختبار)
-        createTestUser()
-        
-        // 2. إعداد شكل الشريط
+        // 1. إعداد شكل الشريط
         setupTabBarAppearance()
         
-        // 3. بناء التابات
+        // 2. بناء التابات (بدون إنشاء مستخدم وهمي)
         setupTabs()
     }
     
     func setupTabs() {
-        // التأكد من وجود مستخدم
-        guard let user = UserManager.shared.currentUser else {
-            createTestUser()
-            setupTabs()
-            return
-        }
-        
         var controllers: [UIViewController] = []
         
         // ---------------------------------------------------------
-        // 1. Search
+        // 1. Search (دائماً موجود)
         // ---------------------------------------------------------
         let searchVC = createFromProviderStoryboard(
             id: "SearchTableViewController",
@@ -36,7 +27,7 @@ class MainTabBarController: UITabBarController {
         controllers.append(searchVC)
         
         // ---------------------------------------------------------
-        // 2. History
+        // 2. History (دائماً موجود)
         // ---------------------------------------------------------
         let historyVC = createFromProviderStoryboard(
             id: "BookingHistoryTableViewController",
@@ -46,15 +37,16 @@ class MainTabBarController: UITabBarController {
         controllers.append(historyVC)
         
         // ---------------------------------------------------------
-        // 3. Messages (✅ تم التعديل حسب الصورة: MessageProViewController)
+        // 3. Messages (دائماً موجود ويجلب من الفايربيس)
         // ---------------------------------------------------------
         let messagesVC = createMessagesViewController()
         controllers.append(messagesVC)
         
         // ---------------------------------------------------------
-        // 4. Provider Hub
+        // 4. Provider Hub (يظهر فقط إذا كان المستخدم مسجل دخول)
         // ---------------------------------------------------------
-        if user.isProvider {
+        // ملاحظة: يمكنك تعديل الشرط لاحقاً للتحقق من نوع المستخدم من الفايرستور
+        if Auth.auth().currentUser != nil {
             let providerHubVC = createFromProviderStoryboard(
                 id: "ProviderHubTableViewController",
                 title: "Provider Hub",
@@ -64,7 +56,7 @@ class MainTabBarController: UITabBarController {
         }
         
         // ---------------------------------------------------------
-        // 5. Profile
+        // 5. Profile (دائماً موجود)
         // ---------------------------------------------------------
         let profileVC = createFromProviderStoryboard(
             id: "ProfileTableViewController",
@@ -73,7 +65,7 @@ class MainTabBarController: UITabBarController {
         )
         controllers.append(profileVC)
         
-        // تعيين الكل في الشريط
+        // تعيين التابات
         viewControllers = controllers
         
         // ألوان الشريط
@@ -83,12 +75,10 @@ class MainTabBarController: UITabBarController {
     
     // MARK: - Helper Methods
     
-    // ✅ تم إصلاح هذه الدالة لإزالة التحذير الأصفر
     private func createFromProviderStoryboard(id: String, title: String, icon: String) -> UIViewController {
         let storyboard = UIStoryboard(name: "Provider", bundle: nil)
         
-        // نستخدم الطريقة القياسية المباشرة لتجنب التحذيرات
-        // ملاحظة: تأكد أن الـ ID موجود في الستوري بورد وإلا سيتوقف التطبيق (Crash)
+        // نستخدم Instantiate العادي، تأكد أن الـ ID صحيح في الستوري بورد
         let vc = storyboard.instantiateViewController(withIdentifier: id)
         
         vc.title = title
@@ -104,12 +94,11 @@ class MainTabBarController: UITabBarController {
         return nav
     }
     
-    // ✅ تم وضع الاسم الصحيح MessageProViewController
     private func createMessagesViewController() -> UIViewController {
         let storyboard = UIStoryboard(name: "Provider", bundle: nil)
         
-        // استخدام الاسم كما ظهر في لقطة الشاشة
-        if let messagesVC = storyboard.instantiateViewController(withIdentifier: "MessageProViewController") as? UIViewController {
+        // ✅ التأكد من الاسم الصحيح: ConversationsViewController
+        if let messagesVC = storyboard.instantiateViewController(withIdentifier: "ConversationsViewController") as? ConversationsViewController {
             
             messagesVC.title = "Messages"
             let nav = UINavigationController(rootViewController: messagesVC)
@@ -124,38 +113,8 @@ class MainTabBarController: UITabBarController {
             return nav
         }
         
-        // في حال لم يجد الاسم، يطبع خطأ وينشئ شاشة مؤقتة
-        print("❌ Error: Could not find 'MessageProViewController' in Provider.storyboard")
-        
-        return createPlaceholderViewController(
-            title: "Messages",
-            icon: "message",
-            selectedIcon: "message.fill"
-        )
-    }
-    
-    private func createPlaceholderViewController(title: String, icon: String, selectedIcon: String) -> UIViewController {
-        let vc = UIViewController()
-        vc.view.backgroundColor = .systemBackground
-        vc.title = title
-        
-        let label = UILabel()
-        label.text = "\(title)\n(Not Found)"
-        label.textAlignment = .center
-        label.numberOfLines = 0
-        label.textColor = .gray
-        vc.view.addSubview(label)
-        label.frame = vc.view.bounds
-        
-        let nav = UINavigationController(rootViewController: vc)
-        nav.navigationBar.prefersLargeTitles = true
-        
-        nav.tabBarItem = UITabBarItem(
-            title: title,
-            image: UIImage(systemName: icon),
-            selectedImage: UIImage(systemName: selectedIcon)
-        )
-        return nav
+        print("❌ Error: Could not find 'ConversationsViewController' in Provider.storyboard")
+        return UIViewController() // يرجع شاشة فارغة بدلاً من الكراش
     }
     
     private func setupTabBarAppearance() {
@@ -166,29 +125,5 @@ class MainTabBarController: UITabBarController {
             tabBar.standardAppearance = appearance
             tabBar.scrollEdgeAppearance = appearance
         }
-    }
-    
-    private func createTestUser() {
-        let providerProfile = ProviderProfile(
-            role: .companyOwner,
-            companyName: "Masar Company",
-            services: [
-                ServiceModel(name: "Home Cleaning", price: 20.0, description: "Deep cleaning"),
-                ServiceModel(name: "AC Repair", price: 35.0, description: "Split unit maintenance")
-            ],
-            totalBookings: 45,
-            completedBookings: 42,
-            rating: 4.9,
-            joinedDate: "2024-01-15"
-        )
-        
-        let user = User(
-            name: "Hamed",
-            email: "hamed@masar.com",
-            phone: "33333333",
-            providerProfile: providerProfile
-        )
-        
-        UserManager.shared.setCurrentUser(user)
     }
 }

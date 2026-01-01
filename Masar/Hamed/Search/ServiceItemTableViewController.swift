@@ -1,5 +1,6 @@
 import UIKit
 import FirebaseFirestore
+import FirebaseAuth // 🔥 تمت الإضافة: ضروري لجلب رقم المستخدم الحالي
 
 // MARK: - ServiceItemTableViewController
 class ServiceItemTableViewController: UITableViewController {
@@ -23,7 +24,6 @@ class ServiceItemTableViewController: UITableViewController {
     // MARK: - UI Components
     
     private lazy var headerView: UIView = {
-        // 🔥 CHANGED: Reduced height from 350 to 290 to remove empty space
         let view = UIView(frame: CGRect(x: 0, y: 0, width: self.view.frame.width, height: 290))
         view.backgroundColor = UIColor(red: 248/255, green: 248/255, blue: 252/255, alpha: 1.0)
         return view
@@ -81,7 +81,6 @@ class ServiceItemTableViewController: UITableViewController {
     // --- Rating UI (Star Only) ---
     private let ratingContainerView: UIView = {
         let view = UIView()
-        // Make background slightly lighter or clear
         view.backgroundColor = UIColor(red: 1.0, green: 0.98, blue: 0.90, alpha: 1.0)
         view.layer.cornerRadius = 8
         view.translatesAutoresizingMaskIntoConstraints = false
@@ -89,17 +88,12 @@ class ServiceItemTableViewController: UITableViewController {
     }()
     
     private let starImageView: UIImageView = {
-        // Star icon slightly larger since it's alone
         let iv = UIImageView(image: UIImage(systemName: "star.fill"))
         iv.tintColor = UIColor(red: 1.0, green: 0.70, blue: 0.0, alpha: 1.0)
         iv.contentMode = .scaleAspectFit
         iv.translatesAutoresizingMaskIntoConstraints = false
         return iv
     }()
-    
-    // ❌ REMOVED: ratingLabel
-    // ❌ REMOVED: ratingsCountLabel
-    // ❌ REMOVED: ratingStackView
     
     private lazy var infoStackView: UIStackView = {
         let stack = UIStackView()
@@ -129,7 +123,6 @@ class ServiceItemTableViewController: UITableViewController {
     private lazy var viewStatisticsButton: UIButton = {
         let btn = UIButton(type: .system)
         btn.setTitle("Stats", for: .normal)
-        // 🔥 CHANGED: Improved Design (Outline style to match Chat, cleaner)
         btn.setImage(UIImage(systemName: "chart.bar.xaxis"), for: .normal)
         btn.tintColor = brandColor
         btn.titleLabel?.font = UIFont.systemFont(ofSize: 12, weight: .bold)
@@ -176,7 +169,7 @@ class ServiceItemTableViewController: UITableViewController {
         populateData()
         setupRatingTapGesture()
         
-        fetchAverageRating() // Keep fetching logic, but we won't show text
+        fetchAverageRating()
         
         tableView.register(ModernBookingCell.self, forCellReuseIdentifier: "ModernBookingCell")
     }
@@ -189,9 +182,7 @@ class ServiceItemTableViewController: UITableViewController {
     // MARK: - Fetch Data Logic
     
     private func fetchAverageRating() {
-        // We still fetch the data, but we removed the labels updating code
-        // as you requested to remove the text "5.0" and "0 ratings".
-        // The logic remains if you need it later.
+        // Logic kept as requested
     }
     
     private func populateData() {
@@ -241,10 +232,8 @@ class ServiceItemTableViewController: UITableViewController {
     private func setupHeaderView() {
         headerView.addSubview(cardView)
         
-        // Removed labels from this array
         [profileImageView, nameLabel, roleLabel, skillsLabel, ratingContainerView, infoStackView, buttonsStackView].forEach { cardView.addSubview($0) }
         
-        // Only adding the star to the container
         ratingContainerView.addSubview(starImageView)
         
         let availabilityView = createInfoItem(icon: "clock.fill", text: providerData?.availability ?? "Sat-Thu")
@@ -282,13 +271,13 @@ class ServiceItemTableViewController: UITableViewController {
             // Rating Container (Star Only)
             ratingContainerView.topAnchor.constraint(equalTo: cardView.topAnchor, constant: 20),
             ratingContainerView.trailingAnchor.constraint(equalTo: cardView.trailingAnchor, constant: -20),
-            ratingContainerView.widthAnchor.constraint(equalToConstant: 44), // Smaller width since only icon
+            ratingContainerView.widthAnchor.constraint(equalToConstant: 44),
             ratingContainerView.heightAnchor.constraint(equalToConstant: 44),
             
             // Centering Star
             starImageView.centerXAnchor.constraint(equalTo: ratingContainerView.centerXAnchor),
             starImageView.centerYAnchor.constraint(equalTo: ratingContainerView.centerYAnchor),
-            starImageView.widthAnchor.constraint(equalToConstant: 24), // Bigger star
+            starImageView.widthAnchor.constraint(equalToConstant: 24),
             starImageView.heightAnchor.constraint(equalToConstant: 24),
             
             // Info Strip
@@ -366,26 +355,37 @@ class ServiceItemTableViewController: UITableViewController {
         present(alert, animated: true)
     }
     
+    // 🔥 تم التعديل: الدالة بالكامل لتتوافق مع Models.swift وتعمل بشكل صحيح
     @objc private func chatTapped() {
         guard let provider = providerData else { return }
         
-        let chatUser = User(
-            id: provider.id,
-            name: provider.name,
-            email: "",
-            phone: provider.phone,
-            profileImageName: provider.imageName
-        )
+        // 1. التحقق من وجود مستخدم مسجل الدخول
+        guard let currentUserId = Auth.auth().currentUser?.uid else {
+            print("⚠️ User needs to login first")
+            // يمكن إضافة تنبيه للمستخدم هنا
+            return
+        }
         
+        // 2. إنشاء كائن المحادثة بالبيانات الصحيحة كما هو معرف في Models.swift
         let conversation = Conversation(
-            id: provider.id,
-            user: chatUser,
-            lastMessage: "",
-            lastUpdated: Date()
+            bookingId: "direct_\(currentUserId)_\(provider.id)", // معرف فريد للمحادثة
+            seekerId: currentUserId,
+            seekerName: "Seeker", // يمكن تحديثه لاحقاً إذا كان الاسم متوفراً
+            providerId: provider.id,
+            providerName: provider.name,
+            serviceName: "Direct Inquiry"
         )
         
-        let chatVC = ChatViewController(conversation: conversation)
+        // 3. تهيئة الشاشة والانتقال
+        // ملاحظة: تأكد من أن ChatViewController معرف في Storyboard أو يمكن إنشاؤه برمجياً
+        let chatVC = ChatViewController()
+        // إذا كنت تستخدم Storyboard استخدم السطر أدناه بدلاً من السطر أعلاه:
+        // let chatVC = storyboard?.instantiateViewController(withIdentifier: "ChatViewController") as! ChatViewController
+        
+        chatVC.conversation = conversation
+        chatVC.currentUserId = currentUserId
         chatVC.hidesBottomBarWhenPushed = true
+        
         navigationController?.pushViewController(chatVC, animated: true)
     }
     
@@ -541,7 +541,6 @@ class ServiceItemTableViewController: UITableViewController {
             destVC.providerData = self.providerData
             destVC.isReadOnlyMode = true
         } else if segue.identifier == "showReviews", let destVC = segue.destination as? RatingsReviewsViewController {
-            // 🔥 تمرير بيانات المزود للصفحة
             destVC.providerId = providerData?.id
             destVC.providerName = providerData?.name ?? "Provider"
         }
