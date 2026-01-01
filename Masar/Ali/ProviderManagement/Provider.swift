@@ -11,6 +11,8 @@ struct Provider {
     var status: String
     var imageName: String
     var role: String
+    var aboutMe: String      // ✅ Add this
+    var skills: String       // ✅ Add this
     
 
     // 1. Standard Initializer (for creating objects in code)
@@ -22,7 +24,9 @@ struct Provider {
          category: String,
          status: String = "Active",
          imageName: String = "default_profile",
-         role: String = "Provider") {
+         role: String = "Provider",
+         aboutMe: String = "",      // ✅ Add this
+         skills: String = "") {     // ✅ Add this
         
         self.uid = uid
         self.fullName = fullName
@@ -33,6 +37,8 @@ struct Provider {
         self.status = status
         self.imageName = imageName
         self.role = role
+        self.aboutMe = aboutMe      // ✅ Add this
+        self.skills = skills        // ✅ Add this
     }
 
     // 2. Firebase Initializer - Updated to match your ACTUAL Firebase fields
@@ -43,11 +49,13 @@ struct Provider {
         self.fullName = dictionary["name"] as? String ?? ""
         self.email = dictionary["email"] as? String ?? ""
         self.phone = dictionary["phone"] as? String ?? ""
-        self.username = dictionary["name"] as? String ?? ""  // Using name as username if not present
+        self.username = dictionary["name"] as? String ?? ""
         self.category = dictionary["category"] as? String ?? ""
         self.status = dictionary["status"] as? String ?? "approved"
         self.imageName = dictionary["idCardURL"] as? String ?? "default_profile"
         self.role = "Provider"
+        self.aboutMe = dictionary["aboutMe"] as? String ?? ""      // ✅ Add this
+        self.skills = dictionary["skills"] as? String ?? ""        // ✅ Add this
         
         // Debug print to see what we're getting
         print("📝 Provider created: \(self.fullName), Category: \(self.category), Status: \(self.status)")
@@ -62,7 +70,9 @@ struct Provider {
             "category": category,
             "status": status,
             "idCardURL": imageName,
-            "role": role
+            "role": role,
+            "aboutMe": aboutMe,      // ✅ Add this
+            "skills": skills         // ✅ Add this
         ]
     }
 }

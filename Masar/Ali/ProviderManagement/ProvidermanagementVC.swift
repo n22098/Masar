@@ -7,6 +7,9 @@ class ProviderManagementVC: UITableViewController {
     private let db = Firestore.firestore()
     private var providers: [Provider] = []
     private var listener: ListenerRegistration?
+    
+    // Brand Color
+    let brandColor = UIColor(red: 98/255, green: 84/255, blue: 243/255, alpha: 1.0)
 
     // MARK: - Lifecycle
     override func viewDidLoad() {
@@ -14,6 +17,14 @@ class ProviderManagementVC: UITableViewController {
         setupNavigation()
         setupTableView()
         observeProviders()
+    }
+    
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        // Deselect row when coming back for a smooth UI feel
+        if let indexPath = tableView.indexPathForSelectedRow {
+            tableView.deselectRow(at: indexPath, animated: true)
+        }
     }
 
     deinit {
@@ -23,36 +34,37 @@ class ProviderManagementVC: UITableViewController {
     // MARK: - Setup
     private func setupNavigation() {
         title = "Provider Management"
-        navigationItem.rightBarButtonItem = editButtonItem
+        
+        // Remove back button text for the next screen
+        navigationController?.navigationBar.topItem?.backBarButtonItem = UIBarButtonItem(title: "", style: .plain, target: nil, action: nil)
     }
 
     private func setupTableView() {
-        tableView.backgroundColor = UIColor(
-            red: 248/255,
-            green: 249/255,
-            blue: 253/255,
-            alpha: 1.0
-        )
-        tableView.rowHeight = 80
-        tableView.tableFooterView = UIView() // يخفي الفواصل الفاضية
+        // Modern iOS background
+        tableView.backgroundColor = UIColor.systemGroupedBackground
+        tableView.separatorStyle = .singleLine
+        tableView.separatorInset = UIEdgeInsets(top: 0, left: 20, bottom: 0, right: 20)
+        tableView.rowHeight = 80 // Fixed height often looks better for uniform lists
+        tableView.tableFooterView = UIView()
     }
 
     // MARK: - Firestore
     private func observeProviders() {
-        print("🔍 [ProviderManagement] Starting to observe approved providers...")
+        print("🔍 Fetching providers...")
         
+        // Fetching from 'provider_requests' where status is approved
         listener = db.collection("provider_requests")
             .whereField("status", isEqualTo: "approved")
             .addSnapshotListener { [weak self] snapshot, error in
                 guard let self = self else { return }
 
                 if let error = error {
-                    print("❌ [ProviderManagement] Error fetching providers: \(error.localizedDescription)")
+                    print("❌ Error: \(error.localizedDescription)")
                     return
                 }
 
-                guard let documents = snapshot?.documents else {
-                    print("⚠️ [ProviderManagement] No approved provider documents found")
+                guard let documents = snapshot?.documents, !documents.isEmpty else {
+                    print("⚠️ No providers found")
                     self.providers = []
                     DispatchQueue.main.async {
                         self.tableView.reloadData()
@@ -61,27 +73,25 @@ class ProviderManagementVC: UITableViewController {
                     return
                 }
 
-                print("✅ [ProviderManagement] Found \(documents.count) approved providers")
-
                 self.providers = documents.compactMap {
                     Provider(uid: $0.documentID, dictionary: $0.data())
                 }
 
                 DispatchQueue.main.async {
-                    self.tableView.reloadData()
                     self.hideEmptyState()
-                    print("📱 [ProviderManagement] Table reloaded with \(self.providers.count) providers")
+                    self.tableView.reloadData()
+                    print("✅ Loaded \(self.providers.count) providers")
                 }
             }
     }
     
+    // MARK: - Empty State
     private func showEmptyState() {
         let emptyLabel = UILabel(frame: tableView.bounds)
-        emptyLabel.text = "No approved providers yet"
+        emptyLabel.text = "No providers found"
         emptyLabel.textAlignment = .center
-        emptyLabel.textColor = .gray
-        emptyLabel.font = UIFont.systemFont(ofSize: 18, weight: .medium)
-        emptyLabel.tag = 999
+        emptyLabel.textColor = .secondaryLabel
+        emptyLabel.font = UIFont.systemFont(ofSize: 17, weight: .medium)
         tableView.backgroundView = emptyLabel
     }
     
@@ -98,96 +108,58 @@ class ProviderManagementVC: UITableViewController {
         return providers.count
     }
 
-    override func tableView(
-        _ tableView: UITableView,
-        cellForRowAt indexPath: IndexPath
-    ) -> UITableViewCell {
-
-        let cell = tableView.dequeueReusableCell(
-            withIdentifier: "showProviderDetailsCell",
-            for: indexPath
-        )
+    override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        // Ensure your storyboard cell identifier is exactly "showProviderDetailsCell"
+        let cell = tableView.dequeueReusableCell(withIdentifier: "showProviderDetailsCell", for: indexPath)
 
         let provider = providers[indexPath.row]
 
-        // Title
-        cell.textLabel?.text = provider.fullName.isEmpty
-            ? provider.username
-            : provider.fullName
-
+        // Title (Name)
+        cell.textLabel?.text = provider.fullName
         cell.textLabel?.font = .systemFont(ofSize: 17, weight: .semibold)
+        cell.textLabel?.textColor = .label
 
-        // Subtitle
-        cell.detailTextLabel?.text = provider.category.isEmpty
-            ? provider.email
-            : provider.category
-
-        cell.detailTextLabel?.textColor = .systemGray
+        // Subtitle (Category)
+        cell.detailTextLabel?.text = provider.category
+        cell.detailTextLabel?.textColor = .secondaryLabel
+        cell.detailTextLabel?.font = .systemFont(ofSize: 15)
+        
+        // Styling
         cell.accessoryType = .disclosureIndicator
-
+        
         return cell
     }
-
-    // MARK: - Delete Provider
-    override func tableView(
-        _ tableView: UITableView,
-        commit editingStyle: UITableViewCell.EditingStyle,
-        forRowAt indexPath: IndexPath
-    ) {
-        if editingStyle == .delete {
-            let provider = providers[indexPath.row]
-
-            let alert = UIAlertController(
-                title: "Delete Provider",
-                message: "Are you sure you want to delete \(provider.fullName)?",
-                preferredStyle: .alert
-            )
-
-            alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
-            alert.addAction(
-                UIAlertAction(title: "Delete", style: .destructive) { [weak self] _ in
-                    self?.deleteProvider(provider)
-                }
-            )
-
-            present(alert, animated: true)
-        }
-    }
-
-    private func deleteProvider(_ provider: Provider) {
-        db.collection("providers")
-            .document(provider.uid)
-            .delete { [weak self] error in
-                if let error = error {
-                    print("❌ Error deleting provider: \(error.localizedDescription)")
-                    self?.showAlert(
-                        title: "Error",
-                        message: "Failed to delete provider"
-                    )
-                } else {
-                    print("✅ Provider deleted")
-                }
-            }
+    
+    // MARK: - TableView Delegate
+    override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        let selectedProvider = providers[indexPath.row]
+        // Triggers the segue and sends the specific provider object
+        performSegue(withIdentifier: "showProviderDetailsSegue", sender: selectedProvider)
     }
 
     // MARK: - Navigation
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
         if segue.identifier == "showProviderDetailsSegue",
-           let detailsVC = segue.destination as? ProviderDetailsTVC,
-           let indexPath = tableView.indexPathForSelectedRow {
-
-            detailsVC.provider = providers[indexPath.row]
-            detailsVC.isNewProvider = false
+           let detailsVC = segue.destination as? ProviderDetailsTVC {
+            
+            // 1. Try to get provider from sender (passed via performSegue)
+            if let selectedProvider = sender as? Provider {
+                detailsVC.provider = selectedProvider
+            }
+            // 2. Fallback: Get from selected row
+            else if let indexPath = tableView.indexPathForSelectedRow {
+                detailsVC.provider = providers[indexPath.row]
+            }
+            
+            // ✅ ERROR FIXED: The line 'detailsVC.isNewProvider = false' has been removed
+            
+            print("✅ Passing provider: \(detailsVC.provider?.fullName ?? "Unknown")")
         }
     }
 
     // MARK: - Helpers
     private func showAlert(title: String, message: String) {
-        let alert = UIAlertController(
-            title: title,
-            message: message,
-            preferredStyle: .alert
-        )
+        let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
         alert.addAction(UIAlertAction(title: "OK", style: .default))
         present(alert, animated: true)
     }

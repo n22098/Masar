@@ -1,482 +1,217 @@
 import UIKit
-
 import FirebaseFirestore
 
-import FirebaseAuth
-
-
-
 class ProviderDetailsTVC: UITableViewController {
-    
-    
-    
+
+    // MARK: - Properties
     var provider: Provider?
-    
-    var isNewProvider: Bool = false
-    
-    private var currentStatus: String = "Active"
-    
+    private var currentStatus: String = "approved"
     let brandColor = UIColor(red: 98/255, green: 84/255, blue: 243/255, alpha: 1.0)
     
+    // MARK: - Outlets
     
-    
-    // Header outlets
-    
+    // 1. Header Outlets (تأكد من ربطها بالمربع العلوي Header View)
     @IBOutlet weak var profileImageView: UIImageView!
-    
     @IBOutlet weak var usernameLabel: UILabel!
-    
     @IBOutlet weak var roleLabel: UILabel!
-    
     @IBOutlet weak var statusBadge: UILabel!
     
-    
-    
-    // Cell outlets for static cells
-    
+    // 2. Cell Outlets (خلايا البيانات)
     @IBOutlet weak var fullNameValueLabel: UILabel!
-    
     @IBOutlet weak var emailValueLabel: UILabel!
-    
     @IBOutlet weak var phoneValueLabel: UILabel!
-    
     @IBOutlet weak var usernameValueLabel: UILabel!
     
-    
-    
-    // Footer outlets
-    
+    // 3. Footer Outlets (الأزرار السفلية)
     @IBOutlet weak var statusButton: UIButton!
-    
-    @IBOutlet weak var aboutButton: UIButton!
-    
     @IBOutlet weak var saveButton: UIButton!
     
-    
-    
+    // MARK: - Lifecycle
     override func viewDidLoad() {
-        
         super.viewDidLoad()
-        
         setupNavigation()
-        
         setupTableView()
-        
+        setupUI() // تنسيق التصميم
         setupStatusMenu()
-        
-        setupUI()
-        
         loadData()
-        
-        if #available(iOS 15.0, *) {
-            
-            tableView.sectionHeaderTopPadding = 0
-            
-        }
-        
     }
     
-    
-    
+    // MARK: - Setup
     private func setupNavigation() {
-        
         title = "Provider Details"
-        
+        // إعدادات البار العلوي لتطابق Seeker
         let appearance = UINavigationBarAppearance()
-        
         appearance.configureWithOpaqueBackground()
-        
         appearance.backgroundColor = brandColor
-        
         appearance.titleTextAttributes = [.foregroundColor: UIColor.white]
-        
         appearance.largeTitleTextAttributes = [.foregroundColor: UIColor.white]
-        
         appearance.shadowColor = .clear
         
         navigationController?.navigationBar.standardAppearance = appearance
-        
         navigationController?.navigationBar.scrollEdgeAppearance = appearance
-        
         navigationController?.navigationBar.tintColor = .white
-        
     }
-    
-    
     
     private func setupTableView() {
-        
+        // لون الخلفية وتنسيق الفواصل
         tableView.backgroundColor = UIColor(red: 248/255, green: 249/255, blue: 253/255, alpha: 1.0)
-        
         tableView.separatorStyle = .none
         
+        // إزالة المسافة العلوية المزعجة (مثل كود Seeker)
+        if #available(iOS 15.0, *) {
+            tableView.sectionHeaderTopPadding = 0
+        }
     }
-    
-    
     
     private func setupUI() {
-        
-        // Setup profile image
-        
-        profileImageView?.contentMode = .scaleAspectFill
-        
-        profileImageView?.layer.cornerRadius = 45
-        
-        profileImageView?.clipsToBounds = true
-        
-        profileImageView?.layer.borderWidth = 3
-        
-        profileImageView?.layer.borderColor = brandColor.withAlphaComponent(0.3).cgColor
-        
-        
-        
-        // Setup status badge
-        
-        statusBadge?.font = .systemFont(ofSize: 13, weight: .semibold)
-        
-        statusBadge?.textAlignment = .center
-        
-        statusBadge?.layer.cornerRadius = 12
-        
-        statusBadge?.clipsToBounds = true
-        
-        
-        
-        // Setup status button
-        
-        statusButton?.layer.cornerRadius = 12
-        
-        statusButton?.titleLabel?.font = .systemFont(ofSize: 16, weight: .semibold)
-        
-        statusButton?.contentEdgeInsets = UIEdgeInsets(top: 14, left: 24, bottom: 14, right: 24)
-        
-        statusButton?.showsMenuAsPrimaryAction = true
-        
-        
-        
-        // Setup about button
-        
-        aboutButton?.layer.cornerRadius = 12
-        
-        aboutButton?.titleLabel?.font = .systemFont(ofSize: 16, weight: .semibold)
-        
-        aboutButton?.contentEdgeInsets = UIEdgeInsets(top: 14, left: 24, bottom: 14, right: 24)
-        
-        aboutButton?.backgroundColor = UIColor.systemGray6
-        
-        aboutButton?.setTitleColor(brandColor, for: .normal)
-        
-        
-        
-        // Setup save button with better style
-        
-        saveButton?.backgroundColor = brandColor
-        
-        saveButton?.setTitleColor(.white, for: .normal)
-        
-        saveButton?.titleLabel?.font = .systemFont(ofSize: 17, weight: .bold)
-        
-        saveButton?.layer.cornerRadius = 16
-        
-        saveButton?.layer.shadowColor = brandColor.cgColor
-        
-        saveButton?.layer.shadowOffset = CGSize(width: 0, height: 4)
-        
-        saveButton?.layer.shadowRadius = 12
-        
-        saveButton?.layer.shadowOpacity = 0.3
-        
-        saveButton?.contentEdgeInsets = UIEdgeInsets(top: 16, left: 24, bottom: 16, right: 24)
-        
-        saveButton?.addTarget(self, action: #selector(saveButtonTapped), for: .touchUpInside)
-        
-        
-        
-        // Add press animation
-        
-        saveButton?.addTarget(self, action: #selector(buttonTouchDown), for: .touchDown)
-        
-        saveButton?.addTarget(self, action: #selector(buttonTouchUp), for: [.touchUpInside, .touchUpOutside, .touchCancel])
-        
-    }
-    
-    
-    
-    @objc private func buttonTouchDown(_ sender: UIButton) {
-        
-        UIView.animate(withDuration: 0.1) {
-            
-            self.saveButton?.transform = CGAffineTransform(scaleX: 0.95, y: 0.95)
-            
+        // 1. تنسيق الصورة
+        if let profileImageView = profileImageView {
+            profileImageView.contentMode = .scaleAspectFill
+            profileImageView.layer.cornerRadius = 45 // نصف القطر ليكون دائري (بافتراض الحجم 90x90)
+            profileImageView.clipsToBounds = true
+            profileImageView.layer.borderWidth = 3
+            profileImageView.layer.borderColor = brandColor.withAlphaComponent(0.3).cgColor
         }
         
+        // 2. تنسيق بادج الحالة (Active/Suspended)
+        if let statusBadge = statusBadge {
+            statusBadge.font = .systemFont(ofSize: 13, weight: .semibold)
+            statusBadge.textAlignment = .center
+            statusBadge.layer.cornerRadius = 12
+            statusBadge.clipsToBounds = true
+        }
+        
+        // 3. تنسيق زر القائمة المنسدلة
+        if let statusButton = statusButton {
+            statusButton.layer.cornerRadius = 12
+            statusButton.titleLabel?.font = .systemFont(ofSize: 16, weight: .semibold)
+            statusButton.contentEdgeInsets = UIEdgeInsets(top: 14, left: 24, bottom: 14, right: 24)
+            statusButton.showsMenuAsPrimaryAction = true
+        }
+        
+        // 4. تنسيق زر الحفظ
+        if let saveButton = saveButton {
+            saveButton.backgroundColor = brandColor
+            saveButton.setTitleColor(.white, for: .normal)
+            saveButton.titleLabel?.font = .systemFont(ofSize: 17, weight: .bold)
+            saveButton.layer.cornerRadius = 16
+            
+            // إضافة ظل للزر
+            saveButton.layer.shadowColor = brandColor.cgColor
+            saveButton.layer.shadowOffset = CGSize(width: 0, height: 4)
+            saveButton.layer.shadowRadius = 12
+            saveButton.layer.shadowOpacity = 0.3
+            saveButton.contentEdgeInsets = UIEdgeInsets(top: 16, left: 24, bottom: 16, right: 24)
+            
+            // إضافة حركات الضغط (Animations)
+            saveButton.addTarget(self, action: #selector(buttonTouchDown), for: .touchDown)
+            saveButton.addTarget(self, action: #selector(buttonTouchUp), for: [.touchUpInside, .touchUpOutside, .touchCancel])
+        }
     }
     
-    
+    // MARK: - Animations
+    @objc private func buttonTouchDown(_ sender: UIButton) {
+        UIView.animate(withDuration: 0.1) {
+            sender.transform = CGAffineTransform(scaleX: 0.95, y: 0.95)
+        }
+    }
     
     @objc private func buttonTouchUp(_ sender: UIButton) {
-        
         UIView.animate(withDuration: 0.1) {
-            
-            self.saveButton?.transform = .identity
-            
+            sender.transform = .identity
         }
-        
     }
     
-    
-    
+    // MARK: - Data Logic
     private func setupStatusMenu() {
-        
         let actions = [
-            
-            UIAction(title: "Active", image: UIImage(systemName: "checkmark.circle.fill")) { [weak self] _ in
-                
-                self?.currentStatus = "Active"
-                
+            UIAction(title: "Approved", image: UIImage(systemName: "checkmark.circle.fill")) { [weak self] _ in
+                self?.currentStatus = "approved"
                 self?.updateStatusUI()
-                
             },
-            
-            UIAction(title: "Suspend", image: UIImage(systemName: "pause.circle.fill")) { [weak self] _ in
-                
-                self?.currentStatus = "Suspend"
-                
+            UIAction(title: "Suspended", image: UIImage(systemName: "xmark.circle.fill"), attributes: .destructive) { [weak self] _ in
+                self?.currentStatus = "suspended"
                 self?.updateStatusUI()
-                
             }
-            
         ]
-        
         statusButton?.menu = UIMenu(children: actions)
-        
     }
-    
-    
     
     private func loadData() {
-        
         guard let provider = provider else { return }
         
-        
-        
-        // Update header
-        
+        // تعبئة الهيدر
         profileImageView?.image = UIImage(systemName: "person.crop.circle.fill")
-        
         profileImageView?.tintColor = brandColor.withAlphaComponent(0.5)
-        
         usernameLabel?.text = provider.username.isEmpty ? "N/A" : provider.username
+        roleLabel?.text = provider.category // أو "Provider"
         
-        roleLabel?.text = provider.role.isEmpty ? "Provider" : provider.role
-        
-        
-        
-        // Update cell values with ACTUAL data
-        
-        fullNameValueLabel?.text = provider.fullName.isEmpty ? "N/A" : provider.fullName
-        
-        emailValueLabel?.text = provider.email.isEmpty ? "N/A" : provider.email
-        
+        // تعبئة الخلايا
+        fullNameValueLabel?.text = provider.fullName
+        emailValueLabel?.text = provider.email
         phoneValueLabel?.text = provider.phone.isEmpty ? "N/A" : provider.phone
+        usernameValueLabel?.text = provider.username
         
-        usernameValueLabel?.text = provider.username.isEmpty ? "N/A" : provider.username
-        
-        
-        
-        // Update status
-        
-        currentStatus = provider.status
-        
+        // الحالة
+        currentStatus = provider.status.lowercased()
+        if currentStatus.isEmpty { currentStatus = "approved" }
         updateStatusUI()
         
-        
-        
-        // Force UI update
-        
+        // تحديث الجدول
         DispatchQueue.main.async {
-            
             self.tableView.reloadData()
-            
         }
-        
     }
-    
-    
     
     private func updateStatusUI() {
+        let isApproved = currentStatus == "approved" || currentStatus == "active"
+        let color: UIColor = isApproved ? .systemGreen : .systemRed
+        let displayStatus = isApproved ? "Approved" : "Suspended"
         
-        let color: UIColor = currentStatus == "Active" ? .systemGreen : .systemOrange
-        
-        
-        
-        // Update badge in header
-        
-        statusBadge?.text = currentStatus
-        
+        // تحديث البادج
+        statusBadge?.text = displayStatus
         statusBadge?.textColor = color
-        
         statusBadge?.backgroundColor = color.withAlphaComponent(0.15)
         
-        
-        
-        // Update status button
-        
-        statusButton?.setTitle(currentStatus, for: .normal)
-        
+        // تحديث الزر
+        statusButton?.setTitle(displayStatus, for: .normal)
         statusButton?.backgroundColor = color.withAlphaComponent(0.15)
-        
         statusButton?.setTitleColor(color, for: .normal)
-        
     }
     
-    
-    
-    @IBAction func aboutButtonTapped(_ sender: UIButton) {
+    // MARK: - Actions
+    @IBAction func saveButtonTapped(_ sender: UIButton) {
+        guard let uid = provider?.uid else { return }
         
-        guard let provider = provider else { return }
+        saveButton.isEnabled = false
+        saveButton.alpha = 0.6
+        saveButton.setTitle("Saving...", for: .normal)
         
-        
-        
-        let alert = UIAlertController(
-            
-            title: "About \(provider.fullName)",
-            
-            message: "Category: \(provider.category)\nStatus: \(provider.status)\n\nThe full About screen is under development.",
-            
-            preferredStyle: .alert
-            
-        )
-        
-        alert.addAction(UIAlertAction(title: "OK", style: .default))
-        
-        present(alert, animated: true)
-        
-    }
-    
-    
-    
-    @objc private func saveButtonTapped(_ sender: UIButton) {
-        
-        guard let uid = provider?.uid else {
-            
-            showAlert(title: "Error", message: "Provider ID not found")
-            
-            return
-            
-        }
-        
-        
-        
-        saveButton?.isEnabled = false
-        
-        saveButton?.alpha = 0.6
-        
-        
-        
-        Firestore.firestore().collection("users").document(uid).updateData(["status": currentStatus]) { [weak self] error in
-            
+        // التحديث في قاعدة البيانات
+        Firestore.firestore().collection("provider_requests").document(uid).updateData([
+            "status": currentStatus
+        ]) { [weak self] error in
             guard let self = self else { return }
             
+            self.saveButton.isEnabled = true
+            self.saveButton.alpha = 1.0
+            self.saveButton.setTitle("Save Changes", for: .normal)
             
-            
-            self.saveButton?.isEnabled = true
-            
-            self.saveButton?.alpha = 1.0
-            
-            
-            
-            if let error {
-                
-                print("❌ \(error.localizedDescription)")
-                
-                self.showAlert(title: "Error", message: "Failed to update status.")
-                
+            if let error = error {
+                print("❌ Error: \(error.localizedDescription)")
+                let alert = UIAlertController(title: "Error", message: "Failed to update.", preferredStyle: .alert)
+                alert.addAction(UIAlertAction(title: "OK", style: .default))
+                self.present(alert, animated: true)
             } else {
-                
-                print("✅ Status updated to \(self.currentStatus)")
-                
-                
-                
-                // Update provider object
-                
+                print("✅ Status Updated")
                 self.provider?.status = self.currentStatus
                 
-                
-                
-                if self.currentStatus == "Suspend" {
-                    
-                    self.kickUserFromApp(uid: uid)
-                    
-                }
-                
-                
-                
-                self.showAlert(title: "Success", message: "Provider status updated to \(self.currentStatus)")
-                
+                let alert = UIAlertController(title: "Success", message: "Status updated successfully!", preferredStyle: .alert)
+                alert.addAction(UIAlertAction(title: "OK", style: .default) { _ in
+                    self.navigationController?.popViewController(animated: true)
+                })
+                self.present(alert, animated: true)
             }
-            
         }
-        
-    }
-    
-    
-    
-    private func kickUserFromApp(uid: String) {
-        
-        if let currentUser = Auth.auth().currentUser, currentUser.uid == uid {
-            
-            do {
-                
-                try Auth.auth().signOut()
-                
-                navigateToLogin()
-                
-            } catch {
-                
-                print("❌ \(error.localizedDescription)")
-                
-            }
-            
-        }
-        
-    }
-    
-    
-    
-    private func navigateToLogin() {
-        
-        DispatchQueue.main.async {
-            
-            let storyboard = UIStoryboard(name: "Main", bundle: nil)
-            
-            if let loginVC = storyboard.instantiateViewController(withIdentifier: "LoginViewController") as? UIViewController {
-                
-                loginVC.modalPresentationStyle = .fullScreen
-                
-                if let sceneDelegate = UIApplication.shared.connectedScenes.first?.delegate as? SceneDelegate {
-                    
-                    sceneDelegate.window?.rootViewController = loginVC
-                    
-                    sceneDelegate.window?.makeKeyAndVisible()
-                    
-                }
-                
-            }
-            
-        }
-        
-    }
-    
-    
-    
-    private func showAlert(title: String, message: String) {
-        
-        let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
-        
-        alert.addAction(UIAlertAction(title: "OK", style: .default))
-        
-        present(alert, animated: true)
-        
     }
 }
