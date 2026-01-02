@@ -168,6 +168,20 @@ class ServiceManager {
             completion(services)
         }
     }
+    // في ServiceManager.swift
+    func deleteBooking(bookingId: String, completion: @escaping (Bool) -> Void) {
+        let db = Firestore.firestore()
+        
+        db.collection("bookings").document(bookingId).delete { error in
+            if let error = error {
+                print("❌ Error deleting booking: \(error.localizedDescription)")
+                completion(false)
+            } else {
+                print("✅ Booking deleted successfully")
+                completion(true)
+            }
+        }
+    }
     
     // MARK: - Fetch Services for Specific Provider
     func fetchServicesForProvider(providerId: String, completion: @escaping ([ServiceModel]) -> Void) {

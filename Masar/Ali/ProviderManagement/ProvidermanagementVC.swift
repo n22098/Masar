@@ -1,148 +1,44 @@
 import UIKit
 import FirebaseFirestore
+import FirebaseAuth
 
 class ProviderManagementVC: UITableViewController {
-
-    // MARK: - Properties
-    private let db = Firestore.firestore()
-    private var providers: [Provider] = []
-    
-    // 🔥 1. متغير جديد لتخزين التصنيفات التي سنجلبها من الداتابيس
-    private var categories: [String] = []
-    
-    private var listener: ListenerRegistration?
-    
-    // Brand Color
     let brandColor = UIColor(red: 98/255, green: 84/255, blue: 243/255, alpha: 1.0)
-
-    // MARK: - Lifecycle
+    var providers: [Provider] = []
+    
     override func viewDidLoad() {
         super.viewDidLoad()
-        setupNavigation()
-        setupTableView()
-        
-        // 🔥 2. بدلاً من استدعاء observeProviders مباشرة، نستدعي دالة تجلب التصنيفات أولاً
-        fetchCategoriesAndThenProviders()
+        setupUI()
+        tableView.register(showProviderDetailsCell.self, forCellReuseIdentifier: "showProviderDetailsCell")
+        fetchProvidersFromFirestore()
     }
     
-    override func viewWillAppear(_ animated: Bool) {
-        super.viewWillAppear(animated)
-        // Deselect row when coming back for a smooth UI feel
-        if let indexPath = tableView.indexPathForSelectedRow {
-            tableView.deselectRow(at: indexPath, animated: true)
+    func fetchProvidersFromFirestore() {
+        let db = Firestore.firestore()
+        db.collection("users").whereField("role", isEqualTo: "provider")
+            .addSnapshotListener { (querySnapshot, error) in
+            if let error = error { return }
+            self.providers = []
+            for document in querySnapshot!.documents {
+                let newProvider = Provider(document: document)
+                self.providers.append(newProvider)
+            }
+            DispatchQueue.main.async { self.tableView.reloadData() }
         }
     }
 
-    deinit {
-        listener?.remove()
-    }
-
-    // MARK: - Setup
-    private func setupNavigation() {
-        title = "Provider Management"
-        
-        // Remove back button text for the next screen
-        navigationController?.navigationBar.topItem?.backBarButtonItem = UIBarButtonItem(title: "", style: .plain, target: nil, action: nil)
-    }
-
-    private func setupTableView() {
-        // Modern iOS background
-        tableView.backgroundColor = UIColor.systemGroupedBackground
-        tableView.separatorStyle = .singleLine
-        tableView.separatorInset = UIEdgeInsets(top: 0, left: 20, bottom: 0, right: 20)
-        tableView.rowHeight = 80 // Fixed height often looks better for uniform lists
-        tableView.tableFooterView = UIView()
-    }
-
-    // MARK: - Firestore Logic
-    
-    // 🔥 3. دالة جديدة لجلب التصنيفات أولاً
-    private func fetchCategoriesAndThenProviders() {
-        print("🔍 Fetching categories first...")
-        
-        db.collection("categories").getDocuments { [weak self] snapshot, error in
-            guard let self = self else { return }
-            
-            if let error = error {
-                print("❌ Error fetching categories: \(error.localizedDescription)")
-                // حتى لو فشل جلب التصنيفات، نحاول جلب البروفايدرز بقائمة فارغة أو افتراضية
-                self.observeProviders()
-                return
-            }
-            
-            // تخزين التصنيفات في المصفوفة مع تنظيف المسافات
-            if let docs = snapshot?.documents {
-                self.categories = docs.compactMap { doc in
-                    return (doc.get("name") as? String)?.trimmingCharacters(in: .whitespaces)
-                }
-            }
-            
-            print("✅ Categories loaded: \(self.categories)")
-            
-            // 🔥 4. الآن بعد أن أصبحت التصنيفات جاهزة، نستدعي البروفايدرز
-            self.observeProviders()
-        }
-    }
-
-    private func observeProviders() {
-        print("🔍 Fetching providers...")
-        
-        // نتأكد من إزالة أي ليسنر قديم
-        listener?.remove()
-        
-        // FIX IS HERE: fetch both "approved" AND "Ban"
-        listener = db.collection("provider_requests") // أو users حسب ما تستخدم
-            .whereField("status", in: ["approved", "Ban"])
-            .addSnapshotListener { [weak self] snapshot, error in
-                guard let self = self else { return }
-
-                if let error = error {
-                    print("❌ Error: \(error.localizedDescription)")
-                    return
-                }
-
-                guard let documents = snapshot?.documents, !documents.isEmpty else {
-                    print("⚠️ No providers found")
-                    self.providers = []
-                    DispatchQueue.main.async {
-                        self.tableView.reloadData()
-                        self.showEmptyState()
-                    }
-                    return
-                }
-
-                // 🔥 5. التعديل هنا: نمرر self.categories التي جلبناها في الخطوة السابقة
-                self.providers = documents.compactMap {
-                    Provider(uid: $0.documentID,
-                             dictionary: $0.data(),
-                             validCategories: self.categories) // ✅ تم الحل
-                }
-
-                DispatchQueue.main.async {
-                    self.hideEmptyState()
-                    self.tableView.reloadData()
-                    print("✅ Loaded \(self.providers.count) providers")
-                }
-            }
-    }
-    
-    // MARK: - Empty State
-    private func showEmptyState() {
-        let emptyLabel = UILabel(frame: tableView.bounds)
-        emptyLabel.text = "No providers found"
-        emptyLabel.textAlignment = .center
-        emptyLabel.textColor = .secondaryLabel
-        emptyLabel.font = UIFont.systemFont(ofSize: 17, weight: .medium)
-        tableView.backgroundView = emptyLabel
-    }
-    
-    private func hideEmptyState() {
-        tableView.backgroundView = nil
-    }
-
-    // MARK: - TableView DataSource
-    override func numberOfSections(in tableView: UITableView) -> Int {
-        return 1
+    private func setupUI() {
+        self.title = "Provider Management"
+        let appearance = UINavigationBarAppearance()
+        appearance.configureWithOpaqueBackground()
+        appearance.backgroundColor = brandColor
+        appearance.titleTextAttributes = [.foregroundColor: UIColor.white]
+        navigationController?.navigationBar.standardAppearance = appearance
+        navigationController?.navigationBar.scrollEdgeAppearance = appearance
+        navigationController?.navigationBar.tintColor = .white
+        navigationController?.navigationBar.prefersLargeTitles = true
+        tableView.backgroundColor = UIColor(red: 248/255, green: 248/255, blue: 252/255, alpha: 1.0)
+        tableView.separatorStyle = .none
     }
 
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
@@ -150,41 +46,89 @@ class ProviderManagementVC: UITableViewController {
     }
 
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(withIdentifier: "showProviderDetailsCell", for: indexPath)
-
-        let provider = providers[indexPath.row]
-
-        // Title (Name)
-        cell.textLabel?.text = provider.fullName
-        cell.textLabel?.font = .systemFont(ofSize: 17, weight: .semibold)
-        
-        // Change text color if Banned
-        if provider.status == "Ban" {
-            cell.textLabel?.textColor = .systemRed
-            cell.detailTextLabel?.text = "Banned - \(provider.category)"
-        } else {
-            cell.textLabel?.textColor = .label
-            cell.detailTextLabel?.text = provider.category
+        guard let cell = tableView.dequeueReusableCell(withIdentifier: "showProviderDetailsCell", for: indexPath) as? showProviderDetailsCell else {
+            return UITableViewCell()
         }
-
-        cell.detailTextLabel?.textColor = .secondaryLabel
-        cell.detailTextLabel?.font = .systemFont(ofSize: 15)
-        
-        cell.accessoryType = .disclosureIndicator
-        
+        let provider = providers[indexPath.row]
+        // عرض اسم البروفايدر فقط
+        cell.configure(name: provider.fullName, category: "")
         return cell
     }
+
+    // MARK: - Navigation (إضافة منطق الانتقال)
     
-    // MARK: - Navigation
+    override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        tableView.deselectRow(at: indexPath, animated: true)
+        
+        // استخدام المعرف الذي وضعته في الـ Storyboard
+        let selectedProvider = providers[indexPath.row]
+        performSegue(withIdentifier: "showProviderDetailsSegue", sender: selectedProvider)
+    }
+
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
         if segue.identifier == "showProviderDetailsSegue",
-           let detailsVC = segue.destination as? ProviderDetailsTVC {
-            
-            if let selectedProvider = sender as? Provider {
-                detailsVC.provider = selectedProvider
+           let destinationVC = segue.destination as? ProviderDetailsTVC,
+           let selectedProvider = sender as? Provider {
+            // تمرير كائن الـ Provider للصفحة التالية
+            destinationVC.provider = selectedProvider
+        }
+    }
+
+    // MARK: - Actions (حذف البروفايدر)
+
+    override func tableView(_ tableView: UITableView, trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
+        let deleteAction = UIContextualAction(style: .destructive, title: "Delete") { [weak self] _, _, completionHandler in
+            self?.deleteProvider(at: indexPath)
+            completionHandler(true)
+        }
+        deleteAction.image = UIImage(systemName: "trash.fill")
+        deleteAction.backgroundColor = .systemRed
+        return UISwipeActionsConfiguration(actions: [deleteAction])
+    }
+
+    private func deleteProvider(at indexPath: IndexPath) {
+        let providerToDelete = providers[indexPath.row]
+        let alert = UIAlertController(title: "Delete Provider", message: "Are you sure you want to delete \(providerToDelete.fullName)?", preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
+        alert.addAction(UIAlertAction(title: "Delete", style: .destructive) { [weak self] _ in
+            self?.performDelete(provider: providerToDelete, at: indexPath)
+        })
+        present(alert, animated: true)
+    }
+
+    private func performDelete(provider: Provider, at indexPath: IndexPath) {
+        let db = Firestore.firestore()
+        db.collection("users").document(provider.uid).delete { [weak self] error in
+            guard let self = self else { return }
+            if let error = error {
+                self.showAlert(title: "Error", message: "Failed to delete provider")
+                return
             }
-            else if let indexPath = tableView.indexPathForSelectedRow {
-                detailsVC.provider = providers[indexPath.row]
+            self.providers.remove(at: indexPath.row)
+            self.tableView.deleteRows(at: [indexPath], with: .fade)
+            
+            if let currentUser = Auth.auth().currentUser, currentUser.uid == provider.uid {
+                self.kickUserFromApp()
+            }
+        }
+    }
+
+    private func kickUserFromApp() {
+        do {
+            try Auth.auth().signOut()
+            navigateToLogin()
+        } catch { print("Error signing out") }
+    }
+
+    private func navigateToLogin() {
+        DispatchQueue.main.async {
+            let storyboard = UIStoryboard(name: "Main", bundle: nil)
+            if let loginVC = storyboard.instantiateViewController(withIdentifier: "LoginViewController") as? UIViewController {
+                loginVC.modalPresentationStyle = .fullScreen
+                if let sceneDelegate = UIApplication.shared.connectedScenes.first?.delegate as? SceneDelegate {
+                    sceneDelegate.window?.rootViewController = loginVC
+                    sceneDelegate.window?.makeKeyAndVisible()
+                }
             }
         }
     }
