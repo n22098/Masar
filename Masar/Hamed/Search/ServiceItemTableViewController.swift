@@ -342,13 +342,15 @@ class ServiceItemTableViewController: UITableViewController {
     }
     
     // MARK: - Actions
+    
+    // 🔥 FIXED: تحميل من Provider.storyboard (اسم الـ Storyboard الصحيح)
     @objc private func ratingTapped() {
         print("⭐ Rating tapped - navigating to reviews")
         
-        // 🔥 FIX: تحميل الـ Storyboard بشكل صريح
         let storyboard = UIStoryboard(name: "Provider", bundle: nil)
         guard let ratingsVC = storyboard.instantiateViewController(withIdentifier: "RatingsReviewsViewController") as? RatingsReviewsViewController else {
             print("❌ Failed to load RatingsReviewsViewController from storyboard")
+            print("💡 Make sure Storyboard ID is set in Identity Inspector")
             return
         }
         
@@ -546,10 +548,6 @@ class ServiceItemTableViewController: UITableViewController {
         } else if segue.identifier == "showPortfolio", let destVC = segue.destination as? ProviderPortfolioTableViewController {
             destVC.providerData = self.providerData
             destVC.isReadOnlyMode = true
-        } else if segue.identifier == "showReviews", let destVC = segue.destination as? RatingsReviewsViewController {
-            // 🔥 تمرير بيانات المزود للصفحة
-            destVC.providerId = providerData?.id
-            destVC.providerName = providerData?.name ?? "Provider"
         }
     }
 }

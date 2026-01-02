@@ -263,14 +263,13 @@ class BookingHistoryTableViewController: UITableViewController {
             }
         }
         
-        // 2. Segue to Rating Screen (NEW)
-        if segue.identifier == "showRate" {
-            // Note: You can pass data to the rating screen here if needed.
-            // Example:
-            // if let rateVC = segue.destination as? RateYourFeedbackViewController,
-            //    let booking = sender as? BookingModel {
-            //     rateVC.booking = booking
-            // }
+        // 2. 🔥 Segue to Rating Screen (FIXED)
+        if segue.identifier == "showRate",
+           let ratingVC = segue.destination as? RatingViewController,
+           let booking = sender as? BookingModel {
+            ratingVC.bookingName = booking.serviceName
+            ratingVC.providerId = booking.providerId
+            ratingVC.providerName = booking.providerName
         }
     }
 }

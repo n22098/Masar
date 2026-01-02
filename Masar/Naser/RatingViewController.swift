@@ -1,22 +1,19 @@
 import UIKit
 import FirebaseFirestore
 
-// MARK: - RatingViewController (نسخة بديلة - النجوم برمجياً)
-// 🔥 استخدم هذه النسخة إذا كانت المشكلة من الـ Storyboard
-
-class RatingViewControllerProgrammatic: UIViewController {
+// MARK: - RatingViewController
+class RatingViewController: UIViewController {
     
-    // MARK: - Outlets (نبقي الـ TextView والزر فقط من الـ Storyboard)
+    // MARK: - Outlets
     @IBOutlet weak var feedbackTextView: UITextView!
     @IBOutlet weak var submitButton: UIButton!
-    
-    // 🔥 FIX: بدلاً من IBOutlet، نعمل الـ stack view برمجياً
-    private var starStackView: UIStackView!
-    private var starButtons: [UIButton] = []
+    @IBOutlet weak var starStackView: UIStackView!
     
     // MARK: - Properties
     var bookingName: String?
     var selectedRating: Double = 0.0
+    
+    // 🔥 إضافة الخصائص المطلوبة
     var providerId: String?
     var providerName: String?
     
@@ -24,7 +21,7 @@ class RatingViewControllerProgrammatic: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         setupUI()
-        createStarButtons() // 🔥 إنشاء النجوم برمجياً
+        setupStarButtons()
     }
     
     // MARK: - Setup
@@ -38,62 +35,49 @@ class RatingViewControllerProgrammatic: UIViewController {
         }
     }
     
-    // 🔥 FIX: إنشاء النجوم برمجياً (يحل مشكلة الـ Storyboard)
-    private func createStarButtons() {
-        // إنشاء الـ Stack View
-        starStackView = UIStackView()
-        starStackView.axis = .horizontal
-        starStackView.distribution = .fillEqually
-        starStackView.spacing = 8
-        starStackView.translatesAutoresizingMaskIntoConstraints = false
+    private func setupStarButtons() {
+        guard let stackView = starStackView else { return }
         
-        // إضافة 5 أزرار نجوم
-        for index in 0..<5 {
-            let starButton = UIButton(type: .system)
-            starButton.tag = index
-            starButton.setImage(UIImage(systemName: "star"), for: .normal)
-            starButton.tintColor = .systemGray4
-            starButton.contentVerticalAlignment = .fill
-            starButton.contentHorizontalAlignment = .fill
-            starButton.imageView?.contentMode = .scaleAspectFit
-            
-            // 🔥 إضافة action مباشر
-            starButton.addTarget(self, action: #selector(starButtonTapped(_:)), for: .touchUpInside)
-            
-            starButtons.append(starButton)
-            starStackView.addArrangedSubview(starButton)
+        stackView.isUserInteractionEnabled = true
+        
+        for (index, view) in stackView.arrangedSubviews.enumerated() {
+            if let starButton = view as? UIButton {
+                starButton.tag = index
+                starButton.isUserInteractionEnabled = true
+                
+                // 🔥 استخدام addTarget بدلاً من gesture recognizer
+                starButton.addTarget(self, action: #selector(starButtonTapped(_:)), for: .touchUpInside)
+            }
         }
-        
-        // إضافة الـ Stack View للـ view
-        view.addSubview(starStackView)
-        
-        // 🔥 تحديد الموقع (فوق الـ TextView)
-        // عدّل القيم حسب تصميمك
-        NSLayoutConstraint.activate([
-            starStackView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            starStackView.bottomAnchor.constraint(equalTo: feedbackTextView.topAnchor, constant: -30),
-            starStackView.widthAnchor.constraint(equalToConstant: 250),
-            starStackView.heightAnchor.constraint(equalToConstant: 50)
-        ])
-        
-        print("✅ Star buttons created programmatically!")
     }
     
-    // 🔥 FIX: معالجة الضغط على النجوم
+    // MARK: - Star Selection
     @objc private func starButtonTapped(_ sender: UIButton) {
-        print("⭐ Star tapped! Tag: \(sender.tag)")
+        let starIndex = sender.tag
         
-        selectedRating = Double(sender.tag) + 1.0
+        // 🔥 حساب التقييم بنص نجمة
+        // إذا النجمة نفسها محددة بالكامل، خليها نص نجمة
+        // وإلا خليها نجمة كاملة
+        let fullStarRating = Double(starIndex) + 1.0
+        let halfStarRating = Double(starIndex) + 0.5
+        
+        if selectedRating == fullStarRating {
+            // إذا النجمة محددة بالكامل، خليها نص نجمة
+            selectedRating = halfStarRating
+        } else {
+            // وإلا خليها نجمة كاملة
+            selectedRating = fullStarRating
+        }
         
         // Haptic feedback
-        let generator = UIImpactFeedbackGenerator(style: .medium)
+        let generator = UIImpactFeedbackGenerator(style: .light)
         generator.impactOccurred()
         
         // Animation
-        UIView.animate(withDuration: 0.15, animations: {
-            sender.transform = CGAffineTransform(scaleX: 1.3, y: 1.3)
+        UIView.animate(withDuration: 0.2, delay: 0, usingSpringWithDamping: 0.5, initialSpringVelocity: 0.8, options: .curveEaseInOut, animations: {
+            sender.transform = CGAffineTransform(scaleX: 1.4, y: 1.4).translatedBy(x: 0, y: -8)
         }) { _ in
-            UIView.animate(withDuration: 0.15) {
+            UIView.animate(withDuration: 0.2) {
                 sender.transform = .identity
             }
         }
@@ -102,18 +86,23 @@ class RatingViewControllerProgrammatic: UIViewController {
     }
     
     private func updateStarsAppearance() {
-        print("🎨 Updating stars. Rating: \(selectedRating)")
+        guard let stackView = starStackView else { return }
         
         UIView.animate(withDuration: 0.25) {
-            for (index, button) in self.starButtons.enumerated() {
+            for (index, view) in stackView.arrangedSubviews.enumerated() {
+                guard let starButton = view as? UIButton else { continue }
+                
                 let starPosition = Double(index) + 1.0
                 
                 if self.selectedRating >= starPosition {
-                    button.setImage(UIImage(systemName: "star.fill"), for: .normal)
-                    button.tintColor = .systemYellow
+                    starButton.setImage(UIImage(systemName: "star.fill"), for: .normal)
+                    starButton.tintColor = .systemYellow
+                } else if self.selectedRating >= Double(index) + 0.5 {
+                    starButton.setImage(UIImage(systemName: "star.leadinghalf.filled"), for: .normal)
+                    starButton.tintColor = .systemYellow
                 } else {
-                    button.setImage(UIImage(systemName: "star"), for: .normal)
-                    button.tintColor = .systemGray4
+                    starButton.setImage(UIImage(systemName: "star"), for: .normal)
+                    starButton.tintColor = .systemGray4
                 }
             }
         }
@@ -137,6 +126,8 @@ class RatingViewControllerProgrammatic: UIViewController {
     
     // MARK: - Save Rating
     private func saveRating(stars: Double, feedback: String) {
+        // رفع التقييم إلى Firestore
+        // 🔥 FIX: تمرير providerId بدلاً من bookingName
         RatingService.shared.uploadRating(
             stars: stars,
             feedback: feedback,
@@ -145,11 +136,15 @@ class RatingViewControllerProgrammatic: UIViewController {
             guard let self = self else { return }
             
             if let error = error {
-                print("❌ Error: \(error.localizedDescription)")
+                print("Error uploading to Firestore: \(error.localizedDescription)")
                 self.showErrorAlert()
             } else {
-                print("✅ Success!")
+                print("Successfully uploaded to Firestore!")
+                
+                // حفظ نسخة محلية (اختياري)
                 self.saveLocalCopy(stars: stars, feedback: feedback)
+                
+                // عرض رسالة النجاح
                 self.showSuccessAlert {
                     self.navigationController?.popViewController(animated: true)
                 }

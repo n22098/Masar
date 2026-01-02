@@ -2167,7 +2167,7 @@
                                             <state key="normal" title="Button"/>
                                             <buttonConfiguration key="configuration" style="plain" title="Rating"/>
                                             <connections>
-                                                <segue destination="oZg-MV-8eA" kind="show" identifier="showRate" id="xGo-Py-wOM"/>
+                                                <segue destination="oZg-MV-8eA" kind="show" identifier="showRate" id="bWN-OT-opy"/>
                                             </connections>
                                         </button>
                                     </subviews>
@@ -2273,7 +2273,7 @@
         <!--Rating and Reviews-->
         <scene sceneID="lP6-dL-33q">
             <objects>
-                <viewController id="5qi-92-6ov" customClass="RatingsReviewsViewController" customModule="Masar" customModuleProvider="target" sceneMemberID="viewController">
+                <viewController storyboardIdentifier="RatingsReviewsViewController" useStoryboardIdentifierAsRestorationIdentifier="YES" id="5qi-92-6ov" customClass="RatingsReviewsViewController" customModule="Masar" customModuleProvider="target" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="KiH-Le-Ugo">
                         <rect key="frame" x="0.0" y="0.0" width="393" height="852"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
@@ -2364,7 +2364,7 @@
                                 </subviews>
                             </stackView>
                             <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="person.circle" catalog="system" translatesAutoresizingMaskIntoConstraints="NO" id="bBO-9V-eSM">
-                                <rect key="frame" x="6" y="222.66666666666663" width="97.666666666666671" height="84.999999999999943"/>
+                                <rect key="frame" x="6" y="222.66666666666663" width="97.666666666666671" height="85"/>
                                 <color key="tintColor" systemColor="systemIndigoColor"/>
                             </imageView>
                         </subviews>
@@ -2480,7 +2480,7 @@
                                             <state key="normal" title="Button"/>
                                             <buttonConfiguration key="configuration" style="plain" title="⭐️"/>
                                             <connections>
-                                                <segue destination="5qi-92-6ov" kind="show" identifier="showReviews" id="Qxd-Xk-08P"/>
+                                                <segue destination="5qi-92-6ov" kind="show" identifier="showReviews" id="361-rB-Jbd"/>
                                             </connections>
                                         </button>
                                     </subviews>
@@ -2643,7 +2643,7 @@
                                     <fontDescription key="titleFontDescription" type="system" pointSize="13"/>
                                 </buttonConfiguration>
                                 <connections>
-                                    <action selector="submitRatingTapped:" destination="oZg-MV-8eA" eventType="touchUpInside" id="Cvi-mb-z0d"/>
+                                    <action selector="submitRatingTapped:" destination="oZg-MV-8eA" eventType="touchUpInside" id="THW-8R-la5"/>
                                 </connections>
                             </button>
                             <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Write Your Feedback:" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="Lnw-Oc-nLq">
@@ -2690,9 +2690,9 @@
                     </view>
                     <navigationItem key="navigationItem" title="Rating" id="KNp-1g-vLX"/>
                     <connections>
-                        <outlet property="feedbackTextView" destination="q0N-Ly-KPw" id="WJx-nT-EvA"/>
-                        <outlet property="starStackView" destination="edA-75-uPT" id="lP4-eE-IN9"/>
-                        <outlet property="submitButton" destination="qkJ-b7-3zS" id="zCp-i8-TRS"/>
+                        <outlet property="feedbackTextView" destination="q0N-Ly-KPw" id="JPB-pS-nyp"/>
+                        <outlet property="starStackView" destination="edA-75-uPT" id="6tZ-Oz-0MH"/>
+                        <outlet property="submitButton" destination="qkJ-b7-3zS" id="si7-t5-bY6"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="0Ni-Oy-Zps" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
