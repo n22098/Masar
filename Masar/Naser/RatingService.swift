@@ -8,65 +8,71 @@ class RatingService {
     
     private init() {}
     
-    // دالة رفع التقييم
-    func uploadRating(stars: Double, feedback: String, providerId: String?, completion: @escaping (Error?) -> Void) {
+    // دالة الرفع (كما هي)
+    func uploadRating(stars: Double, feedback: String, providerId: String, username: String, bookingName: String?, completion: @escaping (Error?) -> Void) {
         
-        var data: [String: Any] = [
+        let data: [String: Any] = [
             "stars": stars,
             "feedback": feedback,
             "date": Timestamp(date: Date()),
-            "username": "Guest User"
+            "username": username,
+            "providerId": providerId,
+            "bookingName": bookingName ?? ""
         ]
-        
-        // إضافة providerId فقط إذا كان موجوداً
-        if let providerId = providerId {
-            data["providerId"] = providerId
-        }
         
         db.collection(collectionName).addDocument(data: data) { error in
             completion(error)
         }
     }
     
-    // دالة جلب التقييمات
-    func fetchRatings(completion: @escaping ([Rating], Error?) -> Void) {
-        db.collection(collectionName)
-            .order(by: "date", descending: true)
-            .getDocuments { snapshot, error in
-                if let error = error {
-                    completion([], error)
-                    return
-                }
-                
-                guard let documents = snapshot?.documents else {
-                    completion([], nil)
-                    return
-                }
-                
-                // تحويل البيانات يدوياً
-                var ratings: [Rating] = []
-                for doc in documents {
-                    let data = doc.data()
-                    if let stars = data["stars"] as? Double,
-                       let feedback = data["feedback"] as? String {
-                        
-                        let timestamp = data["date"] as? Timestamp
-                        let date = timestamp?.dateValue() ?? Date()
-                        let username = data["username"] as? String ?? "Guest"
-                        let bookingName = data["bookingName"] as? String
-                        
-                        let newRating = Rating(
-                            stars: stars,
-                            feedback: feedback,
-                            date: date,
-                            bookingName: bookingName,
-                            username: username
-                        )
-                        ratings.append(newRating)
-                    }
-                }
-                
-                completion(ratings, nil)
+    // 🔥 دالة الجلب (تستقبل for: providerId لفلترة التقييمات)
+    func fetchRatings(for providerId: String, completion: @escaping ([Rating], Error?) -> Void) {
+        
+        var query = db.collection(collectionName).order(by: "date", descending: true)
+        
+        // إذا كان الآيدي موجود، جيب تقييماته هو بس
+        if !providerId.isEmpty {
+            query = db.collection(collectionName)
+                .whereField("providerId", isEqualTo: providerId)
+                // .order(by: "date", descending: true) // ملاحظة: قد يحتاج فهرس في فايربيس
+        }
+        
+        query.getDocuments { snapshot, error in
+            if let error = error {
+                completion([], error)
+                return
             }
+            
+            guard let documents = snapshot?.documents else {
+                completion([], nil)
+                return
+            }
+            
+            var ratings: [Rating] = []
+            for doc in documents {
+                let data = doc.data()
+                if let stars = data["stars"] as? Double,
+                   let feedback = data["feedback"] as? String {
+                    
+                    let timestamp = data["date"] as? Timestamp
+                    let date = timestamp?.dateValue() ?? Date()
+                    let username = data["username"] as? String ?? "Guest"
+                    let bookingName = data["bookingName"] as? String
+                    
+                    let newRating = Rating(
+                        stars: stars,
+                        feedback: feedback,
+                        date: date,
+                        bookingName: bookingName,
+                        username: username
+                    )
+                    ratings.append(newRating)
+                }
+            }
+            // ترتيب يدوي في حال الفلترة أثرت على الترتيب
+            ratings.sort { $0.date > $1.date }
+            
+            completion(ratings, nil)
+        }
     }
 }

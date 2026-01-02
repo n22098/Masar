@@ -1,5 +1,6 @@
 import UIKit
 import FirebaseFirestore
+import FirebaseAuth // 🔥 Added to fetch user ID
 
 // MARK: - RatingViewController
 class RatingViewController: UIViewController {
@@ -13,7 +14,7 @@ class RatingViewController: UIViewController {
     var bookingName: String?
     var selectedRating: Double = 0.0
     
-    // 🔥 إضافة الخصائص المطلوبة
+    // 🔥 Properties passed from previous screen
     var providerId: String?
     var providerName: String?
     
@@ -45,27 +46,22 @@ class RatingViewController: UIViewController {
                 starButton.tag = index
                 starButton.isUserInteractionEnabled = true
                 
-                // 🔥 استخدام addTarget بدلاً من gesture recognizer
+                // 🔥 Using addTarget as per your design
                 starButton.addTarget(self, action: #selector(starButtonTapped(_:)), for: .touchUpInside)
             }
         }
     }
     
-    // MARK: - Star Selection
+    // MARK: - Star Selection (Your Animation Code Preserved)
     @objc private func starButtonTapped(_ sender: UIButton) {
         let starIndex = sender.tag
         
-        // 🔥 حساب التقييم بنص نجمة
-        // إذا النجمة نفسها محددة بالكامل، خليها نص نجمة
-        // وإلا خليها نجمة كاملة
         let fullStarRating = Double(starIndex) + 1.0
         let halfStarRating = Double(starIndex) + 0.5
         
         if selectedRating == fullStarRating {
-            // إذا النجمة محددة بالكامل، خليها نص نجمة
             selectedRating = halfStarRating
         } else {
-            // وإلا خليها نجمة كاملة
             selectedRating = fullStarRating
         }
         
@@ -108,7 +104,7 @@ class RatingViewController: UIViewController {
         }
     }
     
-    // MARK: - Actions
+    // MARK: - Actions (🔥 FIXED THIS SECTION)
     @IBAction func submitRatingTapped(_ sender: UIButton) {
         guard selectedRating > 0 else {
             showRatingAlert()
@@ -121,102 +117,89 @@ class RatingViewController: UIViewController {
             return
         }
         
-        saveRating(stars: selectedRating, feedback: feedback)
+        // Disable button to prevent double clicks
+        sender.isEnabled = false
+        
+        // 1. Try to get User from UserManager first
+        if let user = UserManager.shared.currentUser {
+            // Found local user, send name "Ali123"
+            saveRating(stars: selectedRating, feedback: feedback, username: user.name)
+        } else {
+            // 2. If missing, force fetch from Firebase Auth
+            guard let uid = Auth.auth().currentUser?.uid else {
+                sender.isEnabled = true
+                showErrorAlert() // Not logged in
+                return
+            }
+            
+            print("🔍 Fetching real username for ID: \(uid)...")
+            Firestore.firestore().collection("users").document(uid).getDocument { [weak self] snapshot, error in
+                guard let self = self else { return }
+                
+                if let data = snapshot?.data() {
+                    // Try to get 'username', fallback to 'name'
+                    let realName = data["username"] as? String ?? data["name"] as? String ?? "Unknown User"
+                    print("✅ Found Name: \(realName)")
+                    
+                    self.saveRating(stars: self.selectedRating, feedback: feedback, username: realName)
+                } else {
+                    sender.isEnabled = true
+                    self.showErrorAlert()
+                }
+            }
+        }
     }
     
     // MARK: - Save Rating
-    private func saveRating(stars: Double, feedback: String) {
-        // رفع التقييم إلى Firestore
-        // 🔥 FIX: تمرير providerId بدلاً من bookingName
+    private func saveRating(stars: Double, feedback: String, username: String) {
+        
+        // 🔥 FIX: Pass the fetched 'username' ("Ali123") and 'providerId'
         RatingService.shared.uploadRating(
             stars: stars,
             feedback: feedback,
-            providerId: self.providerId,
+            providerId: self.providerId ?? "", // Must have ID
+            username: username,                // Sends "Ali123"
+            bookingName: self.bookingName,
             completion: { [weak self] error in
-            guard let self = self else { return }
-            
-            if let error = error {
-                print("Error uploading to Firestore: \(error.localizedDescription)")
-                self.showErrorAlert()
-            } else {
-                print("Successfully uploaded to Firestore!")
+                guard let self = self else { return }
+                self.submitButton.isEnabled = true
                 
-                // حفظ نسخة محلية (اختياري)
-                self.saveLocalCopy(stars: stars, feedback: feedback)
-                
-                // عرض رسالة النجاح
-                self.showSuccessAlert {
-                    self.navigationController?.popViewController(animated: true)
+                if let error = error {
+                    print("Error uploading to Firestore: \(error.localizedDescription)")
+                    self.showErrorAlert()
+                } else {
+                    print("Successfully uploaded to Firestore!")
+                    
+                    // Show Success
+                    self.showSuccessAlert {
+                        self.navigationController?.popViewController(animated: true)
+                    }
                 }
             }
-        })
-    }
-    
-    private func saveLocalCopy(stars: Double, feedback: String) {
-        let newRating = Rating(
-            stars: stars,
-            feedback: feedback,
-            date: Date(),
-            bookingName: self.bookingName,
-            username: "Guest User"
         )
-        
-        var ratings = loadRatings()
-        ratings.append(newRating)
-        
-        if let encoded = try? JSONEncoder().encode(ratings) {
-            UserDefaults.standard.set(encoded, forKey: "SavedRatings")
-            NotificationCenter.default.post(name: NSNotification.Name("RatingAdded"), object: nil)
-        }
-    }
-    
-    private func loadRatings() -> [Rating] {
-        guard let data = UserDefaults.standard.data(forKey: "SavedRatings"),
-              let ratings = try? JSONDecoder().decode([Rating].self, from: data) else {
-            return []
-        }
-        return ratings
     }
     
     // MARK: - Alert Methods
     private func showRatingAlert() {
-        let alert = UIAlertController(
-            title: "Missing Rating",
-            message: "Please select a star rating before submitting",
-            preferredStyle: .alert
-        )
+        let alert = UIAlertController(title: "Missing Rating", message: "Please select a star rating before submitting", preferredStyle: .alert)
         alert.addAction(UIAlertAction(title: "OK", style: .default))
         present(alert, animated: true)
     }
     
     private func showFeedbackAlert() {
-        let alert = UIAlertController(
-            title: "Missing Feedback",
-            message: "Please write your feedback before submitting",
-            preferredStyle: .alert
-        )
+        let alert = UIAlertController(title: "Missing Feedback", message: "Please write your feedback before submitting", preferredStyle: .alert)
         alert.addAction(UIAlertAction(title: "OK", style: .default))
         present(alert, animated: true)
     }
     
     private func showSuccessAlert(completion: @escaping () -> Void) {
-        let alert = UIAlertController(
-            title: "Thank You!",
-            message: "Your feedback has been submitted successfully",
-            preferredStyle: .alert
-        )
-        alert.addAction(UIAlertAction(title: "OK", style: .default) { _ in
-            completion()
-        })
+        let alert = UIAlertController(title: "Thank You!", message: "Your feedback has been submitted successfully", preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: "OK", style: .default) { _ in completion() })
         present(alert, animated: true)
     }
     
     private func showErrorAlert() {
-        let alert = UIAlertController(
-            title: "Error",
-            message: "Failed to submit your feedback. Please try again.",
-            preferredStyle: .alert
-        )
+        let alert = UIAlertController(title: "Error", message: "Failed to submit your feedback. Please try again.", preferredStyle: .alert)
         alert.addAction(UIAlertAction(title: "OK", style: .default))
         present(alert, animated: true)
     }

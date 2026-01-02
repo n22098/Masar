@@ -1,11 +1,12 @@
 import UIKit
+import FirebaseAuth // 🔥 ضروري جداً لجلب رقم المزود
 
 class ProviderServicesTableViewController: UITableViewController {
     
     // MARK: - Properties
     let brandColor = UIColor(red: 0.35, green: 0.34, blue: 0.91, alpha: 1.0)
     
-    // 👇 التعديل 1: المصفوفة تبدأ فارغة لانتظار البيانات من Firebase
+    // المصفوفة تبدأ فارغة لانتظار البيانات من Firebase
     var myServices: [ServiceModel] = []
     
     var selectedServiceIndex: Int?
@@ -20,16 +21,19 @@ class ProviderServicesTableViewController: UITableViewController {
         super.viewWillAppear(animated)
         setupNavigationBar()
         
-        // 👇 التعديل 2: جلب البيانات من Firebase في كل مرة تظهر الشاشة
+        // جلب البيانات من Firebase في كل مرة تظهر الشاشة
         fetchServicesFromFirebase()
     }
     
-    // MARK: - Firebase Fetching
+    // MARK: - Firebase Fetching (🔥 تم الإصلاح هنا)
     func fetchServicesFromFirebase() {
-        // إضافة مؤشر تحميل بسيط في العنوان (اختياري)
         self.title = "Updating..."
         
-        ServiceManager.shared.fetchAllServices { [weak self] services in
+        // الحصول على رقم المستخدم الحالي
+        guard let uid = Auth.auth().currentUser?.uid else { return }
+        
+        // 🔥 جلب خدمات هذا المزود فقط (وليس كل الخدمات)
+        ServiceManager.shared.fetchServicesForProvider(providerId: uid) { [weak self] services in
             DispatchQueue.main.async {
                 self?.title = "Services"
                 self?.myServices = services
@@ -43,7 +47,7 @@ class ProviderServicesTableViewController: UITableViewController {
         setupNavigationBar()
         setupTableView()
         
-        // إضافة Refresh Control لسحب الشاشة وتحديث البيانات
+        // إضافة Refresh Control
         let refreshControl = UIRefreshControl()
         refreshControl.addTarget(self, action: #selector(handleRefresh), for: .valueChanged)
         tableView.refreshControl = refreshControl
@@ -156,12 +160,11 @@ class ProviderServicesTableViewController: UITableViewController {
         return UISwipeActionsConfiguration(actions: [deleteAction, editAction])
     }
     
-    // 👇 التعديل 3: دالة الحذف المرتبطة بـ Firebase
+    // دالة الحذف
     private func deleteService(at indexPath: IndexPath) {
         let service = myServices[indexPath.row]
         let serviceName = service.name
         
-        // يجب التأكد من وجود ID للحذف
         guard let serviceId = service.id else { return }
         
         let alert = UIAlertController(
@@ -180,7 +183,6 @@ class ProviderServicesTableViewController: UITableViewController {
                     return
                 }
                 
-                // التحديث في الواجهة بعد نجاح الحذف
                 DispatchQueue.main.async {
                     self?.myServices.remove(at: indexPath.row)
                     self?.tableView.deleteRows(at: [indexPath], with: .fade)
@@ -191,12 +193,11 @@ class ProviderServicesTableViewController: UITableViewController {
         present(alert, animated: true)
     }
     
-    // MARK: - Navigation / Segue (Save & Update)
+    // MARK: - Navigation / Segue
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
         if segue.identifier == "editService" {
             if let destVC = segue.destination as? EditServiceTableViewController {
                 
-                // تمرير البيانات للشاشة التالية
                 if let indexPath = sender as? IndexPath {
                     let selectedService = myServices[indexPath.row]
                     destVC.serviceToEdit = selectedService
@@ -206,28 +207,24 @@ class ProviderServicesTableViewController: UITableViewController {
                     selectedServiceIndex = nil
                 }
                 
-                // 👇 التعديل 4: التعامل مع الحفظ (إضافة أو تحديث)
+                // التعامل مع الحفظ
                 destVC.onSaveComplete = { [weak self] updatedService in
                     guard let self = self else { return }
                     
-                    // إذا كان هناك ID، فهذا يعني تحديث
                     if let _ = updatedService.id {
                         ServiceManager.shared.updateService(updatedService) { error in
                             if let error = error {
                                 print("Error updating: \(error)")
                             } else {
-                                print("Successfully updated service")
-                                self.fetchServicesFromFirebase() // إعادة تحميل القائمة
+                                self.fetchServicesFromFirebase()
                             }
                         }
                     } else {
-                        // إذا لم يكن هناك ID، فهذه إضافة جديدة
                         ServiceManager.shared.addService(updatedService) { error in
                             if let error = error {
                                 print("Error adding: \(error)")
                             } else {
-                                print("Successfully added service")
-                                self.fetchServicesFromFirebase() // إعادة تحميل القائمة
+                                self.fetchServicesFromFirebase()
                             }
                         }
                     }
@@ -242,7 +239,7 @@ class ProviderServicesTableViewController: UITableViewController {
 }
 
 // MARK: - Service Cell Class
-// (نفس الكلاس الخاص بك تماماً، لم يتغير)
+// (كما هي لم تتغير)
 class ServiceCell: UITableViewCell {
     
     private let containerView: UIView = {
@@ -310,8 +307,10 @@ class ServiceCell: UITableViewCell {
     }
     
     required init?(coder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
-    }
+            super.init(coder: coder)
+            setupUI()
+        }
+    
     
     private func setupUI() {
         backgroundColor = .clear

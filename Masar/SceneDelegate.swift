@@ -48,9 +48,8 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 
         let tabBar = makeMainTabBarController()
 
-        // تطبيق Dark Mode على الشاشة الجديدة
-        let isDarkMode = UserDefaults.standard.bool(forKey: "isDarkMode")
-        window.overrideUserInterfaceStyle = isDarkMode ? .dark : .light
+        // 🔥 FIXED: تطبيق Dark Mode على جميع النوافذ
+        applyDarkModeToAllWindows()
 
         UIView.transition(with: window, duration: 0.3, options: .transitionCrossDissolve, animations: {
             window.rootViewController = tabBar
@@ -64,9 +63,8 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         let storyboard = UIStoryboard(name: storyboardName, bundle: nil)
 
         if let mainVC = storyboard.instantiateInitialViewController() {
-            // تطبيق Dark Mode على الشاشة الجديدة
-            let isDarkMode = UserDefaults.standard.bool(forKey: "isDarkMode")
-            window.overrideUserInterfaceStyle = isDarkMode ? .dark : .light
+            // 🔥 FIXED: تطبيق Dark Mode على جميع النوافذ
+            applyDarkModeToAllWindows()
 
             UIView.transition(with: window, duration: 0.3, options: .transitionCrossDissolve, animations: {
                 window.rootViewController = mainVC
@@ -130,23 +128,35 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         return tabBar
     }
 
-    // MARK: - Scene Lifecycle
-    func sceneDidDisconnect(_ scene: UIScene) {}
-
-    func sceneDidBecomeActive(_ scene: UIScene) {}
-
-    func sceneWillResignActive(_ scene: UIScene) {}
-
-    func sceneWillEnterForeground(_ scene: UIScene) {
-        // ✅ تحميل Dark Mode عند الرجوع للتطبيق (على جميع النوافذ)
+    // MARK: - 🔥 FIXED: Dark Mode Helper Function
+    private func applyDarkModeToAllWindows() {
         let isDarkMode = UserDefaults.standard.bool(forKey: "isDarkMode")
-
+        let style: UIUserInterfaceStyle = isDarkMode ? .dark : .light
+        
+        // تطبيق على جميع النوافذ في جميع الـ scenes
         UIApplication.shared.connectedScenes
             .compactMap { $0 as? UIWindowScene }
             .flatMap { $0.windows }
             .forEach { window in
-                window.overrideUserInterfaceStyle = isDarkMode ? .dark : .light
+                UIView.transition(with: window, duration: 0.3, options: .transitionCrossDissolve, animations: {
+                    window.overrideUserInterfaceStyle = style
+                })
             }
+    }
+
+    // MARK: - Scene Lifecycle
+    func sceneDidDisconnect(_ scene: UIScene) {}
+
+    func sceneDidBecomeActive(_ scene: UIScene) {
+        // 🔥 FIXED: إعادة تطبيق Dark Mode عند تفعيل التطبيق
+        applyDarkModeToAllWindows()
+    }
+
+    func sceneWillResignActive(_ scene: UIScene) {}
+
+    func sceneWillEnterForeground(_ scene: UIScene) {
+        // 🔥 FIXED: إعادة تطبيق Dark Mode عند الرجوع من الخلفية
+        applyDarkModeToAllWindows()
     }
 
     func sceneDidEnterBackground(_ scene: UIScene) {}

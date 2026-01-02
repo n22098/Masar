@@ -1,4 +1,5 @@
 import UIKit
+import FirebaseAuth // 🔥 ضروري جداً لجلب رقم المزود
 
 class BookingsProviderTableViewController: UITableViewController {
     
@@ -37,7 +38,8 @@ class BookingsProviderTableViewController: UITableViewController {
         // إضافة مؤشر تحميل بسيط في العنوان
         self.title = "Loading..."
         
-        ServiceManager.shared.fetchAllBookings { [weak self] bookings in
+        // 🔥 تم الإصلاح هنا: نستخدم دالة المزود الخاصة التي تعرض طلباته هو فقط
+        ServiceManager.shared.fetchProviderBookings { [weak self] bookings in
             guard let self = self else { return }
             
             DispatchQueue.main.async {
@@ -214,5 +216,3 @@ class BookingsProviderTableViewController: UITableViewController {
         }
     }
 }
-
-// (BookingProviderCell يبقى كما هو بدون تغيير)

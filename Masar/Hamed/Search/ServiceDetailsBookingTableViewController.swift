@@ -1,10 +1,13 @@
 import UIKit
+import FirebaseAuth      // 🔥 Required for fetching User ID
+import FirebaseFirestore // 🔥 Required for fetching User Data
 
-// MARK: - Service Details Booking Table View Controller (Unchanged)
+// MARK: - Service Details Booking Table View Controller
 class ServiceDetailsBookingTableViewController: UITableViewController {
     
     // MARK: - Outlets
-    @IBOutlet weak var datePicker: UIDatePicker!
+    // "weak" and "?" prevent memory leaks and crashes if the outlet is missing
+    @IBOutlet weak var datePicker: UIDatePicker?
     @IBOutlet weak var serviceNameLabel: UILabel!
     @IBOutlet weak var priceLabel: UILabel!
     @IBOutlet weak var descriptionLabel: UILabel!
@@ -20,6 +23,9 @@ class ServiceDetailsBookingTableViewController: UITableViewController {
     var providerData: ServiceProviderModel?
     let brandColor = UIColor(red: 98/255, green: 84/255, blue: 243/255, alpha: 1.0)
     
+    // 🔥 Activity Indicator for loading user data
+    let activityIndicator = UIActivityIndicatorView(style: .large)
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         setupUI()
@@ -27,6 +33,12 @@ class ServiceDetailsBookingTableViewController: UITableViewController {
         fillData()
         tableView.estimatedRowHeight = 100
         tableView.rowHeight = UITableView.automaticDimension
+        
+        // Setup Loader
+        activityIndicator.center = view.center
+        activityIndicator.color = brandColor
+        activityIndicator.hidesWhenStopped = true
+        view.addSubview(activityIndicator)
     }
     
     func setupUI() {
@@ -51,12 +63,67 @@ class ServiceDetailsBookingTableViewController: UITableViewController {
     
     func setupNavigationBar() {
         self.title = "Booking"
-        let bookButton = UIBarButtonItem(title: "Book", style: .done, target: self, action: #selector(topBookTapped))
+        // 🔥 Point to the new safe booking function
+        let bookButton = UIBarButtonItem(title: "Book", style: .done, target: self, action: #selector(attemptBooking))
         bookButton.tintColor = .white
         navigationItem.rightBarButtonItem = bookButton
     }
     
-    @objc func topBookTapped() { showBookingConfirmation() }
+    // MARK: - 🔥 CRITICAL FIX: Fetch User Data Before Booking
+    @IBAction func bookButtonPressed(_ sender: Any) {
+        attemptBooking()
+    }
+    
+    @objc func attemptBooking() {
+        // 1. If user is already loaded, proceed normally
+        if UserManager.shared.currentUser != nil {
+            showBookingConfirmation()
+            return
+        }
+        
+        // 2. If not loaded, but logged in with Auth, fetch data now
+        guard let uid = Auth.auth().currentUser?.uid else {
+            showAlert(title: "Error", message: "You must be logged in to book.")
+            return
+        }
+        
+        // Show loading
+        activityIndicator.startAnimating()
+        confirmButton?.isEnabled = false
+        
+        print("🔧 User data missing (Guest). Fetching from Firestore for ID: \(uid)...")
+        
+        Firestore.firestore().collection("users").document(uid).getDocument { [weak self] snapshot, error in
+            guard let self = self else { return }
+            self.activityIndicator.stopAnimating()
+            self.confirmButton?.isEnabled = true
+            
+            if let data = snapshot?.data(), error == nil {
+                // Create the user object from the database data
+                let fetchedUser = AppUser(
+                    id: uid,
+                    name: data["name"] as? String ?? (data["username"] as? String ?? "Unknown"), // Try name then username
+                    email: data["email"] as? String ?? (Auth.auth().currentUser?.email ?? ""),
+                    phone: data["phone"] as? String ?? "",
+                    role: data["role"] as? String ?? "seeker",
+                    profileImageName: nil,
+                    isSeekerActive: true,
+                    providerProfile: nil
+                )
+                
+                // Save it to the Manager so it persists
+                UserManager.shared.setCurrentUser(fetchedUser)
+                print("✅ User data fetched and saved: \(fetchedUser.name)")
+                
+                // Now proceed with booking
+                self.showBookingConfirmation()
+                
+            } else {
+                print("❌ Failed to fetch user: \(error?.localizedDescription ?? "Unknown error")")
+                self.showAlert(title: "Error", message: "Failed to load user profile. Please try logging in again.")
+            }
+        }
+    }
     
     func fillData() {
         serviceNameLabel?.text = receivedServiceName ?? "Unknown"
@@ -85,8 +152,6 @@ class ServiceDetailsBookingTableViewController: UITableViewController {
         return UITableView.automaticDimension
     }
     
-    @IBAction func bookButtonPressed(_ sender: Any) { showBookingConfirmation() }
-    
     func showBookingConfirmation() {
         let alert = UIAlertController(title: "Confirm Booking", message: "Proceed with booking?", preferredStyle: .alert)
         alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
@@ -104,47 +169,46 @@ class ServiceDetailsBookingTableViewController: UITableViewController {
         navigationController?.pushViewController(paymentVC, animated: true)
     }
     
-    // ... (الجزء العلوي كما هو بدون تغيير) ...
-
-        func createBookingModel() -> BookingModel {
-            let serviceName = receivedServiceName ?? "Unknown"
-            let priceString = receivedServicePrice?.replacingOccurrences(of: "BHD ", with: "") ?? "0"
-            let price = Double(priceString) ?? 0.0
-            let date = datePicker.date
-            let providerName = providerData?.name ?? "Unknown"
-            // تأكد أن providerData.id موجود، أو مرر نص فارغ
-            let providerId = providerData?.id ?? ""
-            
-            let currentUser = UserManager.shared.currentUser
-            let seekerName = currentUser?.name ?? "Guest"
-            let seekerEmail = currentUser?.email ?? "no-email"
-            let seekerPhone = currentUser?.phone ?? "No Phone"
-            let seekerId = currentUser?.id ?? "" // ✅ إضافة seekerId
-            
-            let realDescription = receivedServiceDetails ?? "No details provided"
-            var itemsText = receivedServiceItems ?? "None"
-            if itemsText.isEmpty { itemsText = "None" }
-            
-            // ✅ التصحيح هنا: استخدام المعاملات الصحيحة للمودل
-            return BookingModel(
-                id: UUID().uuidString,  // إنشاء ID مؤقت للحجز الجديد
-                serviceName: serviceName,
-                providerName: providerName,
-                seekerName: seekerName,
-                date: date,
-                status: .upcoming,
-                totalPrice: price,      // ✅ كان price وأصبح totalPrice
-                notes: itemsText,       // ✅ كان instructions وأصبح notes
-                email: seekerEmail,
-                phoneNumber: seekerPhone,
-                providerId: providerId,
-                seekerId: seekerId,     // ✅ تم إضافته
-                serviceId: "",          // ✅ تم إضافته (يمكنك تمرير الـ ID الحقيقي إذا كان متوفراً)
-                descriptionText: realDescription
-            )
-        }
-
-    // ... (باقي الكود كما هو) ...
+    // MARK: - Create Booking Model (Crash Fix Here)
+    func createBookingModel() -> BookingModel {
+        let serviceName = receivedServiceName ?? "Unknown"
+        let priceString = receivedServicePrice?.replacingOccurrences(of: "BHD ", with: "") ?? "0"
+        let price = Double(priceString) ?? 0.0
+        
+        // 🛡 CRASH FIX: Safely unwrap datePicker. If missing, use current date.
+        let date = datePicker?.date ?? Date()
+        
+        let providerName = providerData?.name ?? "Unknown"
+        let providerId = providerData?.id ?? ""
+        
+        // 🔥 NOW THIS WILL HAVE DATA because of the 'attemptBooking' fetch
+        let currentUser = UserManager.shared.currentUser
+        let seekerName = currentUser?.name ?? "Guest"
+        let seekerEmail = currentUser?.email ?? "no-email"
+        let seekerPhone = currentUser?.phone ?? "No Phone"
+        let seekerId = currentUser?.id ?? ""
+        
+        let realDescription = receivedServiceDetails ?? "No details provided"
+        var itemsText = receivedServiceItems ?? "None"
+        if itemsText.isEmpty { itemsText = "None" }
+        
+        return BookingModel(
+            id: UUID().uuidString,
+            serviceName: serviceName,
+            providerName: providerName,
+            seekerName: seekerName, // ✅ Should now be "Ali123" not "Guest"
+            date: date,
+            status: .upcoming,
+            totalPrice: price,
+            notes: itemsText,
+            email: seekerEmail,     // ✅ Real email
+            phoneNumber: seekerPhone, // ✅ Real phone
+            providerId: providerId,
+            seekerId: seekerId,
+            serviceId: "",
+            descriptionText: realDescription
+        )
+    }
     
     override func tableView(_ tableView: UITableView, willDisplay cell: UITableViewCell, forRowAt indexPath: IndexPath) {
         cell.backgroundColor = .clear
@@ -156,6 +220,12 @@ class ServiceDetailsBookingTableViewController: UITableViewController {
             bg.backgroundInsets = NSDirectionalEdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16)
             cell.backgroundConfiguration = bg
         }
+    }
+    
+    func showAlert(title: String, message: String) {
+        let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: "OK", style: .default))
+        present(alert, animated: true)
     }
 }
 
@@ -193,7 +263,6 @@ class PaymentViewController: UIViewController {
         return label
     }()
     
-    // UPDATED: Titles without icons
     private lazy var creditCardButton = createPaymentButton(title: "Credit Card", tag: 0)
     private lazy var applePayButton = createPaymentButton(title: "Apple Pay", tag: 1)
     private lazy var benefitPayButton = createPaymentButton(title: "Benefit Pay", tag: 2)
@@ -253,7 +322,7 @@ class PaymentViewController: UIViewController {
         return tf
     }()
     
-    // MARK: - Benefit Pay UI (NEW)
+    // MARK: - Benefit Pay UI
     private let benefitPayContainer: UIView = {
         let view = UIView()
         view.backgroundColor = .white
@@ -263,7 +332,7 @@ class PaymentViewController: UIViewController {
         view.layer.shadowOffset = CGSize(width: 0, height: 2)
         view.layer.shadowRadius = 8
         view.translatesAutoresizingMaskIntoConstraints = false
-        view.isHidden = true // Hidden by default
+        view.isHidden = true
         return view
     }()
     
@@ -275,7 +344,6 @@ class PaymentViewController: UIViewController {
         return sc
     }()
     
-    // Wrapper for IBAN views
     private let ibanWrapperView: UIView = {
         let view = UIView()
         view.translatesAutoresizingMaskIntoConstraints = false
@@ -284,7 +352,7 @@ class PaymentViewController: UIViewController {
     
     private let ibanPrefixLabel: UILabel = {
         let label = UILabel()
-        label.text = "GB33BUKB2020155555" // Fixed random prefix
+        label.text = "GB33BUKB2020155555"
         label.font = UIFont.systemFont(ofSize: 14, weight: .regular)
         label.textColor = .darkGray
         label.translatesAutoresizingMaskIntoConstraints = false
@@ -302,7 +370,6 @@ class PaymentViewController: UIViewController {
         return tf
     }()
     
-    // Wrapper for Phone views
     private let phoneWrapperView: UIView = {
         let view = UIView()
         view.translatesAutoresizingMaskIntoConstraints = false
@@ -320,7 +387,6 @@ class PaymentViewController: UIViewController {
         return tf
     }()
     
-    // StackView to hold either CreditCard or BenefitPay container
     private let formsStackView: UIStackView = {
         let stack = UIStackView()
         stack.axis = .vertical
@@ -359,14 +425,13 @@ class PaymentViewController: UIViewController {
         applePayButton.addTarget(self, action: #selector(paymentMethodTapped(_:)), for: .touchUpInside)
         benefitPayButton.addTarget(self, action: #selector(paymentMethodTapped(_:)), for: .touchUpInside)
         
-        // Add target for Segment Control
         benefitSegmentControl.addTarget(self, action: #selector(benefitSegmentChanged(_:)), for: .valueChanged)
         
         cardNumberTextField.delegate = self
         validThruTextField.delegate = self
         cvcTextField.delegate = self
         pinTextField.delegate = self
-        ibanSuffixTextField.delegate = self // For 8 digit limit
+        ibanSuffixTextField.delegate = self
         
         view.addSubview(scrollView)
         scrollView.addSubview(contentView)
@@ -376,30 +441,24 @@ class PaymentViewController: UIViewController {
         contentView.addSubview(applePayButton)
         contentView.addSubview(benefitPayButton)
         
-        // Add forms to stack
         contentView.addSubview(formsStackView)
         formsStackView.addArrangedSubview(cardDetailsContainer)
         formsStackView.addArrangedSubview(benefitPayContainer)
         
         contentView.addSubview(purchaseButton)
         
-        // Setup Credit Card fields
         cardDetailsContainer.addSubview(cardNumberTextField)
         cardDetailsContainer.addSubview(validThruTextField)
         cardDetailsContainer.addSubview(cvcTextField)
         cardDetailsContainer.addSubview(pinTextField)
         addTextFieldSeparators()
         
-        // Setup Benefit Pay fields
         benefitPayContainer.addSubview(benefitSegmentControl)
         benefitPayContainer.addSubview(ibanWrapperView)
         benefitPayContainer.addSubview(phoneWrapperView)
         
-        // IBAN Subviews
         ibanWrapperView.addSubview(ibanPrefixLabel)
         ibanWrapperView.addSubview(ibanSuffixTextField)
-        
-        // Phone Subviews
         phoneWrapperView.addSubview(benefitPhoneTextField)
     }
     
@@ -434,18 +493,13 @@ class PaymentViewController: UIViewController {
             benefitPayButton.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -20),
             benefitPayButton.heightAnchor.constraint(equalToConstant: 56),
             
-            // FORMS STACK
             formsStackView.topAnchor.constraint(equalTo: benefitPayButton.bottomAnchor, constant: 24),
             formsStackView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 20),
             formsStackView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -20),
             
-            // Credit Card Container Constraints (Height)
             cardDetailsContainer.heightAnchor.constraint(equalToConstant: 240),
-            
-            // Benefit Container Constraints (Height)
             benefitPayContainer.heightAnchor.constraint(equalToConstant: 180),
             
-            // Credit Card Internal Constraints
             cardNumberTextField.topAnchor.constraint(equalTo: cardDetailsContainer.topAnchor, constant: 20),
             cardNumberTextField.leadingAnchor.constraint(equalTo: cardDetailsContainer.leadingAnchor, constant: 16),
             cardNumberTextField.trailingAnchor.constraint(equalTo: cardDetailsContainer.trailingAnchor, constant: -16),
@@ -466,29 +520,24 @@ class PaymentViewController: UIViewController {
             pinTextField.trailingAnchor.constraint(equalTo: cardDetailsContainer.trailingAnchor, constant: -16),
             pinTextField.heightAnchor.constraint(equalToConstant: 44),
             
-            // Benefit Internal Constraints
             benefitSegmentControl.topAnchor.constraint(equalTo: benefitPayContainer.topAnchor, constant: 20),
             benefitSegmentControl.leadingAnchor.constraint(equalTo: benefitPayContainer.leadingAnchor, constant: 20),
             benefitSegmentControl.trailingAnchor.constraint(equalTo: benefitPayContainer.trailingAnchor, constant: -20),
             
-            // IBAN Wrapper
             ibanWrapperView.topAnchor.constraint(equalTo: benefitSegmentControl.bottomAnchor, constant: 20),
             ibanWrapperView.leadingAnchor.constraint(equalTo: benefitPayContainer.leadingAnchor, constant: 20),
             ibanWrapperView.trailingAnchor.constraint(equalTo: benefitPayContainer.trailingAnchor, constant: -20),
             ibanWrapperView.bottomAnchor.constraint(equalTo: benefitPayContainer.bottomAnchor, constant: -20),
             
-            // IBAN Prefix
             ibanPrefixLabel.topAnchor.constraint(equalTo: ibanWrapperView.topAnchor),
             ibanPrefixLabel.leadingAnchor.constraint(equalTo: ibanWrapperView.leadingAnchor),
             ibanPrefixLabel.trailingAnchor.constraint(equalTo: ibanWrapperView.trailingAnchor),
             
-            // IBAN TextField
             ibanSuffixTextField.topAnchor.constraint(equalTo: ibanPrefixLabel.bottomAnchor, constant: 8),
             ibanSuffixTextField.leadingAnchor.constraint(equalTo: ibanWrapperView.leadingAnchor),
             ibanSuffixTextField.trailingAnchor.constraint(equalTo: ibanWrapperView.trailingAnchor),
             ibanSuffixTextField.heightAnchor.constraint(equalToConstant: 40),
             
-            // Phone Wrapper
             phoneWrapperView.topAnchor.constraint(equalTo: benefitSegmentControl.bottomAnchor, constant: 20),
             phoneWrapperView.leadingAnchor.constraint(equalTo: benefitPayContainer.leadingAnchor, constant: 20),
             phoneWrapperView.trailingAnchor.constraint(equalTo: benefitPayContainer.trailingAnchor, constant: -20),
@@ -556,11 +605,9 @@ class PaymentViewController: UIViewController {
     
     @objc private func benefitSegmentChanged(_ sender: UISegmentedControl) {
         if sender.selectedSegmentIndex == 0 {
-            // IBAN
             ibanWrapperView.isHidden = false
             phoneWrapperView.isHidden = true
         } else {
-            // Phone
             ibanWrapperView.isHidden = true
             phoneWrapperView.isHidden = false
         }
@@ -582,7 +629,6 @@ class PaymentViewController: UIViewController {
         selectedButton.layer.borderColor = brandColor.cgColor
         selectedButton.layer.borderWidth = 3
         
-        // Show/hide specific container
         UIView.animate(withDuration: 0.3) {
             switch self.selectedPaymentMethod {
             case .creditCard:
@@ -601,75 +647,19 @@ class PaymentViewController: UIViewController {
     @objc private func purchaseButtonTapped() {
         view.endEditing(true)
         
-        // ✅ Validation for Credit Card
         if selectedPaymentMethod == .creditCard {
-            let cardNumber = cardNumberTextField.text?.trimmingCharacters(in: .whitespaces) ?? ""
-            let validThru = validThruTextField.text?.trimmingCharacters(in: .whitespaces) ?? ""
-            let cvc = cvcTextField.text?.trimmingCharacters(in: .whitespaces) ?? ""
-            let pin = pinTextField.text?.trimmingCharacters(in: .whitespaces) ?? ""
-            
-            if cardNumber.isEmpty {
-                showAlert(title: "Missing Information", message: "Please enter your card number.")
-                return
-            }
-            if cardNumber.count < 13 {
-                showAlert(title: "Invalid Card Number", message: "Card number must be at least 13 digits.")
-                return
-            }
-            if validThru.isEmpty {
-                showAlert(title: "Missing Information", message: "Please enter the expiry date (MM/YY).")
-                return
-            }
-            if validThru.count < 5 {
-                showAlert(title: "Invalid Date", message: "Please enter a valid expiry date (MM/YY).")
-                return
-            }
-            if cvc.isEmpty {
-                showAlert(title: "Missing Information", message: "Please enter the CVC code.")
-                return
-            }
-            if cvc.count < 3 {
-                showAlert(title: "Invalid CVC", message: "CVC must be 3 digits.")
-                return
-            }
-            if pin.isEmpty {
-                showAlert(title: "Missing Information", message: "Please enter your PIN.")
-                return
-            }
-            if pin.count < 4 {
-                showAlert(title: "Invalid PIN", message: "PIN must be 4 digits.")
-                return
-            }
-        }
-        
-        // ✅ Validation for Benefit Pay
-        if selectedPaymentMethod == .benefitPay {
+            // Basic Validation
+            if (cardNumberTextField.text ?? "").count < 13 { showAlert(title: "Error", message: "Invalid Card Number"); return }
+            if (validThruTextField.text ?? "").isEmpty { showAlert(title: "Error", message: "Invalid Date"); return }
+            if (cvcTextField.text ?? "").isEmpty { showAlert(title: "Error", message: "Invalid CVC"); return }
+            if (pinTextField.text ?? "").isEmpty { showAlert(title: "Error", message: "Invalid PIN"); return }
+        } else if selectedPaymentMethod == .benefitPay {
             if benefitSegmentControl.selectedSegmentIndex == 0 {
-                // IBAN Check
-                let iban = ibanSuffixTextField.text?.trimmingCharacters(in: .whitespaces) ?? ""
-                if iban.isEmpty {
-                    showAlert(title: "Missing Information", message: "Please enter your IBAN number.")
-                    return
-                }
-                if iban.count != 8 {
-                    showAlert(title: "Invalid IBAN", message: "Please enter exactly 8 digits.")
-                    return
-                }
+                if (ibanSuffixTextField.text ?? "").count != 8 { showAlert(title: "Error", message: "Invalid IBAN"); return }
             } else {
-                // Phone Check
-                let phone = benefitPhoneTextField.text?.trimmingCharacters(in: .whitespaces) ?? ""
-                if phone.isEmpty {
-                    showAlert(title: "Missing Information", message: "Please enter your phone number.")
-                    return
-                }
-                if phone.count < 8 {
-                    showAlert(title: "Invalid Phone Number", message: "Please enter a valid phone number.")
-                    return
-                }
+                if (benefitPhoneTextField.text ?? "").isEmpty { showAlert(title: "Error", message: "Invalid Phone"); return }
             }
         }
-        
-        // ✅ Apple Pay doesn't need validation - proceed directly
         
         // Save booking to Firebase
         if let booking = bookingData {
@@ -700,21 +690,15 @@ extension PaymentViewController: UITextFieldDelegate {
         guard let stringRange = Range(range, in: currentText) else { return false }
         let updatedText = currentText.replacingCharacters(in: stringRange, with: string)
         
-        if textField == cardNumberTextField {
-            return updatedText.count <= 16
-        } else if textField == validThruTextField {
-            return updatedText.count <= 5
-        } else if textField == cvcTextField {
-            return updatedText.count <= 3
-        } else if textField == pinTextField {
-            return updatedText.count <= 4
-        } else if textField == ibanSuffixTextField {
-            // Only allow numbers and max 8 digits for the IBAN suffix
+        if textField == cardNumberTextField { return updatedText.count <= 16 }
+        else if textField == validThruTextField { return updatedText.count <= 5 }
+        else if textField == cvcTextField { return updatedText.count <= 3 }
+        else if textField == pinTextField { return updatedText.count <= 4 }
+        else if textField == ibanSuffixTextField {
             let allowedCharacters = CharacterSet.decimalDigits
             let characterSet = CharacterSet(charactersIn: string)
             return allowedCharacters.isSuperset(of: characterSet) && updatedText.count <= 8
         }
-        
         return true
     }
 }

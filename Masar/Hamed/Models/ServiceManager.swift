@@ -1,6 +1,6 @@
 import Foundation
 import FirebaseFirestore
-import FirebaseAuth // 🔥 1. ضروري جداً لجلب رقم المستخدم
+import FirebaseAuth
 
 class ServiceManager {
     
@@ -9,222 +9,129 @@ class ServiceManager {
     
     private init() {}
     
-    // MARK: - Save Booking (حفظ الحجز)
+    // =====================================================
+    // MARK: - 1. BOOKINGS (الحجوزات)
+    // =====================================================
+    
+    /// حفظ حجز جديد (يستخدمها الباحث)
     func saveBooking(booking: BookingModel, completion: @escaping (Bool) -> Void) {
-        print("💾 [ServiceManager] Starting to save booking...")
-        print("📋 [ServiceManager] Booking details:")
-        print("   - Service: \(booking.serviceName)")
-        print("   - Seeker: \(booking.seekerName)")
-        print("   - Email: \(booking.email ?? "N/A")")
-        print("   - Status: \(booking.status.rawValue)")
-        print("   - Date: \(booking.dateString)")
+        var finalBooking = booking
+        if finalBooking.seekerId == nil {
+            finalBooking.seekerId = Auth.auth().currentUser?.uid
+        }
         
         do {
-            let _ = try db.collection("bookings").addDocument(from: booking) { error in
-                if let error = error {
-                    print("❌ [ServiceManager] Error saving booking: \(error.localizedDescription)")
-                    completion(false)
-                } else {
-                    print("✅ [ServiceManager] Booking saved successfully to Firebase!")
-                    print("🔔 [ServiceManager] Snapshot listener should trigger now...")
-                    completion(true)
-                }
+            let _ = try db.collection("bookings").addDocument(from: finalBooking) { error in
+                completion(error == nil)
             }
         } catch {
-            print("❌ [ServiceManager] Encoding error: \(error.localizedDescription)")
+            print("Encoding Error: \(error)")
             completion(false)
         }
     }
     
-    // MARK: - Fetch All Bookings
-    func fetchAllBookings(completion: @escaping ([BookingModel]) -> Void) {
-        db.collection("bookings")
-            .order(by: "date", descending: false)
-            .addSnapshotListener { snapshot, error in
-            guard let documents = snapshot?.documents else {
-                print("No bookings found")
+    /// جلب حجوزات الباحث فقط (لشاشة History)
+    // MARK: - 1. دالة للباحث (Seeker) - تعرض حجوزاته فقط
+        func fetchBookings(completion: @escaping ([BookingModel]) -> Void) {
+            guard let uid = Auth.auth().currentUser?.uid else {
+                print("❌ Error: No user logged in!")
                 completion([])
                 return
             }
             
-            let bookings = documents.compactMap { document -> BookingModel? in
-                do {
-                    var booking = try document.data(as: BookingModel.self)
-                    // ✅ تحديث الـ ID من Firebase
-                    booking.id = document.documentID
-                    return booking
-                } catch {
-                    print("❌ Failed to decode booking: \(error)")
-                    return nil
+            print("🔍 أنا الآن أبحث عن حجوزات للمستخدم رقم: \(uid)")
+            
+            // ⚠️ ملاحظة: ألغيت الترتيب مؤقتاً للتأكد من ظهور البيانات
+            // بمجرد أن تعمل، سنعيد الترتيب وننشئ الفهرس
+            db.collection("bookings")
+                .whereField("seekerId", isEqualTo: uid)
+                //.order(by: "date", descending: true) // 👈 هذا السطر هو سبب المشكلة حالياً
+                .addSnapshotListener { snapshot, error in
+                    
+                    if let error = error {
+                        print("❌ خطأ في جلب البيانات: \(error.localizedDescription)")
+                        // 🔥 انتبه: إذا ظهر رابط في الكونسول هنا، انسخه وضعه في المتصفح
+                        completion([])
+                        return
+                    }
+                    
+                    guard let documents = snapshot?.documents else {
+                        print("⚠️ القائمة فارغة! لا توجد حجوزات لهذا المستخدم.")
+                        completion([])
+                        return
+                    }
+                    
+                    print("✅ وجدنا \(documents.count) حجز لهذا المستخدم!")
+                    
+                    let bookings = documents.compactMap { try? $0.data(as: BookingModel.self) }
+                    completion(bookings)
                 }
-            }
-            completion(bookings)
         }
-    }
     
-    // MARK: - Fetch Bookings for Seeker (حجوزات المستخدم فقط)
-    func fetchBookingsForSeeker(seekerEmail: String, completion: @escaping ([BookingModel]) -> Void) {
-        print("🔍 Starting fetch for email: \(seekerEmail)")
+    /// جلب حجوزات مقدم الخدمة فقط (لشاشة Provider Bookings & Dashboard)
+    /// 🔥 (هذه الدالة كانت تسبب لك مشكلة، الآن هي موجودة)
+    func fetchProviderBookings(completion: @escaping ([BookingModel]) -> Void) {
+        guard let uid = Auth.auth().currentUser?.uid else {
+            completion([])
+            return
+        }
         
         db.collection("bookings")
-            .whereField("email", isEqualTo: seekerEmail)
-            .addSnapshotListener { snapshot, error in
-                if let error = error {
-                    print("❌ Error fetching seeker bookings: \(error.localizedDescription)")
-                    completion([])
-                    return
-                }
-                
+            .whereField("providerId", isEqualTo: uid)
+            .order(by: "date", descending: true)
+            .addSnapshotListener { snapshot, _ in
                 guard let documents = snapshot?.documents else {
-                    print("⚠️ No documents in snapshot")
                     completion([])
                     return
                 }
-                
-                print("📦 Found \(documents.count) documents")
-                
-                let bookings = documents.compactMap { document -> BookingModel? in
-                    do {
-                        var booking = try document.data(as: BookingModel.self)
-                        // ✅ تحديث الـ ID من Firebase
-                        booking.id = document.documentID
-                        print("✅ Decoded booking: \(booking.serviceName)")
-                        return booking
-                    } catch {
-                        print("❌ Failed to decode booking: \(error)")
-                        return nil
-                    }
-                }
-                
-                print("✅ Successfully fetched \(bookings.count) bookings for: \(seekerEmail)")
+                let bookings = documents.compactMap { try? $0.data(as: BookingModel.self) }
                 completion(bookings)
             }
     }
     
-    // MARK: - Fetch Bookings for Provider (حجوزات Provider فقط) ✅ جديد
-    func fetchBookingsForProvider(providerId: String, completion: @escaping ([BookingModel]) -> Void) {
-        print("🔍 Starting fetch for provider: \(providerId)")
-        
-        db.collection("bookings")
-            .whereField("providerId", isEqualTo: providerId)
-            .addSnapshotListener { snapshot, error in
-                if let error = error {
-                    print("❌ Error fetching provider bookings: \(error.localizedDescription)")
-                    completion([])
-                    return
-                }
-                
-                guard let documents = snapshot?.documents else {
-                    print("⚠️ No documents in snapshot")
-                    completion([])
-                    return
-                }
-                
-                print("📦 Found \(documents.count) documents for provider")
-                
-                let bookings = documents.compactMap { document -> BookingModel? in
-                    do {
-                        var booking = try document.data(as: BookingModel.self)
-                        // ✅ CRITICAL: تحديث الـ ID من Firebase
-                        booking.id = document.documentID
-                        print("✅ Decoded booking: \(booking.serviceName) (ID: \(document.documentID))")
-                        return booking
-                    } catch {
-                        print("❌ Failed to decode booking: \(error)")
-                        return nil
-                    }
-                }
-                
-                print("✅ Successfully fetched \(bookings.count) bookings for provider: \(providerId)")
-                completion(bookings)
-            }
-    }
-    
-    // MARK: - Update Status
+    /// تحديث حالة الحجز (قبول/رفض/إكمال)
     func updateBookingStatus(bookingId: String, newStatus: BookingStatus, completion: @escaping (Bool) -> Void) {
-        print("🔄 Updating booking \(bookingId) to status: \(newStatus.rawValue)")
-        
-        db.collection("bookings").document(bookingId).updateData([
-            "status": newStatus.rawValue
-        ]) { error in
-            if let error = error {
-                print("❌ Error updating status: \(error)")
-                completion(false)
-            } else {
-                print("✅ Status updated successfully in Firebase")
-                completion(true)
-            }
+        db.collection("bookings").document(bookingId).updateData(["status": newStatus.rawValue]) { error in
+            completion(error == nil)
         }
     }
     
-    // MARK: - Fetch All Services
+    /// حذف حجز
+    func deleteBooking(bookingId: String, completion: @escaping (Bool) -> Void) {
+        db.collection("bookings").document(bookingId).delete { error in
+            completion(error == nil)
+        }
+    }
+    
+    // =====================================================
+    // MARK: - 2. SERVICES (إدارة الخدمات) - الجزء المفقود
+    // =====================================================
+    
+    /// جلب جميع الخدمات (لشاشة البحث الرئيسية)
     func fetchAllServices(completion: @escaping ([ServiceModel]) -> Void) {
-        db.collection("services").getDocuments { snapshot, error in
-            guard let documents = snapshot?.documents else {
-                completion([])
-                return
-            }
-            let services = documents.compactMap { try? $0.data(as: ServiceModel.self) }
+        db.collection("services").getDocuments { snapshot, _ in
+            let services = snapshot?.documents.compactMap { try? $0.data(as: ServiceModel.self) } ?? []
             completion(services)
         }
     }
-    // في ServiceManager.swift
-    func deleteBooking(bookingId: String, completion: @escaping (Bool) -> Void) {
-        let db = Firestore.firestore()
-        
-        db.collection("bookings").document(bookingId).delete { error in
-            if let error = error {
-                print("❌ Error deleting booking: \(error.localizedDescription)")
-                completion(false)
-            } else {
-                print("✅ Booking deleted successfully")
-                completion(true)
-            }
-        }
-    }
     
-    // MARK: - Fetch Services for Specific Provider
+    /// جلب خدمات مقدم خدمة معين (لشاشة Provider Services)
     func fetchServicesForProvider(providerId: String, completion: @escaping ([ServiceModel]) -> Void) {
         db.collection("services")
             .whereField("providerId", isEqualTo: providerId)
-            .getDocuments { snapshot, error in
-                if let error = error {
-                    print("❌ Error fetching services: \(error.localizedDescription)")
-                    completion([])
-                    return
-                }
-                
-                guard let documents = snapshot?.documents else {
-                    completion([])
-                    return
-                }
-                
-                let services = documents.compactMap { try? $0.data(as: ServiceModel.self) }
-                print("✅ Fetched \(services.count) services for provider: \(providerId)")
+            .getDocuments { snapshot, _ in
+                let services = snapshot?.documents.compactMap { try? $0.data(as: ServiceModel.self) } ?? []
                 completion(services)
             }
     }
     
-    // MARK: - Delete Service
-    func deleteService(serviceId: String, completion: @escaping (Error?) -> Void) {
-        db.collection("services").document(serviceId).delete { error in
-            completion(error)
-        }
-    }
-    
-    // MARK: - Add Service (🔥 تم التعديل هنا)
+    /// إضافة خدمة جديدة
     func addService(_ service: ServiceModel, completion: @escaping (Error?) -> Void) {
-        // ننسخ الخدمة لنتمكن من التعديل عليها
         var serviceToSave = service
         
-        // 🔥 Fix: التأكد من إضافة رقم الهوية (UID) قبل الحفظ
-        if serviceToSave.providerId == nil || serviceToSave.providerId?.isEmpty == true {
-            if let currentUser = Auth.auth().currentUser {
-                serviceToSave.providerId = currentUser.uid
-                print("✅ Auto-injected Provider ID: \(currentUser.uid)")
-            } else {
-                print("⚠️ Warning: No logged in user found when adding service")
-            }
+        // التأكد من إضافة ID المزود
+        if serviceToSave.providerId == nil {
+            serviceToSave.providerId = Auth.auth().currentUser?.uid
         }
         
         do {
@@ -234,12 +141,19 @@ class ServiceManager {
         }
     }
     
-    // MARK: - Update Service
+    /// تحديث خدمة موجودة 🔥 (كانت ناقصة)
     func updateService(_ service: ServiceModel, completion: @escaping (Error?) -> Void) {
         guard let id = service.id else { return }
         do {
             try db.collection("services").document(id).setData(from: service, completion: completion)
         } catch {
+            completion(error)
+        }
+    }
+    
+    /// حذف خدمة 🔥 (كانت ناقصة)
+    func deleteService(serviceId: String, completion: @escaping (Error?) -> Void) {
+        db.collection("services").document(serviceId).delete { error in
             completion(error)
         }
     }

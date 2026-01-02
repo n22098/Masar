@@ -10,17 +10,18 @@ class RatingsReviewsViewController: UIViewController {
     // MARK: - Properties
     private var ratings: [Rating] = []
     
-    // 🔥 إضافة الخصائص المطلوبة
+    // 🔥 الآيدي فقط (بدون اسم)
     var providerId: String?
-    var providerName: String?
     
     // MARK: - Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        // 🔥 تم حذف كود تغيير العنوان (Title)
+        
         setupTableView()
         fetchRatingsData()
         
-        // تحديث القائمة عند إضافة تقييم جديد
         NotificationCenter.default.addObserver(
             self,
             selector: #selector(fetchRatingsData),
@@ -34,9 +35,7 @@ class RatingsReviewsViewController: UIViewController {
     }
     
     private func setupTableView() {
-        // 🔥 FIX: التحقق من أن tableView ليس nil قبل استخدامه
         guard let tableView = tableView else {
-            print("⚠️ TableView is nil - check storyboard connections")
             return
         }
         
@@ -50,7 +49,9 @@ class RatingsReviewsViewController: UIViewController {
     }
     
     @objc private func fetchRatingsData() {
-        RatingService.shared.fetchRatings { [weak self] (fetchedRatings, error) in
+        guard let pId = providerId else { return }
+        
+        RatingService.shared.fetchRatings(for: pId) { [weak self] (fetchedRatings, error) in
             guard let self = self else { return }
             
             if let error = error {
@@ -60,14 +61,12 @@ class RatingsReviewsViewController: UIViewController {
             
             self.ratings = fetchedRatings
             self.updateHeader()
-            self.tableView?.reloadData() // 🔥 استخدام optional chaining
+            self.tableView?.reloadData()
         }
     }
     
     private func updateHeader() {
         let totalCount = ratings.count
-        
-        // 🔥 FIX: التحقق من أن الـ labels ليست nil
         totalRatingsLabel?.text = "\(totalCount) ratings"
         
         if totalCount > 0 {

@@ -14,16 +14,11 @@ class ServiceItemTableViewController: UITableViewController {
         if let realServices = providerData?.services, !realServices.isEmpty {
             return realServices
         }
-        return [
-            ServiceModel(name: "Website Starter", price: 85.0, description: "Includes responsive design, basic contact form."),
-            ServiceModel(name: "Business Website", price: 150.0, description: "Includes custom layout, database support.")
-        ]
+        return []
     }
     
     // MARK: - UI Components
-    
     private lazy var headerView: UIView = {
-        // 🔥 CHANGED: Reduced height from 350 to 290 to remove empty space
         let view = UIView(frame: CGRect(x: 0, y: 0, width: self.view.frame.width, height: 290))
         view.backgroundColor = UIColor(red: 248/255, green: 248/255, blue: 252/255, alpha: 1.0)
         return view
@@ -43,7 +38,7 @@ class ServiceItemTableViewController: UITableViewController {
     
     private let profileImageView: UIImageView = {
         let iv = UIImageView()
-        iv.contentMode = .scaleAspectFill
+        iv.contentMode = .scaleAspectFill // ✅ لملء الدائرة بالكامل
         iv.layer.cornerRadius = 40
         iv.clipsToBounds = true
         iv.layer.borderWidth = 2
@@ -78,10 +73,9 @@ class ServiceItemTableViewController: UITableViewController {
         return label
     }()
     
-    // --- Rating UI (Star Only) ---
+    // --- Rating UI ---
     private let ratingContainerView: UIView = {
         let view = UIView()
-        // Make background slightly lighter or clear
         view.backgroundColor = UIColor(red: 1.0, green: 0.98, blue: 0.90, alpha: 1.0)
         view.layer.cornerRadius = 8
         view.translatesAutoresizingMaskIntoConstraints = false
@@ -89,17 +83,12 @@ class ServiceItemTableViewController: UITableViewController {
     }()
     
     private let starImageView: UIImageView = {
-        // Star icon slightly larger since it's alone
         let iv = UIImageView(image: UIImage(systemName: "star.fill"))
         iv.tintColor = UIColor(red: 1.0, green: 0.70, blue: 0.0, alpha: 1.0)
         iv.contentMode = .scaleAspectFit
         iv.translatesAutoresizingMaskIntoConstraints = false
         return iv
     }()
-    
-    // ❌ REMOVED: ratingLabel
-    // ❌ REMOVED: ratingsCountLabel
-    // ❌ REMOVED: ratingStackView
     
     private lazy var infoStackView: UIStackView = {
         let stack = UIStackView()
@@ -111,7 +100,6 @@ class ServiceItemTableViewController: UITableViewController {
     }()
     
     // --- Buttons ---
-    
     private lazy var viewPortfolioButton: UIButton = {
         let btn = UIButton(type: .system)
         btn.setTitle("Portfolio", for: .normal)
@@ -129,7 +117,6 @@ class ServiceItemTableViewController: UITableViewController {
     private lazy var viewStatisticsButton: UIButton = {
         let btn = UIButton(type: .system)
         btn.setTitle("Stats", for: .normal)
-        // 🔥 CHANGED: Improved Design (Outline style to match Chat, cleaner)
         btn.setImage(UIImage(systemName: "chart.bar.xaxis"), for: .normal)
         btn.tintColor = brandColor
         btn.titleLabel?.font = UIFont.systemFont(ofSize: 12, weight: .bold)
@@ -176,22 +163,37 @@ class ServiceItemTableViewController: UITableViewController {
         populateData()
         setupRatingTapGesture()
         
-        fetchAverageRating() // Keep fetching logic, but we won't show text
+        // 🔥 جلب أحدث صورة للمزود من قاعدة البيانات (الحل لمشكلتك)
+        fetchProviderRealImage()
         
         tableView.register(ModernBookingCell.self, forCellReuseIdentifier: "ModernBookingCell")
     }
     
-    override func viewWillAppear(_ animated: Bool) {
-        super.viewWillAppear(animated)
-        fetchAverageRating()
-    }
-    
-    // MARK: - Fetch Data Logic
-    
-    private func fetchAverageRating() {
-        // We still fetch the data, but we removed the labels updating code
-        // as you requested to remove the text "5.0" and "0 ratings".
-        // The logic remains if you need it later.
+    // MARK: - 🔥 دالة جلب الصورة الحقيقية للمزود
+    private func fetchProviderRealImage() {
+        guard let providerId = providerData?.id else { return }
+        
+        // البحث في جدول المستخدمين عن صورة هذا المزود
+        db.collection("users").document(providerId).getDocument { [weak self] snapshot, error in
+            guard let self = self, let data = snapshot?.data(), error == nil else { return }
+            
+            // إذا وجدنا رابط صورة، نقوم بتحميلها
+            if let imageUrlString = data["profileImageURL"] as? String,
+               let url = URL(string: imageUrlString) {
+                
+                print("📸 Found provider image: \(imageUrlString)")
+                
+                DispatchQueue.global().async {
+                    if let imageData = try? Data(contentsOf: url),
+                       let image = UIImage(data: imageData) {
+                        DispatchQueue.main.async {
+                            // تحديث الصورة في الواجهة
+                            self.profileImageView.image = image
+                        }
+                    }
+                }
+            }
+        }
     }
     
     private func populateData() {
@@ -200,12 +202,9 @@ class ServiceItemTableViewController: UITableViewController {
         roleLabel.text = provider.role
         skillsLabel.text = provider.skills.joined(separator: " • ")
         
-        if let image = UIImage(named: provider.imageName) {
-            profileImageView.image = image
-        } else {
-            profileImageView.image = UIImage(systemName: "person.circle.fill")
-            profileImageView.tintColor = brandColor
-        }
+        // الصورة الافتراضية حتى يتم تحميل الصورة الحقيقية
+        profileImageView.image = UIImage(systemName: "person.circle.fill")
+        profileImageView.tintColor = brandColor
     }
     
     // MARK: - Setup UI
@@ -241,10 +240,8 @@ class ServiceItemTableViewController: UITableViewController {
     private func setupHeaderView() {
         headerView.addSubview(cardView)
         
-        // Removed labels from this array
         [profileImageView, nameLabel, roleLabel, skillsLabel, ratingContainerView, infoStackView, buttonsStackView].forEach { cardView.addSubview($0) }
         
-        // Only adding the star to the container
         ratingContainerView.addSubview(starImageView)
         
         let availabilityView = createInfoItem(icon: "clock.fill", text: providerData?.availability ?? "Sat-Thu")
@@ -254,19 +251,16 @@ class ServiceItemTableViewController: UITableViewController {
         [availabilityView, locationView, phoneView].forEach { infoStackView.addArrangedSubview($0) }
         
         NSLayoutConstraint.activate([
-            // Card
             cardView.topAnchor.constraint(equalTo: headerView.topAnchor, constant: 16),
             cardView.leadingAnchor.constraint(equalTo: headerView.leadingAnchor, constant: 16),
             cardView.trailingAnchor.constraint(equalTo: headerView.trailingAnchor, constant: -16),
             cardView.bottomAnchor.constraint(equalTo: headerView.bottomAnchor, constant: -16),
             
-            // Image
             profileImageView.topAnchor.constraint(equalTo: cardView.topAnchor, constant: 20),
             profileImageView.leadingAnchor.constraint(equalTo: cardView.leadingAnchor, constant: 20),
             profileImageView.widthAnchor.constraint(equalToConstant: 80),
             profileImageView.heightAnchor.constraint(equalToConstant: 80),
             
-            // Text
             nameLabel.topAnchor.constraint(equalTo: cardView.topAnchor, constant: 24),
             nameLabel.leadingAnchor.constraint(equalTo: profileImageView.trailingAnchor, constant: 16),
             nameLabel.trailingAnchor.constraint(equalTo: ratingContainerView.leadingAnchor, constant: -8),
@@ -279,25 +273,21 @@ class ServiceItemTableViewController: UITableViewController {
             skillsLabel.leadingAnchor.constraint(equalTo: nameLabel.leadingAnchor),
             skillsLabel.trailingAnchor.constraint(equalTo: cardView.trailingAnchor, constant: -20),
             
-            // Rating Container (Star Only)
             ratingContainerView.topAnchor.constraint(equalTo: cardView.topAnchor, constant: 20),
             ratingContainerView.trailingAnchor.constraint(equalTo: cardView.trailingAnchor, constant: -20),
-            ratingContainerView.widthAnchor.constraint(equalToConstant: 44), // Smaller width since only icon
             ratingContainerView.heightAnchor.constraint(equalToConstant: 44),
+            ratingContainerView.widthAnchor.constraint(equalToConstant: 44),
             
-            // Centering Star
             starImageView.centerXAnchor.constraint(equalTo: ratingContainerView.centerXAnchor),
             starImageView.centerYAnchor.constraint(equalTo: ratingContainerView.centerYAnchor),
-            starImageView.widthAnchor.constraint(equalToConstant: 24), // Bigger star
+            starImageView.widthAnchor.constraint(equalToConstant: 24),
             starImageView.heightAnchor.constraint(equalToConstant: 24),
             
-            // Info Strip
             infoStackView.topAnchor.constraint(equalTo: profileImageView.bottomAnchor, constant: 20),
             infoStackView.leadingAnchor.constraint(equalTo: cardView.leadingAnchor, constant: 20),
             infoStackView.trailingAnchor.constraint(equalTo: cardView.trailingAnchor, constant: -20),
             infoStackView.heightAnchor.constraint(equalToConstant: 50),
             
-            // Buttons
             buttonsStackView.topAnchor.constraint(equalTo: infoStackView.bottomAnchor, constant: 24),
             buttonsStackView.leadingAnchor.constraint(equalTo: cardView.leadingAnchor, constant: 16),
             buttonsStackView.trailingAnchor.constraint(equalTo: cardView.trailingAnchor, constant: -16),
@@ -341,32 +331,23 @@ class ServiceItemTableViewController: UITableViewController {
         return container
     }
     
-    // MARK: - Actions
+    // MARK: - Actions & Navigation
     
-    // 🔥 FIXED: تحميل من Provider.storyboard (اسم الـ Storyboard الصحيح)
     @objc private func ratingTapped() {
-        print("⭐ Rating tapped - navigating to reviews")
-        
-        let storyboard = UIStoryboard(name: "Provider", bundle: nil)
-        guard let ratingsVC = storyboard.instantiateViewController(withIdentifier: "RatingsReviewsViewController") as? RatingsReviewsViewController else {
-            print("❌ Failed to load RatingsReviewsViewController from storyboard")
-            print("💡 Make sure Storyboard ID is set in Identity Inspector")
-            return
+        var storyboard = UIStoryboard(name: "Provider", bundle: nil)
+        if Bundle.main.path(forResource: "Provider", ofType: "storyboardc") == nil {
+            storyboard = UIStoryboard(name: "Main", bundle: nil)
         }
-        
+        guard let ratingsVC = storyboard.instantiateViewController(withIdentifier: "RatingsReviewsViewController") as? RatingsReviewsViewController else { return }
         ratingsVC.providerId = providerData?.id
-        ratingsVC.providerName = providerData?.name ?? "Provider"
-        
         navigationController?.pushViewController(ratingsVC, animated: true)
     }
     
     @objc private func menuTapped() {
         let alert = UIAlertController(title: nil, message: nil, preferredStyle: .actionSheet)
         alert.addAction(UIAlertAction(title: "Share Provider", style: .default, handler: { _ in self.shareProvider() }))
-        
         let favTitle = isFavorite ? "Remove from Favorites" : "Add to Favorites"
         alert.addAction(UIAlertAction(title: favTitle, style: .default, handler: { _ in self.toggleFavorite() }))
-        
         alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
         if let popover = alert.popoverPresentationController {
             popover.barButtonItem = navigationItem.rightBarButtonItem
@@ -376,7 +357,6 @@ class ServiceItemTableViewController: UITableViewController {
     
     @objc private func chatTapped() {
         guard let provider = providerData else { return }
-        
         let chatUser = AppUser(
             id: provider.id,
             name: provider.name,
@@ -384,14 +364,12 @@ class ServiceItemTableViewController: UITableViewController {
             phone: provider.phone,
             profileImageName: provider.imageName
         )
-        
         let conversation = Conversation(
             id: provider.id,
             user: chatUser,
             lastMessage: "",
             lastUpdated: Date()
         )
-        
         let chatVC = ChatViewController(conversation: conversation)
         chatVC.hidesBottomBarWhenPushed = true
         navigationController?.pushViewController(chatVC, animated: true)
@@ -419,9 +397,7 @@ class ServiceItemTableViewController: UITableViewController {
     @objc private func fetchRealStatsAndShow() {
         let loadingAlert = UIAlertController(title: nil, message: "Fetching Stats...", preferredStyle: .alert)
         present(loadingAlert, animated: true)
-        
         let providerId = providerData?.id ?? ""
-        
         db.collection("bookings")
             .whereField("providerId", isEqualTo: providerId)
             .whereField("status", isEqualTo: "completed")
@@ -433,7 +409,6 @@ class ServiceItemTableViewController: UITableViewController {
             }
     }
     
-    // 🔥 CHANGED: Completely Redesigned Statistics Pop-up for a clean look
     private func showStatistics(jobs: Int, rate: Int, repeatC: Int, time: Int) {
         let statsVC = UIViewController()
         statsVC.modalPresentationStyle = .pageSheet
@@ -441,16 +416,13 @@ class ServiceItemTableViewController: UITableViewController {
             sheet.detents = [.medium()]
             sheet.prefersGrabberVisible = true
         }
-        
         statsVC.view.backgroundColor = .white
-        
         let titleLabel = UILabel()
         titleLabel.text = "Provider Performance"
         titleLabel.font = .systemFont(ofSize: 20, weight: .bold)
         titleLabel.textAlignment = .center
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
         
-        // Create 3 statistic cards
         let jobsView = createStatView(icon: "checkmark.circle.fill", value: "\(jobs)", title: "Jobs Done")
         let rateView = createStatView(icon: "star.circle.fill", value: "\(rate)%", title: "Success Rate")
         let timeView = createStatView(icon: "clock.fill", value: "\(time)h", title: "Response Time")
@@ -467,17 +439,14 @@ class ServiceItemTableViewController: UITableViewController {
         NSLayoutConstraint.activate([
             titleLabel.topAnchor.constraint(equalTo: statsVC.view.topAnchor, constant: 30),
             titleLabel.centerXAnchor.constraint(equalTo: statsVC.view.centerXAnchor),
-            
             stack.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 40),
             stack.leadingAnchor.constraint(equalTo: statsVC.view.leadingAnchor, constant: 20),
             stack.trailingAnchor.constraint(equalTo: statsVC.view.trailingAnchor, constant: -20),
             stack.heightAnchor.constraint(equalToConstant: 120)
         ])
-        
         present(statsVC, animated: true)
     }
     
-    // Helper for beautiful statistics design
     private func createStatView(icon: String, value: String, title: String) -> UIView {
         let view = UIView()
         view.backgroundColor = UIColor(red: 248/255, green: 248/255, blue: 252/255, alpha: 1)
@@ -518,7 +487,6 @@ class ServiceItemTableViewController: UITableViewController {
             titleLbl.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: -16),
             titleLbl.centerXAnchor.constraint(equalTo: view.centerXAnchor)
         ])
-        
         return view
     }
     

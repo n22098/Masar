@@ -47,8 +47,8 @@ class ProviderHubTableViewController: UITableViewController {
                             brandColor: brandColor)
         
         portfolioCell.configure(title: "Portfolio",
-                              iconName: "photo.on.rectangle.angled",
-                              brandColor: brandColor)
+                            iconName: "photo.on.rectangle.angled",
+                            brandColor: brandColor)
     }
 
     func setupNavigationBar() {
@@ -90,21 +90,18 @@ class ProviderHubTableViewController: UITableViewController {
         tableView.tableHeaderView = headerView
     }
     
-    // MARK: - Fetch Real Dashboard Data
+    // MARK: - Fetch Real Dashboard Data (🔥 تم الإصلاح هنا)
     func fetchDashboardData() {
-        guard let currentProvider = UserManager.shared.currentUser else { return }
-        
-        ServiceManager.shared.fetchAllBookings { [weak self] bookings in
+        // نستخدم fetchProviderBookings بدلاً من fetchAllBookings
+        ServiceManager.shared.fetchProviderBookings { [weak self] bookings in
             guard let self = self else { return }
             
-            // Filter bookings for this provider only
-            let providerBookings = bookings.filter { $0.providerName == currentProvider.name }
-            
-            self.totalBookings = providerBookings.count
-            self.completedBookings = providerBookings.filter { $0.status == .completed }.count
+            // البيانات القادمة هي فقط لهذا المزود، لا داعي للفلترة بالاسم
+            self.totalBookings = bookings.count
+            self.completedBookings = bookings.filter { $0.status == .completed }.count
             
             // Calculate average response time
-            self.averageResponseTime = self.calculateAverageResponseTime(bookings: providerBookings)
+            self.averageResponseTime = self.calculateAverageResponseTime(bookings: bookings)
             
             DispatchQueue.main.async {
                 // Recreate dashboard header with new data

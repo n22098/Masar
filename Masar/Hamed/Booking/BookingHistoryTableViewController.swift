@@ -31,7 +31,6 @@ class BookingHistoryTableViewController: UITableViewController {
         setupNavigationBar()
         setupUI()
         
-        // Ensure this matches the class name in your separate file
         tableView.register(ModernBookingHistoryCell.self, forCellReuseIdentifier: "ModernBookingHistoryCell")
         
         fetchBookingsFromFirebase()
@@ -42,12 +41,15 @@ class BookingHistoryTableViewController: UITableViewController {
         fetchBookingsFromFirebase()
     }
     
-    // MARK: - Firebase Fetching
+    // MARK: - Firebase Fetching (🔥 تم الإصلاح هنا)
     func fetchBookingsFromFirebase() {
-        ServiceManager.shared.fetchAllBookings { [weak self] bookings in
+        // نستخدم الدالة الجديدة fetchBookings بدلاً من fetchAllBookings
+        ServiceManager.shared.fetchBookings { [weak self] bookings in
             guard let self = self else { return }
+            
             self.allBookings = bookings
             self.filterBookings()
+            
             DispatchQueue.main.async {
                 self.tableView.reloadData()
             }
@@ -107,7 +109,7 @@ class BookingHistoryTableViewController: UITableViewController {
         updateBackgroundView()
     }
     
-    // MARK: - 🔥 Empty State Logic 🔥
+    // MARK: - Empty State Logic
     func updateBackgroundView() {
         if filteredBookings.isEmpty {
             let emptyView = UIView(frame: tableView.bounds)
@@ -128,14 +130,11 @@ class BookingHistoryTableViewController: UITableViewController {
             titleLabel.text = "No request history"
             titleLabel.font = UIFont.systemFont(ofSize: 22, weight: .bold)
             titleLabel.textColor = .black
-            titleLabel.textAlignment = .center
             
             let messageLabel = UILabel()
             messageLabel.text = "No history of requests made on Masar"
             messageLabel.font = UIFont.systemFont(ofSize: 16, weight: .regular)
             messageLabel.textColor = .gray
-            messageLabel.textAlignment = .center
-            messageLabel.numberOfLines = 0
             
             stackView.addArrangedSubview(imageView)
             stackView.addArrangedSubview(titleLabel)
@@ -145,9 +144,7 @@ class BookingHistoryTableViewController: UITableViewController {
             
             NSLayoutConstraint.activate([
                 stackView.centerXAnchor.constraint(equalTo: emptyView.centerXAnchor),
-                stackView.centerYAnchor.constraint(equalTo: emptyView.centerYAnchor, constant: -50),
-                stackView.leadingAnchor.constraint(equalTo: emptyView.leadingAnchor, constant: 40),
-                stackView.trailingAnchor.constraint(equalTo: emptyView.trailingAnchor, constant: -40)
+                stackView.centerYAnchor.constraint(equalTo: emptyView.centerYAnchor, constant: -50)
             ])
             
             tableView.backgroundView = emptyView
@@ -173,72 +170,16 @@ class BookingHistoryTableViewController: UITableViewController {
         
         cell.configure(with: booking)
         
-        // 🔥 HANDLE RATE BUTTON TAP HERE
-        // This closure is called when the user taps "Rate" in the cell
         cell.didTapRateButton = { [weak self] in
-            // Perform the segue to the Rating screen
             self?.performSegue(withIdentifier: "showRate", sender: booking)
         }
         
         return cell
     }
     
-    // MARK: - Delete Feature
-    override func tableView(_ tableView: UITableView, trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
-        
-        let deleteAction = UIContextualAction(style: .destructive, title: "Delete") { [weak self] (action, view, completionHandler) in
-            self?.confirmDeletion(at: indexPath)
-            completionHandler(true)
-        }
-        
-        deleteAction.backgroundColor = .systemRed
-        deleteAction.image = UIImage(systemName: "trash.fill")
-        
-        return UISwipeActionsConfiguration(actions: [deleteAction])
-    }
-    
-    func confirmDeletion(at indexPath: IndexPath) {
-        let alert = UIAlertController(title: "Delete Booking", message: "Are you sure you want to delete this booking history?", preferredStyle: .alert)
-        
-        alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
-        alert.addAction(UIAlertAction(title: "Delete", style: .destructive, handler: { [weak self] _ in
-            self?.deleteBooking(at: indexPath)
-        }))
-        
-        present(alert, animated: true)
-    }
-    
-    func deleteBooking(at indexPath: IndexPath) {
-        guard indexPath.row < filteredBookings.count else { return }
-        
-        let bookingToDelete = filteredBookings[indexPath.row]
-        guard let bookingId = bookingToDelete.id else { return }
-        
-        // 1. Remove from Local Data
-        filteredBookings.remove(at: indexPath.row)
-        
-        if let index = allBookings.firstIndex(where: { $0.id == bookingId }) {
-            allBookings.remove(at: index)
-        }
-        
-        // 2. Update Screen
-        tableView.deleteRows(at: [indexPath], with: .left)
-        updateBackgroundView()
-        
-        // 3. Delete from Database
-        Firestore.firestore().collection("bookings").document(bookingId).delete { error in
-            if let error = error {
-                print("Error removing from Firestore: \(error)")
-            } else {
-                print("Successfully deleted from Firestore")
-            }
-        }
-    }
-    
     // MARK: - Navigation
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
-        
         if indexPath.row < filteredBookings.count {
             let selectedBooking = filteredBookings[indexPath.row]
             performSegue(withIdentifier: "showBookingDetails", sender: selectedBooking)
@@ -246,7 +187,6 @@ class BookingHistoryTableViewController: UITableViewController {
     }
     
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-        // 1. Segue to Booking Details (Existing)
         if segue.identifier == "showBookingDetails",
            let destVC = segue.destination as? Bookinghistoryapp,
            let booking = sender as? BookingModel {
@@ -254,7 +194,6 @@ class BookingHistoryTableViewController: UITableViewController {
             
             destVC.onStatusChanged = { [weak self] newStatus in
                 guard let self = self else { return }
-                
                 if let index = self.allBookings.firstIndex(where: { $0.id == booking.id }) {
                     self.allBookings[index].status = newStatus
                 }
@@ -263,7 +202,6 @@ class BookingHistoryTableViewController: UITableViewController {
             }
         }
         
-        // 2. 🔥 Segue to Rating Screen (FIXED)
         if segue.identifier == "showRate",
            let ratingVC = segue.destination as? RatingViewController,
            let booking = sender as? BookingModel {

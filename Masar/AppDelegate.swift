@@ -23,6 +23,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             UserDefaults.standard.synchronize()
         }
         
+        // 🔥 FIXED: تطبيق Dark Mode فور تشغيل التطبيق
+        applyDarkModePreference()
+        
         return true
     }
 
@@ -33,5 +36,19 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
     func application(_ application: UIApplication, didDiscardSceneSessions sceneSessions: Set<UISceneSession>) {
         // Called when the user discards a scene session.
+    }
+    
+    // MARK: - 🔥 FIXED: Dark Mode Helper
+    private func applyDarkModePreference() {
+        let isDarkMode = UserDefaults.standard.bool(forKey: "isDarkMode")
+        let style: UIUserInterfaceStyle = isDarkMode ? .dark : .light
+        
+        // تطبيق على جميع النوافذ الموجودة
+        UIApplication.shared.connectedScenes
+            .compactMap { $0 as? UIWindowScene }
+            .flatMap { $0.windows }
+            .forEach { window in
+                window.overrideUserInterfaceStyle = style
+            }
     }
 }

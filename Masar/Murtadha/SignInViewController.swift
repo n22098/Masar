@@ -30,6 +30,64 @@ class SignInViewController: UIViewController, UITextFieldDelegate {
         
         // Apply Design
         setupProfessionalUI()
+        
+        // 🔥 تطبيق التوسيط وتكبير الصورة (الإصلاح الجديد)
+        centerContentProgrammatically()
+    }
+    
+    // MARK: - 🎨 Layout Fix
+    private func centerContentProgrammatically() {
+        guard let logo = logoImageView,
+              let email = emailTextField,
+              let pass = passwordTextField,
+              let forgot = forgotPasswordButton,
+              let signIn = signInButton,
+              let register = registerButton else { return }
+        
+        // إيقاف القيود القديمة
+        [logo, email, pass, forgot, signIn, register].forEach {
+            $0.translatesAutoresizingMaskIntoConstraints = false
+            $0.removeFromSuperview()
+        }
+        
+        // إنشاء StackView
+        let stackView = UIStackView(arrangedSubviews: [logo, email, pass, forgot, signIn, register])
+        stackView.axis = .vertical
+        stackView.spacing = 20
+        stackView.alignment = .fill
+        stackView.distribution = .fill
+        stackView.translatesAutoresizingMaskIntoConstraints = false
+        
+        // تخصيص المسافات
+        stackView.setCustomSpacing(30, after: logo) // قللت المسافة قليلاً لأن الشعار سيكبر
+        stackView.setCustomSpacing(10, after: pass)
+        stackView.setCustomSpacing(30, after: forgot)
+        
+        view.addSubview(stackView)
+        
+        // وضع القيود
+        NSLayoutConstraint.activate([
+            // توسيط عمودي
+            stackView.centerYAnchor.constraint(equalTo: view.centerYAnchor),
+            
+            // هوامش جانبية
+            stackView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 40),
+            stackView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -40),
+            
+            // 🔥 التعديل الجذري هنا:
+            // 1. زيادة الارتفاع إلى 230 كما طلبت
+            logo.heightAnchor.constraint(equalToConstant: 230),
+            
+            // ارتفاع الحقول والأزرار
+            email.heightAnchor.constraint(equalToConstant: 50),
+            pass.heightAnchor.constraint(equalToConstant: 50),
+            signIn.heightAnchor.constraint(equalToConstant: 50)
+        ])
+        
+        // 🔥 الحل السحري لتكبير الشعار:
+        // scaleAspectFill: يكبر الصورة لتملأ الارتفاع 230، حتى لو انقصت الحواف الشفافة
+        logo.contentMode = .scaleAspectFill
+        logo.clipsToBounds = true // لضمان عدم خروج الصورة عن الإطار
     }
     
     // MARK: - 🎨 Professional UI Setup
@@ -61,13 +119,12 @@ class SignInViewController: UIViewController, UITextFieldDelegate {
         
         forgotPasswordButton?.setTitleColor(.gray, for: .normal)
         forgotPasswordButton?.titleLabel?.font = UIFont.systemFont(ofSize: 14, weight: .regular)
+        forgotPasswordButton?.contentHorizontalAlignment = .right
         
         // 5. Style Logo
         if let logo = logoImageView {
-            logo.layer.shadowColor = UIColor.black.cgColor
-            logo.layer.shadowOpacity = 0.1
-            logo.layer.shadowOffset = CGSize(width: 0, height: 5)
-            logo.layer.shadowRadius = 5
+            logo.layer.shadowColor = UIColor.clear.cgColor
+            logo.backgroundColor = .clear
         }
     }
     
@@ -119,7 +176,6 @@ class SignInViewController: UIViewController, UITextFieldDelegate {
         if emailOrUsername.contains("@") {
             firebaseLogin(email: emailOrUsername, password: password)
         } else {
-            // Added [weak self] here to prevent memory leaks
             fetchEmailFromUsername(username: emailOrUsername) { [weak self] email in
                 guard let self = self else { return }
                 guard let email = email else {
@@ -153,7 +209,6 @@ class SignInViewController: UIViewController, UITextFieldDelegate {
             db.collection("users").document(uid).getDocument { [weak self] document, error in
                 guard let self = self else { return }
                 
-                // IMPORTANT: Ensure UI updates happen on Main Thread
                 DispatchQueue.main.async {
                     if let error = error {
                         self.showAlert("Error: \(error.localizedDescription)")
@@ -204,7 +259,6 @@ class SignInViewController: UIViewController, UITextFieldDelegate {
 
     // MARK: - Navigation
     private func redirectBasedOnRole(role: String) {
-        // Ensure SceneDelegate has the helper method 'navigateToStoryboard'
         if let sceneDelegate = UIApplication.shared.connectedScenes.first?.delegate as? SceneDelegate {
             if role.lowercased() == "provider" {
                 sceneDelegate.navigateToStoryboard("Provider")
@@ -216,7 +270,6 @@ class SignInViewController: UIViewController, UITextFieldDelegate {
 
     private func navigateToAdmin() {
         let storyboard = UIStoryboard(name: "admin", bundle: nil)
-        // Ensure the View Controller in 'admin.storyboard' is set as Initial View Controller
         if let adminVC = storyboard.instantiateInitialViewController() {
             if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
                let delegate = windowScene.delegate as? SceneDelegate,
