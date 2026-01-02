@@ -1,6 +1,5 @@
 import UIKit
 import FirebaseFirestore
-import FirebaseAuth
 
 class BookingHistoryTableViewController: UITableViewController {
     
@@ -32,6 +31,7 @@ class BookingHistoryTableViewController: UITableViewController {
         setupNavigationBar()
         setupUI()
         
+        // Ensure this matches the class name in your separate file
         tableView.register(ModernBookingHistoryCell.self, forCellReuseIdentifier: "ModernBookingHistoryCell")
         
         fetchBookingsFromFirebase()
@@ -43,25 +43,16 @@ class BookingHistoryTableViewController: UITableViewController {
     }
     
     // MARK: - Firebase Fetching
-    // MARK: - Firebase Fetching
-        func fetchBookingsFromFirebase() {
-            // 1. نتأكد من إيميل المستخدم الحالي
-            guard let currentUserEmail = Auth.auth().currentUser?.email else {
-                print("❌ No logged in user email found")
-                return
-            }
-            
-            // 2. نستدعي الدالة الخاصة ببحث السيكر
-            ServiceManager.shared.fetchBookingsForSeeker(seekerEmail: currentUserEmail) { [weak self] bookings in
-                guard let self = self else { return }
-                self.allBookings = bookings
-                self.filterBookings()
-                
-                DispatchQueue.main.async {
-                    self.tableView.reloadData()
-                }
+    func fetchBookingsFromFirebase() {
+        ServiceManager.shared.fetchAllBookings { [weak self] bookings in
+            guard let self = self else { return }
+            self.allBookings = bookings
+            self.filterBookings()
+            DispatchQueue.main.async {
+                self.tableView.reloadData()
             }
         }
+    }
     
     // MARK: - UI Setup
     func setupNavigationBar() {
@@ -113,38 +104,32 @@ class BookingHistoryTableViewController: UITableViewController {
         default: filteredBookings = allBookings
         }
         
-        // تحديث حالة "القائمة فارغة"
         updateBackgroundView()
     }
     
-    // MARK: - 🔥 Empty State Logic (تصميم الصفحة الفارغة مع الوجه) 🔥
+    // MARK: - 🔥 Empty State Logic 🔥
     func updateBackgroundView() {
         if filteredBookings.isEmpty {
             let emptyView = UIView(frame: tableView.bounds)
             
-            // StackView لترتيب العناصر فوق بعضها في المنتصف
             let stackView = UIStackView()
             stackView.axis = .vertical
             stackView.alignment = .center
             stackView.spacing = 16
             stackView.translatesAutoresizingMaskIntoConstraints = false
             
-            // 1. الأيقونة (الوجه الحزين)
             let imageView = UIImageView()
-            // استخدام أيقونة النظام التي تشبه الصورة تماماً
             let config = UIImage.SymbolConfiguration(pointSize: 70, weight: .regular)
             imageView.image = UIImage(systemName: "face.frowning", withConfiguration: config)
-            imageView.tintColor = brandColor // اللون البنفسجي
+            imageView.tintColor = brandColor
             imageView.contentMode = .scaleAspectFit
             
-            // 2. العنوان
             let titleLabel = UILabel()
             titleLabel.text = "No request history"
             titleLabel.font = UIFont.systemFont(ofSize: 22, weight: .bold)
             titleLabel.textColor = .black
             titleLabel.textAlignment = .center
             
-            // 3. النص الفرعي
             let messageLabel = UILabel()
             messageLabel.text = "No history of requests made on Masar"
             messageLabel.font = UIFont.systemFont(ofSize: 16, weight: .regular)
@@ -152,17 +137,15 @@ class BookingHistoryTableViewController: UITableViewController {
             messageLabel.textAlignment = .center
             messageLabel.numberOfLines = 0
             
-            // إضافة العناصر للـ StackView
             stackView.addArrangedSubview(imageView)
             stackView.addArrangedSubview(titleLabel)
             stackView.addArrangedSubview(messageLabel)
             
             emptyView.addSubview(stackView)
             
-            // قيود التخطيط (Constraints)
             NSLayoutConstraint.activate([
                 stackView.centerXAnchor.constraint(equalTo: emptyView.centerXAnchor),
-                stackView.centerYAnchor.constraint(equalTo: emptyView.centerYAnchor, constant: -50), // رفعها قليلاً للأعلى
+                stackView.centerYAnchor.constraint(equalTo: emptyView.centerYAnchor, constant: -50),
                 stackView.leadingAnchor.constraint(equalTo: emptyView.leadingAnchor, constant: 40),
                 stackView.trailingAnchor.constraint(equalTo: emptyView.trailingAnchor, constant: -40)
             ])
@@ -187,7 +170,16 @@ class BookingHistoryTableViewController: UITableViewController {
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "ModernBookingHistoryCell", for: indexPath) as! ModernBookingHistoryCell
         let booking = filteredBookings[indexPath.row]
+        
         cell.configure(with: booking)
+        
+        // 🔥 HANDLE RATE BUTTON TAP HERE
+        // This closure is called when the user taps "Rate" in the cell
+        cell.didTapRateButton = { [weak self] in
+            // Perform the segue to the Rating screen
+            self?.performSegue(withIdentifier: "showRate", sender: booking)
+        }
+        
         return cell
     }
     
@@ -231,8 +223,6 @@ class BookingHistoryTableViewController: UITableViewController {
         
         // 2. Update Screen
         tableView.deleteRows(at: [indexPath], with: .left)
-        
-        // 🛑 تحديث الواجهة الفارغة فوراً بعد الحذف
         updateBackgroundView()
         
         // 3. Delete from Database
@@ -256,7 +246,9 @@ class BookingHistoryTableViewController: UITableViewController {
     }
     
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-        if let destVC = segue.destination as? Bookinghistoryapp,
+        // 1. Segue to Booking Details (Existing)
+        if segue.identifier == "showBookingDetails",
+           let destVC = segue.destination as? Bookinghistoryapp,
            let booking = sender as? BookingModel {
             destVC.bookingData = booking
             
@@ -270,129 +262,15 @@ class BookingHistoryTableViewController: UITableViewController {
                 self.tableView.reloadData()
             }
         }
-    }
-}
-
-// MARK: - ModernBookingHistoryCell
-class ModernBookingHistoryCell: UITableViewCell {
-    
-    private let containerView: UIView = {
-        let view = UIView()
-        view.backgroundColor = .white
-        view.layer.cornerRadius = 16
-        view.layer.shadowColor = UIColor.black.cgColor
-        view.layer.shadowOpacity = 0.08
-        view.layer.shadowOffset = CGSize(width: 0, height: 4)
-        view.layer.shadowRadius = 8
-        view.translatesAutoresizingMaskIntoConstraints = false
-        return view
-    }()
-    
-    private let serviceNameLabel: UILabel = {
-        let label = UILabel()
-        label.font = UIFont.systemFont(ofSize: 18, weight: .bold)
-        label.textColor = .black
-        label.translatesAutoresizingMaskIntoConstraints = false
-        return label
-    }()
-    
-    private let providerNameLabel: UILabel = {
-        let label = UILabel()
-        label.font = UIFont.systemFont(ofSize: 14, weight: .medium)
-        label.textColor = .darkGray
-        label.translatesAutoresizingMaskIntoConstraints = false
-        return label
-    }()
-    
-    private let dateLabel: UILabel = {
-        let label = UILabel()
-        label.font = UIFont.systemFont(ofSize: 13, weight: .regular)
-        label.textColor = .gray
-        label.translatesAutoresizingMaskIntoConstraints = false
-        return label
-    }()
-    
-    private let priceLabel: UILabel = {
-        let label = UILabel()
-        label.font = UIFont.systemFont(ofSize: 17, weight: .heavy)
-        label.textColor = UIColor(red: 98/255, green: 84/255, blue: 243/255, alpha: 1.0)
-        label.textAlignment = .right
-        label.translatesAutoresizingMaskIntoConstraints = false
-        return label
-    }()
-    
-    private let statusLabel: UILabel = {
-        let label = UILabel()
-        label.font = UIFont.systemFont(ofSize: 12, weight: .bold)
-        label.textAlignment = .center
-        label.layer.cornerRadius = 8
-        label.layer.masksToBounds = true
-        label.translatesAutoresizingMaskIntoConstraints = false
-        return label
-    }()
-    
-    override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
-        super.init(style: style, reuseIdentifier: reuseIdentifier)
-        setupUI()
-    }
-    
-    required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
-    
-    private func setupUI() {
-        backgroundColor = .clear
-        selectionStyle = .none
         
-        contentView.addSubview(containerView)
-        containerView.addSubview(serviceNameLabel)
-        containerView.addSubview(providerNameLabel)
-        containerView.addSubview(dateLabel)
-        containerView.addSubview(priceLabel)
-        containerView.addSubview(statusLabel)
-        
-        NSLayoutConstraint.activate([
-            containerView.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 8),
-            containerView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
-            containerView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
-            containerView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -8),
-            
-            serviceNameLabel.topAnchor.constraint(equalTo: containerView.topAnchor, constant: 16),
-            serviceNameLabel.leadingAnchor.constraint(equalTo: containerView.leadingAnchor, constant: 16),
-            serviceNameLabel.trailingAnchor.constraint(lessThanOrEqualTo: statusLabel.leadingAnchor, constant: -8),
-            
-            providerNameLabel.topAnchor.constraint(equalTo: serviceNameLabel.bottomAnchor, constant: 4),
-            providerNameLabel.leadingAnchor.constraint(equalTo: serviceNameLabel.leadingAnchor),
-            
-            dateLabel.topAnchor.constraint(equalTo: providerNameLabel.bottomAnchor, constant: 8),
-            dateLabel.leadingAnchor.constraint(equalTo: serviceNameLabel.leadingAnchor),
-            dateLabel.bottomAnchor.constraint(equalTo: containerView.bottomAnchor, constant: -16),
-            
-            statusLabel.topAnchor.constraint(equalTo: containerView.topAnchor, constant: 16),
-            statusLabel.trailingAnchor.constraint(equalTo: containerView.trailingAnchor, constant: -16),
-            statusLabel.heightAnchor.constraint(equalToConstant: 24),
-            statusLabel.widthAnchor.constraint(greaterThanOrEqualToConstant: 80),
-            
-            priceLabel.bottomAnchor.constraint(equalTo: containerView.bottomAnchor, constant: -16),
-            priceLabel.trailingAnchor.constraint(equalTo: containerView.trailingAnchor, constant: -16),
-        ])
-    }
-    
-    func configure(with booking: BookingModel) {
-        serviceNameLabel.text = booking.serviceName
-        providerNameLabel.text = booking.providerName
-        dateLabel.text = "📅 \(booking.dateString)"
-        priceLabel.text = booking.priceString
-        statusLabel.text = "  \(booking.status.rawValue)  "
-        
-        switch booking.status {
-        case .upcoming:
-            statusLabel.textColor = UIColor(red: 255/255, green: 149/255, blue: 0/255, alpha: 1)
-            statusLabel.backgroundColor = UIColor(red: 255/255, green: 149/255, blue: 0/255, alpha: 0.1)
-        case .completed:
-            statusLabel.textColor = UIColor(red: 52/255, green: 199/255, blue: 89/255, alpha: 1)
-            statusLabel.backgroundColor = UIColor(red: 52/255, green: 199/255, blue: 89/255, alpha: 0.1)
-        case .canceled:
-            statusLabel.textColor = UIColor(red: 255/255, green: 59/255, blue: 48/255, alpha: 1)
-            statusLabel.backgroundColor = UIColor(red: 255/255, green: 59/255, blue: 48/255, alpha: 0.1)
+        // 2. Segue to Rating Screen (NEW)
+        if segue.identifier == "showRate" {
+            // Note: You can pass data to the rating screen here if needed.
+            // Example:
+            // if let rateVC = segue.destination as? RateYourFeedbackViewController,
+            //    let booking = sender as? BookingModel {
+            //     rateVC.booking = booking
+            // }
         }
     }
 }

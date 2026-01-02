@@ -32,52 +32,20 @@ class BookingsProviderTableViewController: UITableViewController {
         // fetchDataFromFirebase() // يمكنك تفعيلها هنا أيضاً إذا أردت تحديثاً مستمراً
     }
     
-    // MARK: - Firebase Fetching 📡 ✅ تم تحديثه
+    // MARK: - Firebase Fetching 📡
     private func fetchDataFromFirebase() {
         // إضافة مؤشر تحميل بسيط في العنوان
         self.title = "Loading..."
         
-        // ✅ جلب Provider ID من المستخدم الحالي
-        // ✅ جلب Provider ID من المستخدم الحالي
-        guard let currentUser = UserManager.shared.currentUser else {
-            print("❌ No current user found")
-            self.title = "Bookings"
-            self.showNoProviderAlert()
-            return
-        }
-
-        let providerId = currentUser.id
-
-        guard !providerId.isEmpty else {
-            print("❌ Provider ID is empty")
-            self.title = "Bookings"
-            self.showNoProviderAlert()
-            return
-        }
-
-        print("🔍 Fetching bookings for provider: \(providerId)")
-        
-        // ✅ استخدام الدالة الجديدة
-        ServiceManager.shared.fetchBookingsForProvider(providerId: providerId) { [weak self] bookings in
+        ServiceManager.shared.fetchAllBookings { [weak self] bookings in
             guard let self = self else { return }
             
             DispatchQueue.main.async {
                 self.title = "Bookings"
                 self.allBookings = bookings
-                print("📋 Loaded \(bookings.count) bookings")
-                self.updateListForCurrentSegment()
+                self.updateListForCurrentSegment() // تحديث القائمة بناءً على الفلتر الحالي
             }
         }
-    }
-    
-    private func showNoProviderAlert() {
-        let alert = UIAlertController(
-            title: "Error",
-            message: "Provider ID not found. Please make sure you are logged in as a provider.",
-            preferredStyle: .alert
-        )
-        alert.addAction(UIAlertAction(title: "OK", style: .default))
-        present(alert, animated: true)
     }
     
     // MARK: - Setup UI
@@ -246,3 +214,5 @@ class BookingsProviderTableViewController: UITableViewController {
         }
     }
 }
+
+// (BookingProviderCell يبقى كما هو بدون تغيير)

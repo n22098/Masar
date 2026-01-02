@@ -1028,7 +1028,7 @@
                     </tableView>
                     <navigationItem key="navigationItem" title="Booking Details" id="bkt-uW-4lU"/>
                     <connections>
-                        <outlet property="cancelButton" destination="ZyB-83-s3q" id="0Nc-tu-rKx"/>
+                        <outlet property="cancelButton" destination="ZyB-83-s3q" id="oL0-eI-Bpv"/>
                         <outlet property="completeButton" destination="0MZ-Ca-V4T" id="Asd-Vf-JiJ"/>
                         <outlet property="dateLabel" destination="K3z-Y7-bkW" id="14F-B0-Um0"/>
                         <outlet property="descriptionLabel" destination="tZD-Zx-e0e" id="qxA-HE-c4F"/>
@@ -1756,7 +1756,7 @@
                 </tableViewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="lnF-0y-tCU" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="1172" y="-473"/>
+            <point key="canvasLocation" x="1198" y="-492"/>
         </scene>
         <!--Profile-->
         <scene sceneID="QSh-R0-WQA">
@@ -2020,7 +2020,7 @@
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <stackView opaque="NO" contentMode="scaleToFill" fixedFrame="YES" axis="vertical" distribution="fillProportionally" spacing="15" translatesAutoresizingMaskIntoConstraints="NO" id="MJ2-td-9I8">
-                                <rect key="frame" x="30" y="202" width="114.33333333333331" height="297.66666666666663"/>
+                                <rect key="frame" x="30" y="202.00000000000003" width="114.33333333333331" height="297.66666666666674"/>
                                 <subviews>
                                     <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="person.fill" catalog="system" translatesAutoresizingMaskIntoConstraints="NO" id="h8N-Sd-BDR">
                                         <rect key="frame" x="0.0" y="1.6666666666666661" width="114.33333333333333" height="17"/>
@@ -2576,7 +2576,7 @@
         <!--Rating-->
         <scene sceneID="59D-Sn-RxD">
             <objects>
-                <viewController storyboardIdentifier="Rating" modalPresentationStyle="fullScreen" id="oZg-MV-8eA" customClass="RatingViewController" customModule="Masar" customModuleProvider="target" sceneMemberID="viewController">
+                <viewController storyboardIdentifier="RatingViewController" modalPresentationStyle="fullScreen" useStoryboardIdentifierAsRestorationIdentifier="YES" id="oZg-MV-8eA" customClass="RatingViewController" customModule="Masar" customModuleProvider="target" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="SE7-iT-6kn">
                         <rect key="frame" x="0.0" y="0.0" width="393" height="852"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
@@ -2692,11 +2692,12 @@
                     <connections>
                         <outlet property="feedbackTextView" destination="q0N-Ly-KPw" id="WJx-nT-EvA"/>
                         <outlet property="starStackView" destination="edA-75-uPT" id="lP4-eE-IN9"/>
+                        <outlet property="submitButton" destination="qkJ-b7-3zS" id="zCp-i8-TRS"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="0Ni-Oy-Zps" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="2120" y="-473"/>
+            <point key="canvasLocation" x="2120" y="-460"/>
         </scene>
         <!--Messages-->
         <scene sceneID="EmF-nG-Jwn">

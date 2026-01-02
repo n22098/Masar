@@ -5,6 +5,7 @@ class ProviderServicesTableViewController: UITableViewController {
     // MARK: - Properties
     let brandColor = UIColor(red: 0.35, green: 0.34, blue: 0.91, alpha: 1.0)
     
+    // 👇 التعديل 1: المصفوفة تبدأ فارغة لانتظار البيانات من Firebase
     var myServices: [ServiceModel] = []
     
     var selectedServiceIndex: Int?
@@ -19,53 +20,22 @@ class ProviderServicesTableViewController: UITableViewController {
         super.viewWillAppear(animated)
         setupNavigationBar()
         
-        // جلب البيانات من Firebase في كل مرة تظهر الشاشة
+        // 👇 التعديل 2: جلب البيانات من Firebase في كل مرة تظهر الشاشة
         fetchServicesFromFirebase()
     }
     
-    // MARK: - Firebase Fetching ✅ تم تحديثه
+    // MARK: - Firebase Fetching
     func fetchServicesFromFirebase() {
-        // إضافة مؤشر تحميل بسيط في العنوان
+        // إضافة مؤشر تحميل بسيط في العنوان (اختياري)
         self.title = "Updating..."
         
-        // ✅ جلب Provider ID من المستخدم الحالي
-        guard let currentUser = UserManager.shared.currentUser else {
-            print("❌ No current user found")
-            self.title = "Services"
-            showNoProviderAlert()
-            return
-        }
-        
-        let providerId = currentUser.id
-        
-        guard !providerId.isEmpty else {
-            print("❌ Provider ID is empty")
-            self.title = "Services"
-            showNoProviderAlert()
-            return
-        }
-        
-        print("🔍 Fetching services for provider: \(providerId)")
-        
-        // ✅ استخدام fetchServicesForProvider بدلاً من fetchAllServices
-        ServiceManager.shared.fetchServicesForProvider(providerId: providerId) { [weak self] services in
+        ServiceManager.shared.fetchAllServices { [weak self] services in
             DispatchQueue.main.async {
                 self?.title = "Services"
                 self?.myServices = services
-                print("📋 Loaded \(services.count) services")
                 self?.tableView.reloadData()
             }
         }
-    }
-    
-    private func showNoProviderAlert() {
-        let alert = UIAlertController(
-            title: "Error",
-            message: "Provider ID not found. Please make sure you are logged in as a provider.",
-            preferredStyle: .alert
-        )
-        alert.addAction(UIAlertAction(title: "OK", style: .default))
-        present(alert, animated: true)
     }
     
     // MARK: - Setup UI
@@ -186,6 +156,7 @@ class ProviderServicesTableViewController: UITableViewController {
         return UISwipeActionsConfiguration(actions: [deleteAction, editAction])
     }
     
+    // 👇 التعديل 3: دالة الحذف المرتبطة بـ Firebase
     private func deleteService(at indexPath: IndexPath) {
         let service = myServices[indexPath.row]
         let serviceName = service.name
@@ -235,6 +206,7 @@ class ProviderServicesTableViewController: UITableViewController {
                     selectedServiceIndex = nil
                 }
                 
+                // 👇 التعديل 4: التعامل مع الحفظ (إضافة أو تحديث)
                 destVC.onSaveComplete = { [weak self] updatedService in
                     guard let self = self else { return }
                     
@@ -244,8 +216,8 @@ class ProviderServicesTableViewController: UITableViewController {
                             if let error = error {
                                 print("Error updating: \(error)")
                             } else {
-                                print("✅ Successfully updated service")
-                                self.fetchServicesFromFirebase()
+                                print("Successfully updated service")
+                                self.fetchServicesFromFirebase() // إعادة تحميل القائمة
                             }
                         }
                     } else {
@@ -254,8 +226,8 @@ class ProviderServicesTableViewController: UITableViewController {
                             if let error = error {
                                 print("Error adding: \(error)")
                             } else {
-                                print("✅ Successfully added service")
-                                self.fetchServicesFromFirebase()
+                                print("Successfully added service")
+                                self.fetchServicesFromFirebase() // إعادة تحميل القائمة
                             }
                         }
                     }
@@ -270,6 +242,7 @@ class ProviderServicesTableViewController: UITableViewController {
 }
 
 // MARK: - Service Cell Class
+// (نفس الكلاس الخاص بك تماماً، لم يتغير)
 class ServiceCell: UITableViewCell {
     
     private let containerView: UIView = {
@@ -337,8 +310,7 @@ class ServiceCell: UITableViewCell {
     }
     
     required init?(coder: NSCoder) {
-        super.init(coder: coder)
-        setupUI()
+        fatalError("init(coder:) has not been implemented")
     }
     
     private func setupUI() {

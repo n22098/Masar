@@ -345,7 +345,13 @@ class ServiceItemTableViewController: UITableViewController {
     @objc private func ratingTapped() {
         print("⭐ Rating tapped - navigating to reviews")
         
-        let ratingsVC = RatingsReviewsViewController()
+        // 🔥 FIX: تحميل الـ Storyboard بشكل صريح
+        let storyboard = UIStoryboard(name: "Provider", bundle: nil)
+        guard let ratingsVC = storyboard.instantiateViewController(withIdentifier: "RatingsReviewsViewController") as? RatingsReviewsViewController else {
+            print("❌ Failed to load RatingsReviewsViewController from storyboard")
+            return
+        }
+        
         ratingsVC.providerId = providerData?.id
         ratingsVC.providerName = providerData?.name ?? "Provider"
         
