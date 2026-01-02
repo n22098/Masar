@@ -167,7 +167,7 @@
                                     <fontDescription key="titleFontDescription" type="system" pointSize="13"/>
                                 </buttonConfiguration>
                                 <connections>
-                                    <action selector="submitRatingTapped:" destination="Bzt-Ej-kAo" eventType="touchUpInside" id="Yh1-fl-4Us"/>
+                                    <action selector="submitRatingTapped:" destination="Bzt-Ej-kAo" eventType="touchUpInside" id="HUn-GI-Wsf"/>
                                 </connections>
                             </button>
                             <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Write Your Feedback:" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="qfl-Tj-5p9">
@@ -213,6 +213,11 @@
                         </constraints>
                     </view>
                     <navigationItem key="navigationItem" title="Rating" id="3ci-SS-9y8"/>
+                    <connections>
+                        <outlet property="feedbackTextView" destination="2Gu-3Z-Wr3" id="8fh-4M-bKl"/>
+                        <outlet property="starStackView" destination="2PO-q1-QSr" id="S0z-5s-0Xb"/>
+                        <outlet property="submitButton" destination="Nhf-v0-kqD" id="lnC-yu-1vZ"/>
+                    </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="9xk-8P-UuQ" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
@@ -998,7 +1003,7 @@
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <stackView opaque="NO" contentMode="scaleToFill" fixedFrame="YES" axis="vertical" distribution="fillProportionally" spacing="15" translatesAutoresizingMaskIntoConstraints="NO" id="Ghw-Bx-bWw">
-                                <rect key="frame" x="30" y="202.00000000000003" width="114.33333333333331" height="297.66666666666674"/>
+                                <rect key="frame" x="30" y="202" width="114.33333333333331" height="297.66666666666669"/>
                                 <subviews>
                                     <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="person.fill" catalog="system" translatesAutoresizingMaskIntoConstraints="NO" id="lLe-Zt-Gel">
                                         <rect key="frame" x="0.0" y="1.6666666666666661" width="114.33333333333333" height="17"/>
