@@ -160,7 +160,7 @@ The app supports booking management, communication, reviews, provider verificati
 ## Admin Login Credentials
 - **Username:** admin
 - **Email:** admin@masar.com  
-- **Password:** Admin@123  
+- **Password:** admin123 
 
 >  For testing purposes only.
 
