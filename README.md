@@ -6,8 +6,8 @@
 ---
 
 ## GitHub Repository Link (Public)
-[> ⚠️ Make sure the repository is set to **Public**.
-](https://github.com/n22098/Masar.git)
+
+(https://github.com/n22098/Masar.git)
 ---
 
 ## Group Members
@@ -160,7 +160,7 @@ The app supports booking management, communication, reviews, provider verificati
 - **Email:** admin@masar.com  
 - **Password:** Admin@123  
 
-> ⚠️ For testing purposes only.
+>  For testing purposes only.
 
 ---
 
