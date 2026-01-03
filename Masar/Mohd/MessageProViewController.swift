@@ -2,209 +2,132 @@ import UIKit
 import FirebaseFirestore
 import FirebaseAuth
 
-// MARK: - Main View Controller
-class MessageProViewController: UIViewController {
+class MessageProViewController: UIViewController, UITableViewDelegate, UITableViewDataSource {
 
-    // MARK: - IBOutlets
     @IBOutlet weak var tableView: UITableView!
-    @IBOutlet weak var emptyStateView: UIView!
+    @IBOutlet weak var emptyStateView: UIView! // تأكد من ربطه أو حذفه إذا لم يكن موجوداً
     
-    // MARK: - Properties
-    // نستخدم MessageConversation الموجود في الملف الخارجي
     private var conversations: [MessageConversation] = []
     private let db = Firestore.firestore()
-    private let brandColor = UIColor(red: 98/255, green: 84/255, blue: 243/255, alpha: 1.0)
     
-    // MARK: - Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
-        
-        print("🟣 [MessagePro] View did load")
-        
         setupTableView()
-        setupNavigationBar()
         startListeningForConversations()
     }
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
+        // إخفاء البار العلوي في القائمة لإعطاء شكل نظيف
         navigationController?.setNavigationBarHidden(true, animated: animated)
     }
-
-    override func viewWillDisappear(_ animated: Bool) {
-        super.viewWillDisappear(animated)
-        navigationController?.setNavigationBarHidden(false, animated: animated)
-    }
     
-    // MARK: - Setup
     private func setupTableView() {
-        if tableView != nil {
-            tableView.delegate = self
-            tableView.dataSource = self
-            tableView.rowHeight = 80
-            tableView.separatorInset = UIEdgeInsets(top: 0, left: 88, bottom: 0, right: 0)
-            print("✅ [MessagePro] TableView configured from Storyboard")
-        } else {
-            print("⚠️ [MessagePro] TableView outlet not connected!")
-        }
-        
-        emptyStateView?.isHidden = true
+        tableView.delegate = self
+        tableView.dataSource = self
+        tableView.tableFooterView = UIView() // إزالة الخطوط الزائدة
+        tableView.rowHeight = 80
     }
     
-    private func setupNavigationBar() {
-        navigationController?.navigationBar.isHidden = true
-    }
-    
-    // MARK: - Firebase
     private func startListeningForConversations() {
-        guard let currentUid = Auth.auth().currentUser?.uid else {
-            print("❌ [MessagePro] No logged in user")
-            showEmptyState()
-            return
-        }
-        
-        print("🔍 [MessagePro] Listening for conversations for user: \(currentUid)")
+        guard let currentUid = Auth.auth().currentUser?.uid else { return }
         
         db.collection("conversations")
             .whereField("participants", arrayContains: currentUid)
             .addSnapshotListener { [weak self] snapshot, error in
                 guard let self = self else { return }
                 
-                if let error = error {
-                    print("❌ [MessagePro] Error: \(error.localizedDescription)")
-                    self.showEmptyState()
-                    return
-                }
-                
-                guard let documents = snapshot?.documents else {
-                    print("⚠️ [MessagePro] No snapshot documents")
-                    self.showEmptyState()
-                    return
-                }
-                
-                print("📦 [MessagePro] Found \(documents.count) conversations")
-                
-                if documents.isEmpty {
-                    self.showEmptyState()
+                guard let documents = snapshot?.documents, !documents.isEmpty else {
                     self.conversations = []
-                    DispatchQueue.main.async {
-                        self.tableView?.reloadData()
-                    }
+                    self.tableView.reloadData()
                     return
                 }
                 
                 var newConversations: [MessageConversation] = []
                 let group = DispatchGroup()
-
+                
                 for doc in documents {
                     let data = doc.data()
                     let conversationId = doc.documentID
-                    let lastMessage = (data["lastMessage"] as? String) ?? (data["LastMessage"] as? String) ?? "Tap to start chatting"
-                    let ts = (data["updatedAt"] as? Timestamp) ?? (data["lastUpdated"] as? Timestamp)
-                    let date = ts?.dateValue() ?? Date()
                     let participants = data["participants"] as? [String] ?? []
                     
-                    print("   📧 [MessagePro] Conversation: \(conversationId)")
-
                     if let otherUserId = participants.first(where: { $0 != currentUid }) {
                         group.enter()
-                        self.db.collection("users").document(otherUserId).getDocument { userSnap, error in
+                        self.db.collection("users").document(otherUserId).getDocument { userSnap, _ in
                             defer { group.leave() }
+                            let userData = userSnap?.data()
+                            let name = userData?["name"] as? String ?? "Unknown"
+                            let email = userData?["email"] as? String ?? ""
                             
-                            if let error = error {
-                                print("   ❌ [MessagePro] Error fetching user \(otherUserId): \(error.localizedDescription)")
-                                return
-                            }
+                            let lastMsg = data["lastMessage"] as? String ?? ""
+                            let ts = (data["updatedAt"] as? Timestamp)?.dateValue() ?? Date()
                             
-                            let name = userSnap?.data()?["name"] as? String ?? "Unknown User"
-                            let email = userSnap?.data()?["email"] as? String ?? ""
-                            print("   👤 [MessagePro] Found user: \(name)")
-                            
-                            let conversation = MessageConversation(
+                            let conv = MessageConversation(
                                 id: conversationId,
                                 otherUserId: otherUserId,
                                 otherUserName: name,
                                 otherUserEmail: email,
-                                lastMessage: lastMessage,
-                                lastUpdated: date
+                                lastMessage: lastMsg,
+                                lastUpdated: ts
                             )
-                            newConversations.append(conversation)
+                            newConversations.append(conv)
                         }
                     }
                 }
-
+                
                 group.notify(queue: .main) {
                     self.conversations = newConversations.sorted(by: { $0.lastUpdated > $1.lastUpdated })
-                    print("✅ [MessagePro] Loaded \(self.conversations.count) conversations")
-                    self.hideEmptyState()
-                    self.tableView?.reloadData()
+                    self.tableView.reloadData()
                 }
             }
     }
     
-    // MARK: - Empty State
-    private func showEmptyState() {
-        DispatchQueue.main.async {
-            self.emptyStateView?.isHidden = false
-            self.tableView?.isHidden = true
-            print("📭 [MessagePro] Showing empty state")
-        }
-    }
-    
-    private func hideEmptyState() {
-        DispatchQueue.main.async {
-            self.emptyStateView?.isHidden = true
-            self.tableView?.isHidden = false
-            print("✅ [MessagePro] Hiding empty state")
-        }
-    }
-}
-
-// MARK: - TableView DataSource & Delegate
-extension MessageProViewController: UITableViewDataSource, UITableViewDelegate {
-    
+    // MARK: - TableView Data Source
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        let count = conversations.count
-        print("📊 [MessagePro] Number of rows: \(count)")
-        return count
+        return conversations.count
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        guard let cell = tableView.dequeueReusableCell(withIdentifier: "ConversationCell", for: indexPath) as? ConversationCell else {
-            print("❌ [MessagePro] Failed to dequeue ConversationCell")
-            return UITableViewCell()
-        }
+        // تأكد أن الـ Identifier في الستوري بورد هو "ConversationCell"
+        let cell = tableView.dequeueReusableCell(withIdentifier: "ConversationCell", for: indexPath)
         
         let conversation = conversations[indexPath.row]
-        cell.configure(with: conversation)
         
-        print("   🔧 [MessagePro] Configured cell for: \(conversation.otherUserName)")
+        // 🔥 محاولة ضبط البيانات سواء كان كلاس مخصص أو عادي
+        if let convCell = cell as? ConversationCell {
+            convCell.configure(with: conversation)
+        } else {
+            // Fallback: إذا لم تكن الخلية مخصصة، نستخدم الإعدادات الافتراضية
+            var content = cell.defaultContentConfiguration()
+            content.text = conversation.otherUserName
+            content.secondaryText = conversation.lastMessage
+            content.image = UIImage(systemName: "person.circle.fill")
+            content.imageProperties.tintColor = UIColor(red: 98/255, green: 84/255, blue: 243/255, alpha: 1)
+            cell.contentConfiguration = content
+        }
         
         return cell
     }
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
-        
         let conversation = conversations[indexPath.row]
-        print("👆 [MessagePro] Selected conversation with: \(conversation.otherUserName)")
         
-        // ✅ الانتقال للشات - التعديل الجديد ليتوافق مع SimpleChatViewController
+        // 🔥 الانتقال لنفس شاشة الشات الموحدة
         let chatVC = SimpleChatViewController()
-        
-        // تحويل بيانات المحادثة إلى AppUser لتمريرها للشات
         let otherUser = AppUser(
             id: conversation.otherUserId,
             name: conversation.otherUserName,
             email: conversation.otherUserEmail,
-            phone: "", // غير متوفرة هنا ولا نحتاجها في الشات
-            role: "seeker" // افتراضي، سيتم تحديثه في الشات
+            phone: "",
+            role: "seeker"
         )
-        
         chatVC.otherUser = otherUser
         chatVC.conversationId = conversation.id
-        chatVC.title = conversation.otherUserName
+        chatVC.hidesBottomBarWhenPushed = true
         
+        // إظهار البار العلوي عند الدخول للشات
+        navigationController?.setNavigationBarHidden(false, animated: true)
         navigationController?.pushViewController(chatVC, animated: true)
     }
 }

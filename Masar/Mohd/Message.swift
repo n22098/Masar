@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import FirebaseFirestore
 
 struct Message {
     let id: String
@@ -14,7 +15,5 @@ struct Message {
     let text: String?
     let imageURL: String?
     let timestamp: Date
+    let isRead: Bool // 🔥 إضافة لمعرفة هل قرأ الرسالة أم لا
 }
-
-
-

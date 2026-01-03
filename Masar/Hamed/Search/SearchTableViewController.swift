@@ -16,6 +16,7 @@ class SearchTableViewController: UITableViewController {
     private let searchController = UISearchController(searchResultsController: nil)
     private var currentSort: SortOption = .nameAZ
     
+    // شريط التصنيفات
     private lazy var categorySegment: UISegmentedControl = {
         let sc = UISegmentedControl(items: ["All"])
         sc.selectedSegmentIndex = 0
@@ -29,10 +30,44 @@ class SearchTableViewController: UITableViewController {
             .foregroundColor: UIColor(red: 98/255, green: 84/255, blue: 243/255, alpha: 1),
             .font: UIFont.systemFont(ofSize: 14, weight: .semibold)
         ], for: .selected)
-        sc.layer.cornerRadius = 12
-        sc.clipsToBounds = true
         sc.addTarget(self, action: #selector(segmentChanged(_:)), for: .valueChanged)
         return sc
+    }()
+    
+    // زر الترتيب في الهيدر
+    private lazy var sortHeaderButton: UIButton = {
+        let btn = UIButton(type: .system)
+        
+        // Icon changed to Sort Icon
+        let config = UIImage.SymbolConfiguration(pointSize: 20, weight: .semibold)
+        btn.setImage(UIImage(systemName: "line.3.horizontal.decrease.circle", withConfiguration: config), for: .normal)
+        
+        // Same styling
+        btn.tintColor = UIColor(red: 98/255, green: 84/255, blue: 243/255, alpha: 1)
+        btn.backgroundColor = .white
+        
+        btn.layer.cornerRadius = 12
+        btn.layer.shadowColor = UIColor.black.cgColor
+        btn.layer.shadowOpacity = 0.08
+        btn.layer.shadowOffset = CGSize(width: 0, height: 2)
+        btn.layer.shadowRadius = 6
+        
+        btn.translatesAutoresizingMaskIntoConstraints = false
+        btn.addTarget(self, action: #selector(sortTapped), for: .touchUpInside)
+        return btn
+    }()
+    
+    // كونتينر شريط البحث
+    private lazy var searchBarContainer: UIView = {
+        let view = UIView()
+        view.backgroundColor = .white
+        view.layer.cornerRadius = 12
+        view.layer.shadowColor = UIColor.black.cgColor
+        view.layer.shadowOpacity = 0.08
+        view.layer.shadowOffset = CGSize(width: 0, height: 2)
+        view.layer.shadowRadius = 6
+        view.translatesAutoresizingMaskIntoConstraints = false
+        return view
     }()
     
     var allProviders: [ServiceProviderModel] = []
@@ -91,7 +126,6 @@ class SearchTableViewController: UITableViewController {
             group.leave()
         }
         
-        // Fetch from provider_requests
         group.enter()
         db.collection("provider_requests").whereField("status", isEqualTo: "approved").getDocuments { snapshot, _ in
             snapshot?.documents.forEach { doc in
@@ -102,16 +136,13 @@ class SearchTableViewController: UITableViewController {
             group.leave()
         }
         
-        // FIXED: Also fetch from users collection for providers
         group.enter()
         db.collection("users").whereField("role", isEqualTo: "provider").getDocuments { snapshot, _ in
             snapshot?.documents.forEach { doc in
                 let uid = doc.documentID
-                // Merge with provider_requests data if exists, otherwise use users data
                 if providersDataMap[uid] == nil {
                     providersDataMap[uid] = doc.data()
                 } else {
-                    // Merge data - prefer provider_requests but fill in missing fields from users
                     var mergedData = providersDataMap[uid] ?? [:]
                     doc.data().forEach { key, value in
                         if mergedData[key] == nil {
@@ -166,13 +197,15 @@ class SearchTableViewController: UITableViewController {
         appearance.configureWithOpaqueBackground()
         appearance.backgroundColor = UIColor(red: 98/255, green: 84/255, blue: 243/255, alpha: 1)
         appearance.largeTitleTextAttributes = [.foregroundColor: UIColor.white]
+        
         navigationController?.navigationBar.standardAppearance = appearance
         navigationController?.navigationBar.scrollEdgeAppearance = appearance
         navigationController?.navigationBar.compactAppearance = appearance
         navigationController?.navigationBar.tintColor = .white
         
-        let sortButton = UIBarButtonItem(image: UIImage(systemName: "line.3.horizontal.decrease.circle"), style: .plain, target: self, action: #selector(sortTapped))
-        navigationItem.rightBarButtonItem = sortButton
+        // زر التنبيهات في الأعلى (Nav Bar)
+        let notifButton = UIBarButtonItem(image: UIImage(systemName: "bell.fill"), style: .plain, target: self, action: #selector(notificationsTapped))
+        navigationItem.rightBarButtonItem = notifButton
     }
     
     private func setupSearchController() {
@@ -181,9 +214,6 @@ class SearchTableViewController: UITableViewController {
         searchController.searchBar.placeholder = "Search provider..."
         searchController.searchBar.searchBarStyle = .minimal
         searchController.searchBar.backgroundColor = .clear
-        
-        // FIXED: Remove from navigation, will add to table header instead
-        // navigationItem.searchController = searchController
         definesPresentationContext = true
     }
     
@@ -192,37 +222,58 @@ class SearchTableViewController: UITableViewController {
         tableView.backgroundColor = UIColor(red: 248/255, green: 248/255, blue: 252/255, alpha: 1)
         tableView.register(ProviderTableCell.self, forCellReuseIdentifier: "ProviderCell")
         
-        // FIXED: Create header with search bar
         let headerView = createHeaderView()
         tableView.tableHeaderView = headerView
     }
     
     private func createHeaderView() -> UIView {
-        let totalHeight: CGFloat = 120
-        let headerView = UIView(frame: CGRect(x: 0, y: 0, width: view.frame.width, height: totalHeight))
+        let headerHeight: CGFloat = 120
+        let headerView = UIView(frame: CGRect(x: 0, y: 0, width: view.frame.width, height: headerHeight))
         headerView.backgroundColor = UIColor(red: 248/255, green: 248/255, blue: 252/255, alpha: 1)
         
-        // Add search bar
-        let searchBarContainer = UIView(frame: CGRect(x: 16, y: 8, width: view.frame.width - 32, height: 52))
-        searchBarContainer.backgroundColor = .white
-        searchBarContainer.layer.cornerRadius = 12
-        searchBarContainer.layer.shadowColor = UIColor.black.cgColor
-        searchBarContainer.layer.shadowOpacity = 0.08
-        searchBarContainer.layer.shadowOffset = CGSize(width: 0, height: 2)
-        searchBarContainer.layer.shadowRadius = 8
-        
-        searchController.searchBar.frame = searchBarContainer.bounds
-        searchBarContainer.addSubview(searchController.searchBar)
         headerView.addSubview(searchBarContainer)
-        
-        // Add category segment
-        categorySegment.frame = CGRect(x: 16, y: 68, width: view.frame.width - 32, height: 40)
+        headerView.addSubview(sortHeaderButton)
         headerView.addSubview(categorySegment)
+        
+        searchController.searchBar.translatesAutoresizingMaskIntoConstraints = false
+        searchBarContainer.addSubview(searchController.searchBar)
+        
+        categorySegment.translatesAutoresizingMaskIntoConstraints = false
+        
+        NSLayoutConstraint.activate([
+            sortHeaderButton.topAnchor.constraint(equalTo: headerView.topAnchor, constant: 10),
+            sortHeaderButton.trailingAnchor.constraint(equalTo: headerView.trailingAnchor, constant: -16),
+            sortHeaderButton.widthAnchor.constraint(equalToConstant: 50),
+            sortHeaderButton.heightAnchor.constraint(equalToConstant: 50),
+            
+            searchBarContainer.topAnchor.constraint(equalTo: headerView.topAnchor, constant: 10),
+            searchBarContainer.leadingAnchor.constraint(equalTo: headerView.leadingAnchor, constant: 16),
+            searchBarContainer.trailingAnchor.constraint(equalTo: sortHeaderButton.leadingAnchor, constant: -10),
+            searchBarContainer.heightAnchor.constraint(equalToConstant: 50),
+            
+            searchController.searchBar.topAnchor.constraint(equalTo: searchBarContainer.topAnchor),
+            searchController.searchBar.bottomAnchor.constraint(equalTo: searchBarContainer.bottomAnchor),
+            searchController.searchBar.leadingAnchor.constraint(equalTo: searchBarContainer.leadingAnchor),
+            searchController.searchBar.trailingAnchor.constraint(equalTo: searchBarContainer.trailingAnchor),
+            
+            categorySegment.topAnchor.constraint(equalTo: searchBarContainer.bottomAnchor, constant: 16),
+            categorySegment.leadingAnchor.constraint(equalTo: headerView.leadingAnchor, constant: 16),
+            categorySegment.trailingAnchor.constraint(equalTo: headerView.trailingAnchor, constant: -16),
+            categorySegment.heightAnchor.constraint(equalToConstant: 40)
+        ])
         
         return headerView
     }
     
-    // MARK: - Actions & Sorting
+    // MARK: - Actions
+    
+    @objc private func notificationsTapped() {
+        // بما أنك أنشأت الملف، سيتعرف عليه هنا تلقائياً
+        let notificationsVC = NotificationsViewController()
+        notificationsVC.hidesBottomBarWhenPushed = true
+        navigationController?.pushViewController(notificationsVC, animated: true)
+    }
+    
     @objc private func sortTapped() {
         let alert = UIAlertController(title: "Sort By", message: nil, preferredStyle: .actionSheet)
         alert.addAction(UIAlertAction(title: "Name (A-Z)", style: .default) { _ in self.applySorting(to: .nameAZ) })
@@ -236,7 +287,6 @@ class SearchTableViewController: UITableViewController {
     private func applySorting(to option: SortOption? = nil) {
         if let option = option { self.currentSort = option }
         
-        // Fix: Explicit type annotations and optional handling for sorting
         filteredProviders.sort { (p1: ServiceProviderModel, p2: ServiceProviderModel) -> Bool in
             let price1 = p1.services?.compactMap({ $0.price }).min() ?? 0.0
             let price2 = p2.services?.compactMap({ $0.price }).min() ?? 0.0
@@ -269,6 +319,18 @@ class SearchTableViewController: UITableViewController {
         applySorting()
     }
     
+    private func handlePhoneCall(for phoneNumber: String) {
+        let cleanNumber = phoneNumber.components(separatedBy: CharacterSet.decimalDigits.inverted).joined()
+        if let url = URL(string: "tel://\(cleanNumber)"), UIApplication.shared.canOpenURL(url) {
+            UIApplication.shared.open(url)
+        } else {
+            let alert = UIAlertController(title: "Call Provider", message: "Call \(phoneNumber)?", preferredStyle: .alert)
+            alert.addAction(UIAlertAction(title: "Call", style: .default))
+            alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
+            present(alert, animated: true)
+        }
+    }
+    
     // MARK: - TableView
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return filteredProviders.count
@@ -276,7 +338,11 @@ class SearchTableViewController: UITableViewController {
     
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "ProviderCell", for: indexPath) as! ProviderTableCell
-        cell.configure(with: filteredProviders[indexPath.row])
+        let provider = filteredProviders[indexPath.row]
+        cell.configure(with: provider)
+        cell.onCallTapped = { [weak self] in
+            self?.handlePhoneCall(for: provider.phone)
+        }
         return cell
     }
     
@@ -295,7 +361,7 @@ class SearchTableViewController: UITableViewController {
     }
 }
 
-// MARK: - Fix: Search Results Updating Conformance
+// MARK: - Extensions
 extension SearchTableViewController: UISearchResultsUpdating {
     func updateSearchResults(for searchController: UISearchController) {
         filterProvidersByCategory()
@@ -304,6 +370,8 @@ extension SearchTableViewController: UISearchResultsUpdating {
 
 // MARK: - Provider Cell
 class ProviderTableCell: UITableViewCell {
+    var onCallTapped: (() -> Void)?
+    
     private let containerView: UIView = {
         let view = UIView()
         view.backgroundColor = .white
@@ -345,6 +413,16 @@ class ProviderTableCell: UITableViewCell {
         return label
     }()
     
+    private lazy var callButton: UIButton = {
+        let btn = UIButton(type: .system)
+        let config = UIImage.SymbolConfiguration(pointSize: 24, weight: .medium)
+        btn.setImage(UIImage(systemName: "phone.circle.fill", withConfiguration: config), for: .normal)
+        btn.tintColor = UIColor(red: 98/255, green: 84/255, blue: 243/255, alpha: 1)
+        btn.translatesAutoresizingMaskIntoConstraints = false
+        btn.addTarget(self, action: #selector(callButtonTapped), for: .touchUpInside)
+        return btn
+    }()
+    
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
         setupUI()
@@ -356,7 +434,7 @@ class ProviderTableCell: UITableViewCell {
         backgroundColor = .clear
         selectionStyle = .none
         contentView.addSubview(containerView)
-        [avatarImageView, nameLabel, roleLabel, priceLabel].forEach { containerView.addSubview($0) }
+        [avatarImageView, nameLabel, roleLabel, priceLabel, callButton].forEach { containerView.addSubview($0) }
         
         NSLayoutConstraint.activate([
             containerView.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 6),
@@ -371,27 +449,37 @@ class ProviderTableCell: UITableViewCell {
             
             nameLabel.topAnchor.constraint(equalTo: containerView.topAnchor, constant: 16),
             nameLabel.leadingAnchor.constraint(equalTo: avatarImageView.trailingAnchor, constant: 12),
+            nameLabel.trailingAnchor.constraint(lessThanOrEqualTo: callButton.leadingAnchor, constant: -8),
             
             roleLabel.topAnchor.constraint(equalTo: nameLabel.bottomAnchor, constant: 2),
             roleLabel.leadingAnchor.constraint(equalTo: nameLabel.leadingAnchor),
+            roleLabel.trailingAnchor.constraint(lessThanOrEqualTo: callButton.leadingAnchor, constant: -8),
             
             priceLabel.topAnchor.constraint(equalTo: roleLabel.bottomAnchor, constant: 4),
-            priceLabel.leadingAnchor.constraint(equalTo: nameLabel.leadingAnchor)
+            priceLabel.leadingAnchor.constraint(equalTo: nameLabel.leadingAnchor),
+            
+            callButton.centerYAnchor.constraint(equalTo: containerView.centerYAnchor),
+            callButton.trailingAnchor.constraint(equalTo: containerView.trailingAnchor, constant: -16),
+            callButton.widthAnchor.constraint(equalToConstant: 44),
+            callButton.heightAnchor.constraint(equalToConstant: 44)
         ])
+    }
+    
+    @objc private func callButtonTapped() {
+        let generator = UIImpactFeedbackGenerator(style: .medium)
+        generator.impactOccurred()
+        onCallTapped?()
     }
     
     func configure(with provider: ServiceProviderModel) {
         nameLabel.text = provider.name
         roleLabel.text = provider.role
-        
-        // FIXED: Set purple color for avatar icon
         avatarImageView.image = UIImage(systemName: "person.circle.fill")
         avatarImageView.tintColor = UIColor(red: 98/255, green: 84/255, blue: 243/255, alpha: 1)
         
-        // Fix: Use Optional Chaining for services and extract price
         let prices = provider.services?.compactMap({ $0.price }) ?? []
         if let minPrice = prices.min() {
-            priceLabel.text = String(format: "Starts at BHD %.3f", minPrice)
+            priceLabel.text = String(format: "Starts from %.3f BHD ", minPrice)
         } else {
             priceLabel.text = "Contact for price"
         }

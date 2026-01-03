@@ -40,11 +40,15 @@ class SignUpSeekerViewController: UIViewController, UITextFieldDelegate {
         // تنسيق الحقول
         styleTextField(nameTextField, iconName: "person")
         styleTextField(emailTextField, iconName: "envelope")
+        
+        // ★★★ CHANGE 1: Set keyboard type to numbers for phone field ★★★
+        phoneNumberTextField.keyboardType = .numberPad
         styleTextField(phoneNumberTextField, iconName: "phone")
+        
         styleTextField(usernameTextField, iconName: "at")
         styleTextField(passwordTextField, iconName: "lock")
         styleTextField(confirmPasswordTextField, iconName: "lock.shield")
-        
+       
         // تنسيق زر التسجيل
         if let btn = signUpButton {
             btn.backgroundColor = brandColor
@@ -57,9 +61,9 @@ class SignUpSeekerViewController: UIViewController, UITextFieldDelegate {
             btn.layer.shadowOffset = CGSize(width: 0, height: 4)
             btn.layer.shadowRadius = 8
         }
-        
+       
         // تم حذف كود تنسيق السويتش
-        
+         
         // تنسيق الشعار
         logoImageView?.contentMode = .scaleAspectFit
     }
@@ -70,14 +74,14 @@ class SignUpSeekerViewController: UIViewController, UITextFieldDelegate {
         textField.layer.borderColor = UIColor.systemGray5.cgColor
         textField.backgroundColor = UIColor.systemGray6.withAlphaComponent(0.4)
         textField.textColor = .label
-        
+       
         let iconContainer = UIView(frame: CGRect(x: 0, y: 0, width: 45, height: 50))
         let iconView = UIImageView(frame: CGRect(x: 12, y: 14, width: 22, height: 22))
         iconView.image = UIImage(systemName: iconName)
         iconView.tintColor = brandColor
         iconView.contentMode = .scaleAspectFit
         iconContainer.addSubview(iconView)
-        
+       
         textField.leftView = iconContainer
         textField.leftViewMode = .always
     }
@@ -110,12 +114,26 @@ class SignUpSeekerViewController: UIViewController, UITextFieldDelegate {
         return true
     }
     
+    // ★★★ CHANGE 2: Restrict input to numbers only for the Phone Field ★★★
+    func textField(_ textField: UITextField, shouldChangeCharactersIn range: NSRange, replacementString string: String) -> Bool {
+        // If the text field is the phone number field
+        if textField == phoneNumberTextField {
+            // Create a character set of digits (0-9)
+            let allowedCharacters = CharacterSet.decimalDigits
+            let characterSet = CharacterSet(charactersIn: string)
+            
+            // Allow backspace (empty string) or numbers only
+            return allowedCharacters.isSuperset(of: characterSet)
+        }
+        return true
+    }
+    
     // MARK: - Actions
 
     // زر التسجيل (تم تعديله لإزالة منطق السويتش)
     @IBAction func signUpBtn(_ sender: UIButton) {
         // ❌ تم حذف الشرط الذي يتحقق من السويتش
-        
+       
         guard validateInputs() else { return }
 
         let email = emailTextField.text!.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -136,7 +154,7 @@ class SignUpSeekerViewController: UIViewController, UITextFieldDelegate {
                     return
                 }
                 guard let uid = authResult?.user.uid else { return }
-                
+              
                 // حفظ البيانات في Firestore كـ Seeker
                 let userData: [String: Any] = [
                     "uid": uid, "name": name, "email": email, "username": username, "phone": phone,
@@ -175,6 +193,13 @@ class SignUpSeekerViewController: UIViewController, UITextFieldDelegate {
             showAlert("All fields are required.")
             return false
         }
+        
+        // ★★★ CHANGE 3: Check Phone Number Length (>= 8) ★★★
+        if let phone = phoneNumberTextField.text, phone.count < 8 {
+            showAlert("Phone number must be at least 8 digits.")
+            return false
+        }
+        
         if passwordTextField.text != confirmPasswordTextField.text {
             showAlert("Passwords do not match.")
             return false

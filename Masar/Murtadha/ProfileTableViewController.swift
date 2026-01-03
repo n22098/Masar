@@ -9,7 +9,7 @@ class ProfileTableViewController: UITableViewController {
     // MARK: - Properties
     let brandColor = UIColor(red: 98/255, green: 84/255, blue: 243/255, alpha: 1.0)
     
-    // ⚠️⚠️ إعدادات Cloudinary (تم التعديل بناءً على بياناتك) ⚠️⚠️
+    // ⚠️⚠️ إعدادات Cloudinary ⚠️⚠️
     let cloudinaryCloudName = "dsjx9ehz2"
     let cloudinaryUploadPreset = "ml_default"
 
@@ -319,8 +319,87 @@ class ProfileTableViewController: UITableViewController {
         present(contentVC, animated: true)
     }
     
-    func getAboutText() -> String { return "About Masar text..." }
-    func getPrivacyPolicyText() -> String { return "Privacy Policy text..." }
+    // 🔥 تم تحديث النصوص هنا 🔥
+    func getAboutText() -> String {
+        return """
+        Welcome to Masar!
+
+        At Masar, we believe in the power of community — where people can share their skills, offer their services, and connect with others who need them. Our mobile application is designed to make it easier for individuals in the Kingdom of Bahrain to find, offer, and exchange local skills and services in a convenient and trustworthy way.
+
+        Our Mission
+        Empower individuals and small service providers by giving them a platform to showcase their talents and connect with people who need their expertise.
+        Whether you’re a handyman, tutor, designer, or mechanic, Masar helps you reach those who need your help quickly and easily.
+
+        What We Offer
+        • Skill & Service Search:
+        Browse and search for local professionals or individuals offering the services you need — from home repairs to photography, tutoring, and more.
+
+        • Service Posting:
+        If you have a skill or service to offer, create a profile and post your services within minutes. Let others in your community find and hire you with ease.
+
+        • Secure Communication:
+        Contact service providers or clients directly through our secure in-app messaging feature — fast, safe, and simple.
+
+        • Ratings & Reviews:
+        We value trust and transparency. That’s why users can rate and review each other’s services to help maintain quality and reliability across the community.
+
+        • Location-Based Results:
+        Find nearby service providers instantly using our location-based search — connecting you with people in your area who can help right away.
+
+        • User-Friendly Interface:
+        Our app is built with simplicity and usability in mind. Whether you’re offering a service or searching for one, Masar makes it straightforward and intuitive for everyone.
+
+        Our Vision
+        We aim to create a connected community in Bahrain where skills, services, and opportunities can be exchanged with ease.
+        Masar aspires to become the go-to local platform for people to discover, collaborate, and grow together.
+
+        Join Us
+        Download Masar today and become part of a community built on trust, collaboration, and local connection. Whether you’re looking for help or ready to offer your expertise.
+
+        Masar is here to make it happen.
+        East or west Masar is the Best!
+        """
+    }
+    
+    func getPrivacyPolicyText() -> String {
+        return """
+        Masar operates the Local Skills & Services Exchange application.
+        This page is used to inform Masar users regarding our policies with the collection, use, and disclosure of personal information if anyone decides to use our Service.
+
+        By using the Masar app, you agree to the collection and use of information in accordance with this policy. The personal information that we collect is used for providing, improving, and personalizing our Service. We will not use or share your information with anyone except as described in this Privacy Policy.
+
+        Information Collection and Use
+        To enhance your experience while using our Service, we may require you to provide certain personally identifiable information, including but not limited to your full name, phone number, location, and service preferences. The information we collect will be used to:
+        • Help match users seeking skills or services with those providing them.
+        • Facilitate communication between users.
+        • Improve and personalize your experience in the app.
+
+        Service Providers
+        We may employ third-party companies and individuals for the following purposes:
+        • To assist in improving our Service;
+        • To provide the Service on our behalf;
+        • To analyze app usage and performance.
+
+        These third parties may have access to your personal information only to perform these tasks on our behalf and are obligated not to disclose or use it for any other purpose.
+
+        Security
+        We value your trust in providing your personal information and strive to use commercially acceptable means to protect it. However, please remember that no method of transmission over the internet, or method of electronic storage, is 100% secure.
+
+        Links to Other Sites
+        Our Service may contain links to third-party sites. If you click on a third-party link, you will be directed to that site. We are not responsible for the content or privacy policies of these websites and strongly advise you to review their policies.
+
+        Children’s Privacy
+        Our Service does not address anyone under the age of 13. We do not knowingly collect personal information from children under 13.
+
+        Changes to This Privacy Policy
+        We may update this Privacy Policy from time to time. You are advised to review this page periodically for any changes. Changes are effective immediately after being posted on this page.
+
+        Contact Us
+        If you have any questions or suggestions about our Privacy Policy, feel free to contact us at:
+        Masar@gmail.com
+        +973-39871234
+        """
+    }
 }
 
 // MARK: - ☁️ Cloudinary Upload Extension
@@ -449,7 +528,7 @@ extension ProfileTableViewController: PHPickerViewControllerDelegate {
     }
 }
 
-// الكلاسات المساعدة (لا تغيير عليها)
+// MARK: - Helper Classes
 class SwitchCell: UITableViewCell {
     private let iconImageView = UIImageView()
     private let titleLabel = UILabel()

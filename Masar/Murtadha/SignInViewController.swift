@@ -28,11 +28,28 @@ class SignInViewController: UIViewController, UITextFieldDelegate {
         emailTextField.delegate = self
         passwordTextField.delegate = self
         
+        // 🔥 NEW: Configure Return Keys
+        emailTextField.returnKeyType = .next  // Shows "Next" on keyboard
+        passwordTextField.returnKeyType = .go // Shows "Go" on keyboard
+        
         // Apply Design
         setupProfessionalUI()
         
         // 🔥 تطبيق التوسيط وتكبير الصورة (الإصلاح الجديد)
         centerContentProgrammatically()
+    }
+    
+    // MARK: - 🔥 NEW: Handle Return Key Logic
+    func textFieldShouldReturn(_ textField: UITextField) -> Bool {
+        if textField == emailTextField {
+            // If user presses Next on email, go to password
+            passwordTextField.becomeFirstResponder()
+        } else if textField == passwordTextField {
+            // If user presses Go on password, hide keyboard and Sign In
+            textField.resignFirstResponder()
+            signInPressed(signInButton)
+        }
+        return true
     }
     
     // MARK: - 🎨 Layout Fix

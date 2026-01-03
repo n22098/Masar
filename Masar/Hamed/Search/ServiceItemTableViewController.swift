@@ -38,7 +38,7 @@ class ServiceItemTableViewController: UITableViewController {
     
     private let profileImageView: UIImageView = {
         let iv = UIImageView()
-        iv.contentMode = .scaleAspectFill // ✅ لملء الدائرة بالكامل
+        iv.contentMode = .scaleAspectFill
         iv.layer.cornerRadius = 40
         iv.clipsToBounds = true
         iv.layer.borderWidth = 2
@@ -162,32 +162,20 @@ class ServiceItemTableViewController: UITableViewController {
         setupHeaderView()
         populateData()
         setupRatingTapGesture()
-        
-        // 🔥 جلب أحدث صورة للمزود من قاعدة البيانات (الحل لمشكلتك)
         fetchProviderRealImage()
-        
         tableView.register(ModernBookingCell.self, forCellReuseIdentifier: "ModernBookingCell")
     }
     
-    // MARK: - 🔥 دالة جلب الصورة الحقيقية للمزود
     private func fetchProviderRealImage() {
         guard let providerId = providerData?.id else { return }
-        
-        // البحث في جدول المستخدمين عن صورة هذا المزود
         db.collection("users").document(providerId).getDocument { [weak self] snapshot, error in
             guard let self = self, let data = snapshot?.data(), error == nil else { return }
-            
-            // إذا وجدنا رابط صورة، نقوم بتحميلها
             if let imageUrlString = data["profileImageURL"] as? String,
                let url = URL(string: imageUrlString) {
-                
-                print("📸 Found provider image: \(imageUrlString)")
-                
                 DispatchQueue.global().async {
                     if let imageData = try? Data(contentsOf: url),
                        let image = UIImage(data: imageData) {
                         DispatchQueue.main.async {
-                            // تحديث الصورة في الواجهة
                             self.profileImageView.image = image
                         }
                     }
@@ -201,8 +189,6 @@ class ServiceItemTableViewController: UITableViewController {
         nameLabel.text = provider.name
         roleLabel.text = provider.role
         skillsLabel.text = provider.skills.joined(separator: " • ")
-        
-        // الصورة الافتراضية حتى يتم تحميل الصورة الحقيقية
         profileImageView.image = UIImage(systemName: "person.circle.fill")
         profileImageView.tintColor = brandColor
     }
@@ -216,7 +202,6 @@ class ServiceItemTableViewController: UITableViewController {
     
     private func setupUI() {
         title = providerData?.role ?? "Services"
-        
         let appearance = UINavigationBarAppearance()
         appearance.configureWithOpaqueBackground()
         appearance.backgroundColor = brandColor
@@ -246,7 +231,17 @@ class ServiceItemTableViewController: UITableViewController {
         
         let availabilityView = createInfoItem(icon: "clock.fill", text: providerData?.availability ?? "Sat-Thu")
         let locationView = createInfoItem(icon: "mappin.circle.fill", text: providerData?.location ?? "Online")
+        
+        // 🔥 1. إنشاء الفيو الخاص بالهاتف
         let phoneView = createInfoItem(icon: "phone.fill", text: providerData?.phone ?? "Contact")
+        
+        // 🔥 2. تفعيل التفاعل (اللمس) على أيقونة الهاتف
+        phoneView.isUserInteractionEnabled = true
+        let phoneTapGesture = UITapGestureRecognizer(target: self, action: #selector(handlePhoneCall))
+        phoneView.addGestureRecognizer(phoneTapGesture)
+        
+        // إضافة مؤشر بصري (اختياري) ليدل على أنه قابل للضغط
+        // phoneView.backgroundColor = UIColor.systemBlue.withAlphaComponent(0.05) // لو حبيت تميزه بلون خفيف
         
         [availabilityView, locationView, phoneView].forEach { infoStackView.addArrangedSubview($0) }
         
@@ -332,6 +327,31 @@ class ServiceItemTableViewController: UITableViewController {
     }
     
     // MARK: - Actions & Navigation
+    
+    // 🔥 3. دالة التعامل مع ضغط زر الاتصال (المحاكاة)
+    @objc private func handlePhoneCall() {
+        guard let phoneNumber = providerData?.phone, !phoneNumber.isEmpty else { return }
+        
+        // تنظيف الرقم من أي مسافات أو رموز
+        let cleanNumber = phoneNumber.components(separatedBy: CharacterSet.decimalDigits.inverted).joined()
+        
+        // محاولة الاتصال
+        if let url = URL(string: "tel://\(cleanNumber)"), UIApplication.shared.canOpenURL(url) {
+            UIApplication.shared.open(url)
+        } else {
+            // ✅ إذا كنا في السيميوليتر (لا يوجد هاتف)، نعرض رسالة محاكاة
+            let alert = UIAlertController(
+                title: "Call Provider?",
+                message: "Simulating call to: \(phoneNumber)",
+                preferredStyle: .alert
+            )
+            alert.addAction(UIAlertAction(title: "Call", style: .default, handler: { _ in
+                print("📞 Calling \(phoneNumber)...")
+            }))
+            alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
+            present(alert, animated: true)
+        }
+    }
     
     @objc private func ratingTapped() {
         var storyboard = UIStoryboard(name: "Provider", bundle: nil)
