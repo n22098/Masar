@@ -98,7 +98,7 @@ The app supports booking management, communication, reviews, provider verificati
 ---
 
 ## Extra Features
-❌ No extra features were implemented.
+ No extra features were implemented.
 
 ---
 
