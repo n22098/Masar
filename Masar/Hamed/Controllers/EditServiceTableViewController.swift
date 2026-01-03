@@ -1,20 +1,22 @@
 import UIKit
+import FirebaseFirestore
 
 class EditServiceTableViewController: UITableViewController {
     
     // MARK: - Properties
     var serviceToEdit: ServiceModel?
     var onSaveComplete: ((ServiceModel) -> Void)?
+    var onDeleteComplete: (() -> Void)?
     var selectedSubServices: [String] = []
     
     // MARK: - Outlets
     @IBOutlet weak var serviceNameTextField: UITextField!
     @IBOutlet weak var priceTextField: UITextField!
     @IBOutlet weak var descriptionTextView: UITextView!
-    // Removed instructionsTextView and expiryDatePicker
     @IBOutlet weak var packageItemsLabel: UILabel!
     
     let brandColor = UIColor(red: 98/255, green: 84/255, blue: 243/255, alpha: 1.0)
+    let db = Firestore.firestore()
     
     // MARK: - Lifecycle
     override func viewDidLoad() {
@@ -23,6 +25,7 @@ class EditServiceTableViewController: UITableViewController {
         setupNavigationBar()
         populateData()
         setupTextViews()
+        setupDeleteButton()
     }
         
     // MARK: - Navigation
@@ -83,6 +86,25 @@ class EditServiceTableViewController: UITableViewController {
         navigationItem.leftBarButtonItem = UIBarButtonItem(title: "Back", style: .plain, target: self, action: #selector(backTapped))
         navigationItem.rightBarButtonItem = UIBarButtonItem(title: "Save", style: .done, target: self, action: #selector(saveTapped))
     }
+    
+    // MARK: - Setup Delete Button
+    func setupDeleteButton() {
+        guard serviceToEdit != nil else { return }
+        
+        let deleteButton = UIBarButtonItem(
+            title: "Delete Service",
+            style: .plain,
+            target: self,
+            action: #selector(deleteTapped)
+        )
+        deleteButton.tintColor = .systemRed
+        
+        let spacer = UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: nil, action: nil)
+        
+        toolbarItems = [spacer, deleteButton, spacer]
+        navigationController?.setToolbarHidden(false, animated: false)
+        navigationController?.toolbar.tintColor = .systemRed
+    }
         
     func setupTextViews() {
         let borderColor = UIColor.lightGray.withAlphaComponent(0.3).cgColor
@@ -124,10 +146,7 @@ class EditServiceTableViewController: UITableViewController {
         
         selectedSubServices = service.addOns ?? []
         serviceNameTextField?.text = service.name
-        
-        // Show price without BHD
         priceTextField?.text = String(format: "%.0f", service.price)
-        
         descriptionTextView?.text = service.description
         
         if selectedSubServices.isEmpty {
@@ -159,7 +178,6 @@ class EditServiceTableViewController: UITableViewController {
             return
         }
         
-        // Ensure price is numeric
         guard let priceText = priceTextField?.text,
               !priceText.isEmpty,
               let priceValue = Double(priceText) else {
@@ -173,14 +191,12 @@ class EditServiceTableViewController: UITableViewController {
         }
         
         if var service = serviceToEdit {
-            // Update existing service
             service.name = name
             service.price = priceValue
             service.description = description
             service.addOns = selectedSubServices
             onSaveComplete?(service)
         } else {
-            // Create new service
             let newService = ServiceModel(
                 name: name,
                 price: priceValue,
@@ -195,17 +211,109 @@ class EditServiceTableViewController: UITableViewController {
         navigationController?.popViewController(animated: true)
     }
     
+    // MARK: - Delete Action
+    @objc func deleteTapped() {
+        let alert = UIAlertController(
+            title: "Delete Service",
+            message: "Do you want to delete this service?",
+            preferredStyle: .alert
+        )
+        
+        alert.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: nil))
+        
+        alert.addAction(UIAlertAction(title: "Delete", style: .destructive) { [weak self] _ in
+            self?.deleteServiceFromFirebase()
+        })
+        
+        present(alert, animated: true)
+    }
+    
+    // MARK: - Firebase Delete
+    func deleteServiceFromFirebase() {
+        guard let service = serviceToEdit else {
+            showAlert(title: "Error", message: "No service to delete")
+            return
+        }
+        
+        // عرض loading
+        let loadingAlert = UIAlertController(title: nil, message: "Deleting service...", preferredStyle: .alert)
+        let loadingIndicator = UIActivityIndicatorView(frame: CGRect(x: 10, y: 5, width: 50, height: 50))
+        loadingIndicator.hidesWhenStopped = true
+        loadingIndicator.style = .medium
+        loadingIndicator.startAnimating()
+        loadingAlert.view.addSubview(loadingIndicator)
+        present(loadingAlert, animated: true)
+        
+        // الطريقة الأولى: إذا عندنا ID
+        if let serviceId = service.id, !serviceId.isEmpty {
+            print("🔥 Deleting service with ID: \(serviceId)")
+            
+            db.collection("services").document(serviceId).delete { [weak self] error in
+                guard let self = self else { return }
+                
+                loadingAlert.dismiss(animated: true) {
+                    if let error = error {
+                        print("❌ Delete error: \(error.localizedDescription)")
+                        self.showAlert(title: "Error", message: "Failed to delete: \(error.localizedDescription)")
+                    } else {
+                        print("✅ Service deleted successfully!")
+                        self.onDeleteComplete?()
+                        self.navigationController?.popViewController(animated: true)
+                    }
+                }
+            }
+        } else {
+            // الطريقة الثانية: إذا ما عندنا ID، نبحث بالاسم
+            print("⚠️ No ID found, searching by name: \(service.name)")
+            
+            db.collection("services")
+                .whereField("title", isEqualTo: service.name)
+                .getDocuments { [weak self] snapshot, error in
+                    guard let self = self else { return }
+                    
+                    if let error = error {
+                        loadingAlert.dismiss(animated: true) {
+                            print("❌ Search error: \(error.localizedDescription)")
+                            self.showAlert(title: "Error", message: "Failed to find service: \(error.localizedDescription)")
+                        }
+                        return
+                    }
+                    
+                    guard let document = snapshot?.documents.first else {
+                        loadingAlert.dismiss(animated: true) {
+                            print("❌ Service not found in Firebase")
+                            self.showAlert(title: "Error", message: "Service not found in database")
+                        }
+                        return
+                    }
+                    
+                    print("🔥 Found service, deleting document: \(document.documentID)")
+                    
+                    document.reference.delete { error in
+                        loadingAlert.dismiss(animated: true) {
+                            if let error = error {
+                                print("❌ Delete error: \(error.localizedDescription)")
+                                self.showAlert(title: "Error", message: "Failed to delete: \(error.localizedDescription)")
+                            } else {
+                                print("✅ Service deleted successfully!")
+                                self.onDeleteComplete?()
+                                self.navigationController?.popViewController(animated: true)
+                            }
+                        }
+                    }
+                }
+        }
+    }
+    
     // MARK: - Helper Methods
     func hasUnsavedChanges() -> Bool {
         guard let service = serviceToEdit else {
-            // New Service - check if any data entered
             let hasName = !(serviceNameTextField?.text?.isEmpty ?? true)
             let hasPrice = !(priceTextField?.text?.isEmpty ?? true)
             let hasDesc = !(descriptionTextView?.text?.isEmpty ?? true)
             return hasName || hasPrice || hasDesc
         }
         
-        // Existing Service - check for changes
         let nameChanged = serviceNameTextField?.text != service.name
         let priceChanged = priceTextField?.text != String(format: "%.0f", service.price)
         let descChanged = descriptionTextView?.text != service.description

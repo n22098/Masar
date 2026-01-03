@@ -7,210 +7,197 @@ class SeekerDetailsTVC: UITableViewController {
     var seeker: Seeker?
     var isNewSeeker: Bool = false
     private var currentStatus: String = "Active"
-    let brandColor = UIColor(red: 98/255, green: 84/255, blue: 243/255, alpha: 1.0)
     
-    // Header outlets - connect these in storyboard
+    // MARK: - Theme Colors
+    let brandColor = UIColor(red: 98/255, green: 84/255, blue: 243/255, alpha: 1.0)
+    let secondaryTextColor = UIColor.systemGray
+    let surfaceColor = UIColor(red: 246/255, green: 247/255, blue: 250/255, alpha: 1.0)
+
+    // MARK: - Outlets
     @IBOutlet weak var profileImageView: UIImageView!
     @IBOutlet weak var usernameLabel: UILabel!
     @IBOutlet weak var roleLabel: UILabel!
     @IBOutlet weak var statusBadge: UILabel!
     
-    // Cell outlets - connect these to your static cells in storyboard
     @IBOutlet weak var fullNameValueLabel: UILabel!
     @IBOutlet weak var emailValueLabel: UILabel!
     @IBOutlet weak var phoneValueLabel: UILabel!
     @IBOutlet weak var usernameValueLabel: UILabel!
     
-    // Footer outlets - connect these in storyboard
     @IBOutlet weak var statusButton: UIButton!
     @IBOutlet weak var saveButton: UIButton!
     
+    // MARK: - Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
         setupNavigation()
         setupTableView()
-        setupStatusMenu()
         setupUI()
+        setupStatusMenu()
         loadData()
+        
         if #available(iOS 15.0, *) {
             tableView.sectionHeaderTopPadding = 0
         }
     }
     
     private func setupNavigation() {
-        title = "Seeker Details"
+        title = isNewSeeker ? "Add Seeker" : "Seeker Details"
         let appearance = UINavigationBarAppearance()
         appearance.configureWithOpaqueBackground()
         appearance.backgroundColor = brandColor
-        appearance.titleTextAttributes = [.foregroundColor: UIColor.white]
-        appearance.largeTitleTextAttributes = [.foregroundColor: UIColor.white]
         appearance.shadowColor = .clear
+        appearance.titleTextAttributes = [
+            .foregroundColor: UIColor.white,
+            .font: UIFont.systemFont(ofSize: 18, weight: .bold)
+        ]
+        
         navigationController?.navigationBar.standardAppearance = appearance
         navigationController?.navigationBar.scrollEdgeAppearance = appearance
         navigationController?.navigationBar.tintColor = .white
     }
     
     private func setupTableView() {
-        tableView.backgroundColor = UIColor(red: 248/255, green: 249/255, blue: 253/255, alpha: 1.0)
+        tableView.backgroundColor = surfaceColor
         tableView.separatorStyle = .none
+        tableView.contentInset = UIEdgeInsets(top: 0, left: 0, bottom: 20, right: 0)
     }
     
     private func setupUI() {
-        // Setup profile image
-        profileImageView?.contentMode = .scaleAspectFill
-        profileImageView?.layer.cornerRadius = 45
-        profileImageView?.clipsToBounds = true
-        profileImageView?.layer.borderWidth = 3
-        profileImageView?.layer.borderColor = brandColor.withAlphaComponent(0.3).cgColor
+        usernameLabel?.font = .systemFont(ofSize: 20, weight: .bold)
+        roleLabel?.font = .systemFont(ofSize: 15, weight: .medium)
+        roleLabel?.textColor = secondaryTextColor
         
-        // Setup status badge
-        statusBadge?.font = .systemFont(ofSize: 13, weight: .semibold)
-        statusBadge?.textAlignment = .center
-        statusBadge?.layer.cornerRadius = 12
+        // إعداد محاذاة القيم لتكون في نفس مستوى السطر وبجانب العناوين
+        [fullNameValueLabel, emailValueLabel, phoneValueLabel, usernameValueLabel].forEach { label in
+            label?.font = .systemFont(ofSize: 15, weight: .semibold)
+            label?.textColor = .darkGray
+            label?.textAlignment = .left // المحاذاة لليسار لتبدأ بعد العنوان مباشرة
+            label?.baselineAdjustment = .alignBaselines // ضمان المحاذاة على نفس مستوى السطر الأفقي
+            label?.adjustsFontSizeToFitWidth = true
+            label?.minimumScaleFactor = 0.5
+            label?.numberOfLines = 1
+        }
+
+        profileImageView?.layer.cornerRadius = 45
+        profileImageView?.layer.borderWidth = 4
+        profileImageView?.layer.borderColor = UIColor.white.cgColor
+        profileImageView?.clipsToBounds = true
+        profileImageView?.contentMode = .scaleAspectFill
+        
+        statusBadge?.layer.cornerRadius = 4
         statusBadge?.clipsToBounds = true
         
-        // Setup status button
-        statusButton?.layer.cornerRadius = 12
-        statusButton?.titleLabel?.font = .systemFont(ofSize: 16, weight: .semibold)
-        statusButton?.contentEdgeInsets = UIEdgeInsets(top: 14, left: 24, bottom: 14, right: 24)
+        statusButton?.titleLabel?.font = .systemFont(ofSize: 14, weight: .medium)
+        statusButton?.layer.cornerRadius = 15
         statusButton?.showsMenuAsPrimaryAction = true
         
-        // Setup save button with better style
         saveButton?.backgroundColor = brandColor
         saveButton?.setTitleColor(.white, for: .normal)
-        saveButton?.titleLabel?.font = .systemFont(ofSize: 17, weight: .bold)
-        saveButton?.layer.cornerRadius = 16
-        saveButton?.layer.shadowColor = brandColor.cgColor
-        saveButton?.layer.shadowOffset = CGSize(width: 0, height: 4)
-        saveButton?.layer.shadowRadius = 12
-        saveButton?.layer.shadowOpacity = 0.3
-        saveButton?.contentEdgeInsets = UIEdgeInsets(top: 16, left: 24, bottom: 16, right: 24)
+        saveButton?.titleLabel?.font = .systemFont(ofSize: 15, weight: .bold)
+        saveButton?.layer.cornerRadius = 15
         saveButton?.addTarget(self, action: #selector(saveButtonTapped), for: .touchUpInside)
-        
-        // Add press animation
-        saveButton?.addTarget(self, action: #selector(buttonTouchDown), for: .touchDown)
-        saveButton?.addTarget(self, action: #selector(buttonTouchUp), for: [.touchUpInside, .touchUpOutside, .touchCancel])
-    }
-    
-    @objc private func buttonTouchDown(_ sender: UIButton) {
-        UIView.animate(withDuration: 0.1) {
-            self.saveButton?.transform = CGAffineTransform(scaleX: 0.95, y: 0.95)
-        }
-    }
-    
-    @objc private func buttonTouchUp(_ sender: UIButton) {
-        UIView.animate(withDuration: 0.1) {
-            self.saveButton?.transform = .identity
-        }
-    }
-    
-    private func setupStatusMenu() {
-        let actions = [
-            UIAction(title: "Active", image: UIImage(systemName: "checkmark.circle.fill")) { [weak self] _ in
-                self?.currentStatus = "Active"
-                self?.updateStatusUI()
-            },
-            UIAction(title: "Ban", image: UIImage(systemName: "xmark.circle.fill")) { [weak self] _ in
-                self?.currentStatus = "Ban"
-                self?.updateStatusUI()
-            }
-        ]
-        statusButton?.menu = UIMenu(children: actions)
     }
     
     private func loadData() {
         guard let seeker = seeker else { return }
         
-        // Update header
-        profileImageView?.image = UIImage(systemName: "person.crop.circle.fill")
-        profileImageView?.tintColor = brandColor.withAlphaComponent(0.5)
-        usernameLabel?.text = seeker.username.isEmpty ? "N/A" : seeker.username
-        roleLabel?.text = seeker.role.isEmpty ? "Seeker" : seeker.role
-        
-        // Update cell values with ACTUAL data
-        fullNameValueLabel?.text = seeker.fullName.isEmpty ? "N/A" : seeker.fullName
-        emailValueLabel?.text = seeker.email.isEmpty ? "N/A" : seeker.email
-        phoneValueLabel?.text = seeker.phone.isEmpty ? "N/A" : seeker.phone
-        usernameValueLabel?.text = seeker.username.isEmpty ? "N/A" : seeker.username
-        
-        // Force UI update
-        DispatchQueue.main.async {
-            self.tableView.reloadData()
+        if let urlString = seeker.profileImageURL, let url = URL(string: urlString) {
+            URLSession.shared.dataTask(with: url) { [weak self] data, _, _ in
+                if let data = data, let image = UIImage(data: data) {
+                    DispatchQueue.main.async { self?.profileImageView.image = image }
+                }
+            }.resume()
+        } else {
+            profileImageView?.image = UIImage(systemName: "person.crop.circle.fill")
         }
         
-        // Update status
+        usernameLabel?.text = seeker.username
+        roleLabel?.text = seeker.role.uppercased()
+        fullNameValueLabel?.text = seeker.name
+        emailValueLabel?.text = seeker.email
+        phoneValueLabel?.text = seeker.phone
+        usernameValueLabel?.text = seeker.username
+        
         currentStatus = seeker.status
         updateStatusUI()
     }
-    
+
     private func updateStatusUI() {
-        let color: UIColor = currentStatus == "Active" ? .systemGreen : .systemRed
-        
-        // Update badge in header
-        statusBadge?.text = currentStatus
+        let isBan = currentStatus.lowercased() == "ban"
+        let color: UIColor = isBan ? .systemRed : .systemGreen
+        statusBadge?.text = currentStatus.uppercased()
         statusBadge?.textColor = color
-        statusBadge?.backgroundColor = color.withAlphaComponent(0.15)
+        statusBadge?.backgroundColor = color.withAlphaComponent(0.12)
         
-        // Update status button
         statusButton?.setTitle(currentStatus, for: .normal)
-        statusButton?.backgroundColor = color.withAlphaComponent(0.15)
         statusButton?.setTitleColor(color, for: .normal)
+        statusButton?.backgroundColor = color.withAlphaComponent(0.1)
+        statusButton?.layer.borderColor = color.withAlphaComponent(0.3).cgColor
+    }
+
+    private func setupStatusMenu() {
+        let actions = [
+            UIAction(title: "Active", image: UIImage(systemName: "checkmark.circle.fill")) { [weak self] _ in
+                self?.currentStatus = "Active"; self?.updateStatusUI()
+            },
+            UIAction(title: "Ban", image: UIImage(systemName: "xmark.circle.fill")) { [weak self] _ in
+                self?.currentStatus = "Ban"; self?.updateStatusUI()
+            }
+        ]
+        statusButton?.menu = UIMenu(children: actions)
+    }
+
+    // MARK: - TableView Design Logic
+    override func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
+        return section == 1 ? 40 : 0.1
+    }
+    
+    override func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
+        if section == 1 {
+            let headerView = UIView()
+            let label = UILabel()
+            label.text = "Personal Information"
+            label.font = .systemFont(ofSize: 14, weight: .bold)
+            label.textColor = .systemGray
+            label.frame = CGRect(x: 20, y: 10, width: 200, height: 20)
+            headerView.addSubview(label)
+            return headerView
+        }
+        return UIView()
+    }
+
+    override func tableView(_ tableView: UITableView, heightForFooterInSection section: Int) -> CGFloat {
+        return 0.1
+    }
+
+    override func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
+        if indexPath.section == 0 { return 140 }
+        if indexPath.section == tableView.numberOfSections - 1 { return 65 }
+        return 50
+    }
+
+    override func tableView(_ tableView: UITableView, willDisplay cell: UITableViewCell, forRowAt indexPath: IndexPath) {
+        cell.backgroundColor = .clear
+        cell.selectionStyle = .none
+        cell.contentView.layer.sublayers?.filter { $0 is CAShapeLayer }.forEach { $0.removeFromSuperlayer() }
+        
+        let totalSections = tableView.numberOfSections
+        if indexPath.section > 0 && indexPath.section < (totalSections - 1) {
+            let cardLayer = CAShapeLayer()
+            cardLayer.fillColor = UIColor.white.cgColor
+            let cardFrame = cell.bounds.inset(by: UIEdgeInsets(top: 1, left: 16, bottom: 1, right: 16))
+            cardLayer.path = UIBezierPath(roundedRect: cardFrame, cornerRadius: 12).cgPath
+            cell.layer.insertSublayer(cardLayer, at: 0)
+        }
     }
     
     @objc private func saveButtonTapped(_ sender: UIButton) {
-        guard let uid = seeker?.uid else {
-            showAlert(title: "Error", message: "User ID not found")
-            return
-        }
-        
+        guard let uid = seeker?.uid else { return }
         saveButton?.isEnabled = false
-        saveButton?.alpha = 0.6
-        
         Firestore.firestore().collection("users").document(uid).updateData(["status": currentStatus]) { [weak self] error in
-            guard let self = self else { return }
-            
-            self.saveButton?.isEnabled = true
-            self.saveButton?.alpha = 1.0
-            
-            if let error {
-                print("❌ \(error.localizedDescription)")
-                self.showAlert(title: "Error", message: "Failed to update status.")
-            } else {
-                print("✅ Status updated to \(self.currentStatus)")
-                
-                // Update seeker object
-                self.seeker?.status = self.currentStatus
-                
-                if self.currentStatus == "Ban" {
-                    self.kickUserFromApp(uid: uid)
-                }
-                
-                self.showAlert(title: "Success", message: "User status updated to \(self.currentStatus)")
-            }
-        }
-    }
-    
-    private func kickUserFromApp(uid: String) {
-        if let currentUser = Auth.auth().currentUser, currentUser.uid == uid {
-            do {
-                try Auth.auth().signOut()
-                navigateToLogin()
-            } catch {
-                print("❌ \(error.localizedDescription)")
-            }
-        }
-    }
-    
-    private func navigateToLogin() {
-        DispatchQueue.main.async {
-            let storyboard = UIStoryboard(name: "Main", bundle: nil)
-            if let loginVC = storyboard.instantiateViewController(withIdentifier: "LoginViewController") as? UIViewController {
-                loginVC.modalPresentationStyle = .fullScreen
-                if let sceneDelegate = UIApplication.shared.connectedScenes.first?.delegate as? SceneDelegate {
-                    sceneDelegate.window?.rootViewController = loginVC
-                    sceneDelegate.window?.makeKeyAndVisible()
-                }
-            }
+            self?.saveButton?.isEnabled = true
+            if error == nil { self?.showAlert(title: "Success", message: "Updated successfully") }
         }
     }
     

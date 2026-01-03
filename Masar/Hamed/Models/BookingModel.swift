@@ -8,15 +8,13 @@ enum BookingStatus: String, Codable {
     case canceled = "Canceled"
 }
 
-// 2. المودل الموحد
-struct BookingModel: Codable {
-    var id: String?
+// 2. المودل الموحد - ✅ مُصلح
+struct BookingModel: Codable, Identifiable {
+    @DocumentID var id: String?  // 🔥 هذا السطر هو الحل الرئيسي!
+    
     let serviceName: String
     let providerName: String
-    
-    // ✅ تم التعديل هنا: (let -> var) عشان تقدر تعدل الاسم قبل الحفظ
     var seekerName: String
-    
     let date: Date
     var status: BookingStatus
     let totalPrice: Double
@@ -29,7 +27,7 @@ struct BookingModel: Codable {
     let serviceId: String?
     let descriptionText: String?
 
-    // خاصية مساعدة للتعليمات (لحل مشكلة instructions missing)
+    // خاصية مساعدة للتعليمات
     var instructions: String? {
         return notes
     }

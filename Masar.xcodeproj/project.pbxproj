@@ -24,6 +24,7 @@
 		507E416D2EE15769002B7336 /* Masar.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Masar.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		D23145C92F03391800080A6F /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/Localizable.strings; sourceTree = "<group>"; };
 		D23145CB2F03393100080A6F /* ar */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ar; path = ar.lproj/Localizable.strings; sourceTree = "<group>"; };
+		DFDEB98B2F099C1200EA8F5C /* Masar.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; path = Masar.xcodeproj; sourceTree = SOURCE_ROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -78,6 +79,7 @@
 		507E41642EE15769002B7336 = {
 			isa = PBXGroup;
 			children = (
+				DFDEB98B2F099C1200EA8F5C /* Masar.xcodeproj */,
 				D23145C82F03391800080A6F /* Localizable.strings */,
 				507E416F2EE15769002B7336 /* Masar */,
 				0C0E58672F02C01B00DD26F4 /* Frameworks */,

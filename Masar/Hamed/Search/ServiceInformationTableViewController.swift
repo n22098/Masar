@@ -6,6 +6,7 @@ class ServiceInformationTableViewController: UITableViewController {
     var receivedServiceName: String?
     var receivedServicePrice: String?
     var receivedServiceDetails: String?
+    var service: ServiceModel? // أضف هذا المتغير
     
     // Variable to hold the Service Items (Add-ons)
     var receivedServiceItems: [String]?
@@ -369,16 +370,20 @@ class ServiceInformationTableViewController: UITableViewController {
         if segue.identifier == "showBooking" {
             if let destVC = segue.destination as? ServiceDetailsBookingTableViewController {
                 
-                // Pass Data
+                // ✅✅✅ هذا هو الحل: تمرير الآيدي للشاشة الأخيرة ✅✅✅
+                if let serviceId = self.service?.id {
+                    print("🚀 Passing Service ID to Booking: \(serviceId)")
+                    destVC.serviceId = serviceId // لازم يكون عندك متغير serviceId هناك
+                } else {
+                    print("⚠️ Warning: Service ID is nil in Info Screen")
+                }
+                
+                // باقي البيانات (اتركها كما هي)
                 destVC.receivedServiceName = self.receivedServiceName
                 destVC.receivedServicePrice = self.receivedServicePrice
-                
-                // Pass the visible text from the Label
                 destVC.receivedServiceDetails = self.serviceDetailsLabel.text
-                
                 destVC.providerData = self.providerData
                 
-                // Pass the Service Items (Add-ons) to the Booking Screen
                 if let items = receivedServiceItems {
                     destVC.receivedServiceItems = items.joined(separator: ", ")
                 } else {

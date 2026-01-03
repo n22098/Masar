@@ -4,20 +4,19 @@ final class MessageCell: UITableViewCell {
 
     static let reuseIdentifier = "MessageCell"
 
-    // UI Components
     private let bubbleView = UIView()
-    private let messageLabel = UILabel()
+    private let playIconView = UIImageView(image: UIImage(systemName: "play.circle.fill"))
     private let messageImageView = UIImageView()
+    private let messageLabel = UILabel()
     private let timeLabel = UILabel()
-    private let statusImageView = UIImageView() // ✅ علامة الصحين
-
-    // Constraints
+    private let statusImageView = UIImageView()
+    var onImageTapped: ((UIImage) -> Void)?
     private var leadingConstraint: NSLayoutConstraint!
     private var trailingConstraint: NSLayoutConstraint!
+    private var imageHeightConstraint: NSLayoutConstraint!
     
-    // WhatsApp Colors
-    private let outgoingColor = UIColor(red: 0.86, green: 0.97, blue: 0.77, alpha: 1.0) // #DCF8C6
-    private let incomingColor = UIColor.white
+    private let outgoingColor = UIColor(red: 220/255, green: 248/255, blue: 198/255, alpha: 1) // أخضر واتساب ✅
+    private let incomingColor = UIColor.white // أبيض ✅
 
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
@@ -27,134 +26,129 @@ final class MessageCell: UITableViewCell {
     required init?(coder: NSCoder) { fatalError() }
 
     private func setupUI() {
-        backgroundColor = .clear
         selectionStyle = .none
-
-        // 1. Bubble
-        bubbleView.layer.cornerRadius = 12
+        backgroundColor = .clear
+        playIconView.tintColor = .white
+        playIconView.translatesAutoresizingMaskIntoConstraints = false
+        playIconView.contentMode = .scaleAspectFit
+        messageImageView.addSubview(playIconView)
+        
         bubbleView.translatesAutoresizingMaskIntoConstraints = false
+        bubbleView.layer.cornerRadius = 16
         bubbleView.layer.shadowColor = UIColor.black.cgColor
-        bubbleView.layer.shadowOpacity = 0.1
+        bubbleView.layer.shadowOpacity = 0.05
         bubbleView.layer.shadowOffset = CGSize(width: 0, height: 1)
         bubbleView.layer.shadowRadius = 1
         contentView.addSubview(bubbleView)
 
-        // 2. Image View (للصور)
-        messageImageView.layer.cornerRadius = 8
-        messageImageView.clipsToBounds = true
-        messageImageView.contentMode = .scaleAspectFill
+        messageImageView.isUserInteractionEnabled = true
+        let tap = UITapGestureRecognizer(target: self, action: #selector(imageDidTap))
+        messageImageView.addGestureRecognizer(tap)
         messageImageView.translatesAutoresizingMaskIntoConstraints = false
-        messageImageView.isHidden = true
-        bubbleView.addSubview(messageImageView)
-
-        // 3. Message Text
+        messageImageView.contentMode = .scaleAspectFill
+        messageImageView.clipsToBounds = true
+        messageImageView.layer.cornerRadius = 12
+        
+        messageLabel.translatesAutoresizingMaskIntoConstraints = false
         messageLabel.numberOfLines = 0
         messageLabel.font = .systemFont(ofSize: 16)
-        messageLabel.translatesAutoresizingMaskIntoConstraints = false
-        bubbleView.addSubview(messageLabel)
 
-        // 4. Time Label
+        timeLabel.translatesAutoresizingMaskIntoConstraints = false
         timeLabel.font = .systemFont(ofSize: 11)
         timeLabel.textColor = .gray
-        timeLabel.translatesAutoresizingMaskIntoConstraints = false
-        bubbleView.addSubview(timeLabel)
 
-        // 5. Status Icon (Ticks)
-        statusImageView.contentMode = .scaleAspectFit
         statusImageView.translatesAutoresizingMaskIntoConstraints = false
+        statusImageView.contentMode = .scaleAspectFit
+        statusImageView.tintColor = .gray
+
+        let stack = UIStackView(arrangedSubviews: [messageImageView, messageLabel])
+        stack.axis = .vertical
+        stack.spacing = 4
+        stack.translatesAutoresizingMaskIntoConstraints = false
+        bubbleView.addSubview(stack)
+        bubbleView.addSubview(timeLabel)
         bubbleView.addSubview(statusImageView)
 
-        // --- Constraints ---
+        imageHeightConstraint = messageImageView.heightAnchor.constraint(equalToConstant: 200)
+
         NSLayoutConstraint.activate([
-            // Bubble Vertical
             bubbleView.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 4),
             bubbleView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -4),
             bubbleView.widthAnchor.constraint(lessThanOrEqualTo: contentView.widthAnchor, multiplier: 0.75),
 
-            // Image
-            messageImageView.topAnchor.constraint(equalTo: bubbleView.topAnchor, constant: 5),
-            messageImageView.leadingAnchor.constraint(equalTo: bubbleView.leadingAnchor, constant: 5),
-            messageImageView.trailingAnchor.constraint(equalTo: bubbleView.trailingAnchor, constant: -5),
-            messageImageView.heightAnchor.constraint(equalToConstant: 200), // ارتفاع ثابت للصورة
+            stack.topAnchor.constraint(equalTo: bubbleView.topAnchor, constant: 8),
+            stack.leadingAnchor.constraint(equalTo: bubbleView.leadingAnchor, constant: 12),
+            stack.trailingAnchor.constraint(equalTo: bubbleView.trailingAnchor, constant: -12),
+            stack.bottomAnchor.constraint(equalTo: timeLabel.topAnchor, constant: -4),
 
-            // Label (تحت الصورة إن وجدت)
-            messageLabel.topAnchor.constraint(equalTo: messageImageView.bottomAnchor, constant: 5),
-            messageLabel.leadingAnchor.constraint(equalTo: bubbleView.leadingAnchor, constant: 10),
-            messageLabel.trailingAnchor.constraint(equalTo: bubbleView.trailingAnchor, constant: -10),
             
-            // Time & Status (أسفل يمين الفقاعة)
-            statusImageView.bottomAnchor.constraint(equalTo: bubbleView.bottomAnchor, constant: -5),
-            statusImageView.trailingAnchor.constraint(equalTo: bubbleView.trailingAnchor, constant: -5),
-            statusImageView.widthAnchor.constraint(equalToConstant: 16),
-            statusImageView.heightAnchor.constraint(equalToConstant: 16),
+            playIconView.centerXAnchor.constraint(equalTo: messageImageView.centerXAnchor),
+                playIconView.centerYAnchor.constraint(equalTo: messageImageView.centerYAnchor),
+                playIconView.widthAnchor.constraint(equalToConstant: 40),
+                playIconView.heightAnchor.constraint(equalToConstant: 40),
             
-            timeLabel.centerYAnchor.constraint(equalTo: statusImageView.centerYAnchor),
-            timeLabel.trailingAnchor.constraint(equalTo: statusImageView.leadingAnchor, constant: -2),
-            
-            // ربط أسفل النص بأعلى الوقت لضمان تمدد الفقاعة
-            messageLabel.bottomAnchor.constraint(lessThanOrEqualTo: timeLabel.topAnchor, constant: -2)
+            statusImageView.bottomAnchor.constraint(equalTo: bubbleView.bottomAnchor, constant: -6),
+            statusImageView.trailingAnchor.constraint(equalTo: bubbleView.trailingAnchor, constant: -8),
+            statusImageView.widthAnchor.constraint(equalToConstant: 15),
+            statusImageView.heightAnchor.constraint(equalToConstant: 15),
+
+            // ✅ الوقت داخل الفقاعة وفي الأسفل
+            timeLabel.bottomAnchor.constraint(equalTo: bubbleView.bottomAnchor, constant: -6),
+            timeLabel.trailingAnchor.constraint(equalTo: statusImageView.leadingAnchor, constant: -4)
         ])
 
-        // Constraints for alignment (Left/Right)
         leadingConstraint = bubbleView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 12)
         trailingConstraint = bubbleView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -12)
     }
 
     func configure(with message: Message, currentUserId: String) {
         let isMe = message.senderId == currentUserId
+        bubbleView.backgroundColor = isMe ? outgoingColor : incomingColor
+        leadingConstraint.isActive = !isMe
+        trailingConstraint.isActive = isMe
+        statusImageView.isHidden = !isMe
 
-        // إعادة ضبط القيود للصورة والنص
-        if let imageURL = message.imageURL, !imageURL.isEmpty {
-            messageImageView.isHidden = false
-            loadImage(url: imageURL)
-            // إذا كانت صورة، نقلل المسافات
-        } else {
-            messageImageView.isHidden = true
-            messageImageView.image = nil
-        }
-
-        // إعداد النص
-        messageLabel.text = message.text
-        // إذا لم يكن هناك نص (فقط صورة)، نخفي الليبل لتقليل المساحة
-        messageLabel.isHidden = (message.text == nil || message.text == "")
-
-        // الألوان والمحاذاة
-        if isMe {
-            bubbleView.backgroundColor = outgoingColor
-            leadingConstraint.isActive = false
-            trailingConstraint.isActive = true
-            statusImageView.isHidden = false
-        } else {
-            bubbleView.backgroundColor = incomingColor
-            leadingConstraint.isActive = true
-            trailingConstraint.isActive = false
-            statusImageView.isHidden = true
-        }
-
-        // الوقت
+        let isVideo = message.imageURL?.contains(".mp4") ?? false
+        playIconView.isHidden = !isVideo
+        
         let formatter = DateFormatter()
         formatter.dateFormat = "HH:mm"
         timeLabel.text = formatter.string(from: message.timestamp)
 
-        // حالة القراءة (الصحين)
-        let config = UIImage.SymbolConfiguration(weight: .bold)
-        if message.isRead {
-            statusImageView.image = UIImage(systemName: "checkmark.circle.fill", withConfiguration: config) // أزرق
-            statusImageView.tintColor = .systemBlue
+        // Reset image to avoid flickering during cell reuse
+        messageImageView.image = nil
+
+        if let imageURL = message.imageURL, !imageURL.isEmpty {
+            messageImageView.isHidden = false
+            imageHeightConstraint.isActive = true // Ensure the 200pt height is forced
+            loadImage(from: imageURL)
         } else {
-            statusImageView.image = UIImage(systemName: "checkmark", withConfiguration: config) // رمادي
-            statusImageView.tintColor = .gray
+            messageImageView.isHidden = true
+            imageHeightConstraint.isActive = false // Collapse the image area if no URL exists
         }
+        
+        // Handle text visibility
+        messageLabel.text = message.text
+        messageLabel.isHidden = (message.text == nil || message.text!.isEmpty)
+        
+        statusImageView.image = UIImage(systemName: message.isRead ? "checkmark.circle.fill" : "checkmark")
+        statusImageView.tintColor = message.isRead ? .systemBlue : .gray
+        
+        // IMPORTANT: Force the cell to recalculate its height
+        contentView.setNeedsLayout()
+        contentView.layoutIfNeeded()
     }
-    
-    private func loadImage(url: String) {
-        guard let urlObj = URL(string: url) else { return }
-        DispatchQueue.global().async {
-            if let data = try? Data(contentsOf: urlObj), let image = UIImage(data: data) {
-                DispatchQueue.main.async {
-                    self.messageImageView.image = image
-                }
-            }
-        }
+
+    @objc private func imageDidTap() {
+        // Check if we actually have an image to show
+        guard let image = messageImageView.image else { return }
+        onImageTapped?(image) // Send the image through the closure
+    }
+    private func loadImage(from urlString: String) {
+        guard let url = URL(string: urlString) else { return }
+        URLSession.shared.dataTask(with: url) { [weak self] data, _, _ in
+            guard let data = data, let image = UIImage(data: data) else { return }
+            DispatchQueue.main.async { self?.messageImageView.image = image }
+        }.resume()
     }
 }

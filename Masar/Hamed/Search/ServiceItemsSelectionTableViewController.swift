@@ -100,4 +100,5 @@ class ServiceItemsSelectionTableViewController: UITableViewController {
         onSelectionComplete?(selectedNames)
         navigationController?.popViewController(animated: true)
     }
+    
 }

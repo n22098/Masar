@@ -18,32 +18,91 @@ class ProfileTableViewController: UITableViewController {
         return traitCollection.userInterfaceStyle == .dark ? .systemBackground : UIColor(red: 248/255, green: 248/255, blue: 252/255, alpha: 1.0)
     }
     
-    // Menu Items
-    var menuItems: [String] {
-        return [
-            NSLocalizedString("Personal Information", comment: ""),
-            NSLocalizedString("Privacy and Policy", comment: ""),
-            NSLocalizedString("About", comment: ""),
-            NSLocalizedString("Report an Issue", comment: ""),
-            NSLocalizedString("Reset Password", comment: ""),
-            NSLocalizedString("Delete Account", comment: ""),
-            NSLocalizedString("Log Out", comment: ""),
-            NSLocalizedString("Dark Mode", comment: ""),
-            NSLocalizedString("Language", comment: "")
-        ]
+    // ✅ Check if user is admin from MULTIPLE sources
+    private var isAdmin: Bool {
+        // Method 1: Check UserDefaults (set during login)
+        let roleFromDefaults = UserDefaults.standard.string(forKey: "userRole") ?? ""
+        if roleFromDefaults.lowercased() == "admin" {
+            print("🔍 Admin detected from UserDefaults")
+            return true
+        }
+        
+        // Method 2: Check UserManager (if available)
+        if let userRole = UserManager.shared.currentUser?.role, userRole.lowercased() == "admin" {
+            print("🔍 Admin detected from UserManager")
+            return true
+        }
+        
+        print("🔍 Not an admin - showing full menu")
+        return false
     }
     
-    let menuIcons = [
-        "person.circle",
-        "lock.shield",
-        "info.circle",
-        "exclamationmark.bubble",
-        "key",
-        "trash",
-        "arrow.right.square",
-        "moon.fill",
-        "globe"
-    ]
+    // Menu Items - Dynamically filtered based on admin status
+    var menuItems: [String] {
+        var items = [String]()
+        
+        // Only show Personal Information for non-admins
+        if !isAdmin {
+            items.append(NSLocalizedString("Personal Information", comment: ""))
+        }
+        
+        items.append(NSLocalizedString("Privacy and Policy", comment: ""))
+        items.append(NSLocalizedString("About", comment: ""))
+        
+        // ✅ Only show Report an Issue for non-admins
+        if !isAdmin {
+            items.append(NSLocalizedString("Report an Issue", comment: ""))
+        }
+        
+        // ✅ Only show Reset Password for non-admins
+        if !isAdmin {
+            items.append(NSLocalizedString("Reset Password", comment: ""))
+        }
+        
+        // ✅ Only show Delete Account for non-admins
+        if !isAdmin {
+            items.append(NSLocalizedString("Delete Account", comment: ""))
+        }
+        
+        items.append(NSLocalizedString("Log Out", comment: ""))
+        items.append(NSLocalizedString("Dark Mode", comment: ""))
+        items.append(NSLocalizedString("Language", comment: ""))
+        
+        return items
+    }
+    
+    var menuIcons: [String] {
+        var icons = [String]()
+        
+        // Only show Personal Information icon for non-admins
+        if !isAdmin {
+            icons.append("person.circle")
+        }
+        
+        icons.append("lock.shield")
+        icons.append("info.circle")
+        
+        // ✅ Only show Report an Issue icon for non-admins
+        if !isAdmin {
+            icons.append("exclamationmark.bubble")
+        }
+        
+        // ✅ Only show Reset Password icon for non-admins
+        if !isAdmin {
+            icons.append("key")
+        }
+        
+        // ✅ Only show Delete Account icon for non-admins
+        if !isAdmin {
+            icons.append("trash")
+        }
+        
+        icons.append("arrow.right.square")
+        icons.append("moon.fill")
+        icons.append("globe")
+        
+        return icons
+    }
 
     var currentProfileImage: UIImage?
 
@@ -54,6 +113,10 @@ class ProfileTableViewController: UITableViewController {
         setupTableView()
         loadAndApplyDarkMode()
         
+        // Debug: Print admin status
+        print("🔍 DEBUG - Is Admin: \(isAdmin)")
+        print("🔍 DEBUG - Menu Items: \(menuItems)")
+        
         // جلب الصورة المحفوظة
         loadProfileImageFromFirebase()
     }
@@ -61,6 +124,10 @@ class ProfileTableViewController: UITableViewController {
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         setupNavigationBar()
+        
+        // Debug: Print admin status on each appearance
+        print("🔍 DEBUG viewWillAppear - Is Admin: \(isAdmin)")
+        
         tableView.reloadData()
     }
     
@@ -98,24 +165,57 @@ class ProfileTableViewController: UITableViewController {
     
     // MARK: - Load Image Function
     func loadProfileImageFromFirebase() {
-        guard let uid = Auth.auth().currentUser?.uid else { return }
+        // Check if admin - load from UserDefaults instead
+        if isAdmin {
+            print("👑 Loading admin profile image from local storage...")
+            if let base64String = UserDefaults.standard.string(forKey: "adminProfileImage"),
+               let imageData = Data(base64Encoded: base64String),
+               let image = UIImage(data: imageData) {
+                print("✅ Admin profile image loaded from local storage")
+                self.currentProfileImage = image
+                self.tableView.reloadData()
+            } else {
+                print("ℹ️ No admin profile image found in local storage")
+            }
+            return
+        }
+        
+        // Regular user - load from Firebase
+        guard let uid = Auth.auth().currentUser?.uid else {
+            print("❌ No user ID - cannot load profile image")
+            return
+        }
+        
+        print("📥 Loading profile image for user: \(uid)")
         
         Firestore.firestore().collection("users").document(uid).getDocument { [weak self] snapshot, error in
-            guard let self = self, let data = snapshot?.data(), error == nil else { return }
+            guard let self = self, let data = snapshot?.data(), error == nil else {
+                if let error = error {
+                    print("❌ Error loading user data: \(error.localizedDescription)")
+                }
+                return
+            }
             
             if let imageUrlString = data["profileImageURL"] as? String, !imageUrlString.isEmpty {
-                print("🔄 Found Cloudinary URL: \(imageUrlString)")
+                print("✅ Found profile image URL: \(imageUrlString)")
                 
                 if let url = URL(string: imageUrlString) {
                     DispatchQueue.global().async {
                         if let data = try? Data(contentsOf: url), let image = UIImage(data: data) {
+                            print("✅ Profile image downloaded successfully")
                             DispatchQueue.main.async {
                                 self.currentProfileImage = image
                                 self.tableView.reloadData()
                             }
+                        } else {
+                            print("❌ Failed to download or convert image")
                         }
                     }
+                } else {
+                    print("❌ Invalid URL format")
                 }
+            } else {
+                print("ℹ️ No profile image URL found in Firebase")
             }
         }
     }
@@ -125,7 +225,12 @@ class ProfileTableViewController: UITableViewController {
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int { return menuItems.count }
     
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        if indexPath.row == 7 { // Dark Mode
+        // Check if this is the Dark Mode row
+        // For admin: Dark Mode is at index 3 (Privacy, About, Logout, DarkMode)
+        // For non-admin: Dark Mode is at index 7 (PersonalInfo, Privacy, About, Report, Reset, Delete, Logout, DarkMode)
+        let darkModeIndex = isAdmin ? 3 : 7
+        
+        if indexPath.row == darkModeIndex {
             let cell = tableView.dequeueReusableCell(withIdentifier: "SwitchCell", for: indexPath) as! SwitchCell
             cell.configure(title: menuItems[indexPath.row], icon: menuIcons[indexPath.row], color: brandColor)
             cell.switchToggled = { [weak self] isOn in self?.darkModeToggled(isOn: isOn) }
@@ -154,7 +259,7 @@ class ProfileTableViewController: UITableViewController {
         iconContainer.layer.cornerRadius = 40
         iconContainer.clipsToBounds = true
         iconContainer.translatesAutoresizingMaskIntoConstraints = false
-        iconContainer.isUserInteractionEnabled = true
+        iconContainer.isUserInteractionEnabled = true  // ✅ Allow tapping for everyone
         
         let iconImageView = UIImageView()
         if let savedImage = currentProfileImage {
@@ -169,6 +274,7 @@ class ProfileTableViewController: UITableViewController {
         iconImageView.translatesAutoresizingMaskIntoConstraints = false
         iconImageView.tag = 100
         
+        // ✅ Everyone can upload profile pictures
         let tapGesture = UITapGestureRecognizer(target: self, action: #selector(avatarTapped))
         iconContainer.addGestureRecognizer(tapGesture)
         
@@ -194,18 +300,29 @@ class ProfileTableViewController: UITableViewController {
     // MARK: - Actions
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
-        switch indexPath.row {
-        case 0: navigateToPersonalInfo()
-        case 1: showScrollableAlert(title: "Privacy Policy", message: getPrivacyPolicyText())
-        case 2: showScrollableAlert(title: "About Masar", message: getAboutText())
-        case 3:
-            if let userRole = UserManager.shared.currentUser?.role, userRole == "admin" { showAlert("Admins cannot report issues.") }
-            else { showReportSheet() }
-        case 4: navigateToResetPassword()
-        case 5: showDeleteAccountAlert()
-        case 6: showLogOutAlert()
-        case 8: showLanguageOptions()
-        default: break
+        
+        let selectedItem = menuItems[indexPath.row]
+        
+        // Map the selected item to the appropriate action
+        switch selectedItem {
+        case NSLocalizedString("Personal Information", comment: ""):
+            navigateToPersonalInfo()
+        case NSLocalizedString("Privacy and Policy", comment: ""):
+            showScrollableAlert(title: "Privacy Policy", message: getPrivacyPolicyText())
+        case NSLocalizedString("About", comment: ""):
+            showScrollableAlert(title: "About Masar", message: getAboutText())
+        case NSLocalizedString("Report an Issue", comment: ""):
+            showReportSheet()
+        case NSLocalizedString("Reset Password", comment: ""):
+            navigateToResetPassword()
+        case NSLocalizedString("Delete Account", comment: ""):
+            showDeleteAccountAlert()
+        case NSLocalizedString("Log Out", comment: ""):
+            showLogOutAlert()
+        case NSLocalizedString("Language", comment: ""):
+            showLanguageOptions()
+        default:
+            break
         }
     }
     
@@ -226,6 +343,11 @@ class ProfileTableViewController: UITableViewController {
         let alert = UIAlertController(title: "Log Out", message: "Are you sure?", preferredStyle: .alert)
         alert.addAction(UIAlertAction(title: "No", style: .cancel))
         alert.addAction(UIAlertAction(title: "Yes", style: .destructive) { [weak self] _ in
+            // ✅ Clear user role from UserDefaults on logout
+            UserDefaults.standard.removeObject(forKey: "userRole")
+            // Note: We keep adminProfileImage so it persists across logins
+            UserDefaults.standard.synchronize()
+            
             try? Auth.auth().signOut()
             self?.goToSignIn()
         })
@@ -237,8 +359,15 @@ class ProfileTableViewController: UITableViewController {
         alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
         alert.addAction(UIAlertAction(title: "Delete", style: .destructive) { [weak self] _ in
             Auth.auth().currentUser?.delete { error in
-                if let error = error { self?.showAlert("Error: \(error.localizedDescription)") }
-                else { self?.goToSignIn() }
+                if let error = error {
+                    self?.showAlert("Error: \(error.localizedDescription)")
+                } else {
+                    // ✅ Clear user role from UserDefaults on delete
+                    UserDefaults.standard.removeObject(forKey: "userRole")
+                    UserDefaults.standard.synchronize()
+                    
+                    self?.goToSignIn()
+                }
             }
         })
         present(alert, animated: true)
@@ -319,7 +448,6 @@ class ProfileTableViewController: UITableViewController {
         present(contentVC, animated: true)
     }
     
-    // 🔥 تم تحديث النصوص هنا 🔥
     func getAboutText() -> String {
         return """
         Welcome to Masar!
@@ -328,7 +456,7 @@ class ProfileTableViewController: UITableViewController {
 
         Our Mission
         Empower individuals and small service providers by giving them a platform to showcase their talents and connect with people who need their expertise.
-        Whether you’re a handyman, tutor, designer, or mechanic, Masar helps you reach those who need your help quickly and easily.
+        Whether you're a handyman, tutor, designer, or mechanic, Masar helps you reach those who need your help quickly and easily.
 
         What We Offer
         • Skill & Service Search:
@@ -341,20 +469,20 @@ class ProfileTableViewController: UITableViewController {
         Contact service providers or clients directly through our secure in-app messaging feature — fast, safe, and simple.
 
         • Ratings & Reviews:
-        We value trust and transparency. That’s why users can rate and review each other’s services to help maintain quality and reliability across the community.
+        We value trust and transparency. That's why users can rate and review each other's services to help maintain quality and reliability across the community.
 
         • Location-Based Results:
         Find nearby service providers instantly using our location-based search — connecting you with people in your area who can help right away.
 
         • User-Friendly Interface:
-        Our app is built with simplicity and usability in mind. Whether you’re offering a service or searching for one, Masar makes it straightforward and intuitive for everyone.
+        Our app is built with simplicity and usability in mind. Whether you're offering a service or searching for one, Masar makes it straightforward and intuitive for everyone.
 
         Our Vision
         We aim to create a connected community in Bahrain where skills, services, and opportunities can be exchanged with ease.
         Masar aspires to become the go-to local platform for people to discover, collaborate, and grow together.
 
         Join Us
-        Download Masar today and become part of a community built on trust, collaboration, and local connection. Whether you’re looking for help or ready to offer your expertise.
+        Download Masar today and become part of a community built on trust, collaboration, and local connection. Whether you're looking for help or ready to offer your expertise.
 
         Masar is here to make it happen.
         East or west Masar is the Best!
@@ -388,7 +516,7 @@ class ProfileTableViewController: UITableViewController {
         Links to Other Sites
         Our Service may contain links to third-party sites. If you click on a third-party link, you will be directed to that site. We are not responsible for the content or privacy policies of these websites and strongly advise you to review their policies.
 
-        Children’s Privacy
+        Children's Privacy
         Our Service does not address anyone under the age of 13. We do not knowingly collect personal information from children under 13.
 
         Changes to This Privacy Policy
@@ -405,7 +533,37 @@ class ProfileTableViewController: UITableViewController {
 // MARK: - ☁️ Cloudinary Upload Extension
 extension ProfileTableViewController: PHPickerViewControllerDelegate {
     
+    // MARK: - 🖼️ Profile Image Actions
     @objc func avatarTapped() {
+        let alert = UIAlertController(title: "Profile Picture", message: nil, preferredStyle: .actionSheet)
+        
+        // 1. خيار اختيار صورة (نفس الكود القديم)
+        alert.addAction(UIAlertAction(title: "Change Photo", style: .default) { _ in
+            self.openPhotoPicker()
+        })
+        
+        // 2. خيار حذف الصورة (يظهر فقط إذا كان المستخدم قد وضع صورة بالفعل)
+        // هذا الخيار سيعيد الصورة إلى الـ Default
+        if currentProfileImage != nil {
+            alert.addAction(UIAlertAction(title: "Remove Photo", style: .destructive) { _ in
+                self.removeProfilePhoto()
+            })
+        }
+        
+        alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
+        
+        // لتجنب المشاكل في الآيباد
+        if let popover = alert.popoverPresentationController {
+            popover.sourceView = self.view
+            popover.sourceRect = CGRect(x: self.view.bounds.midX, y: self.view.bounds.midY, width: 0, height: 0)
+            popover.permittedArrowDirections = []
+        }
+        
+        present(alert, animated: true)
+    }
+
+    // دالة مساعدة لفتح الاستوديو (فصلنا الكود ليكون أرتب)
+    func openPhotoPicker() {
         var config = PHPickerConfiguration()
         config.filter = .images
         config.selectionLimit = 1
@@ -413,114 +571,300 @@ extension ProfileTableViewController: PHPickerViewControllerDelegate {
         picker.delegate = self
         present(picker, animated: true)
     }
-    
-    func picker(_ picker: PHPickerViewController, didFinishPicking results: [PHPickerResult]) {
-        picker.dismiss(animated: true)
-        guard let result = results.first else { return }
+
+    // دالة حذف الصورة والعودة للافتراضي
+    func removeProfilePhoto() {
+        // 1. تحديث الواجهة فوراً (إزالة الصورة الحالية)
+        self.currentProfileImage = nil
+        self.tableView.reloadData() // سيعود الكود تلقائياً لاستخدام "person.fill" الموجود في viewForHeaderInSection
         
-        result.itemProvider.loadObject(ofClass: UIImage.self) { [weak self] (object, error) in
-            guard let self = self, let image = object as? UIImage else { return }
-            
-            DispatchQueue.main.async {
-                self.currentProfileImage = image
-                self.tableView.reloadData()
-                
-                let alert = UIAlertController(title: "Uploading...", message: "Please wait while we upload to Cloudinary.", preferredStyle: .alert)
-                self.present(alert, animated: true)
-                
-                // 🚀 استدعاء دالة الرفع لـ Cloudinary
-                self.uploadToCloudinary(image: image, loadingAlert: alert)
+        // 2. حذف من البيانات (Backend/Storage)
+        if isAdmin {
+            UserDefaults.standard.removeObject(forKey: "adminProfileImage")
+            UserDefaults.standard.synchronize()
+        } else {
+            guard let uid = Auth.auth().currentUser?.uid else { return }
+            // حذف حقل الصورة من فايربيس
+            Firestore.firestore().collection("users").document(uid).updateData([
+                "profileImageURL": FieldValue.delete()
+            ]) { error in
+                if let error = error {
+                    print("❌ Error removing photo: \(error.localizedDescription)")
+                } else {
+                    print("✅ Photo removed successfully (Reverted to default)")
+                }
             }
         }
     }
     
-    // دالة الرفع باستخدام Cloudinary API
-    func uploadToCloudinary(image: UIImage, loadingAlert: UIAlertController) {
-        // 1. تأكد من وجود اسم السحابة والبريست
-        guard cloudinaryCloudName != "YOUR_CLOUD_NAME", cloudinaryUploadPreset != "YOUR_UPLOAD_PRESET" else {
-            DispatchQueue.main.async {
-                loadingAlert.message = "Error: Please set Cloudinary Name & Preset in Code."
-                loadingAlert.addAction(UIAlertAction(title: "OK", style: .default))
-            }
+    func picker(_ picker: PHPickerViewController, didFinishPicking results: [PHPickerResult]) {
+        picker.dismiss(animated: true)
+        
+        guard let result = results.first else {
+            print("❌ No image selected")
             return
         }
-
-        // 2. تجهيز الرابط
-        let url = URL(string: "https://api.cloudinary.com/v1_1/\(cloudinaryCloudName)/image/upload")!
-        var request = URLRequest(url: url)
-        request.httpMethod = "POST"
         
-        // 3. تجهيز بيانات الصورة (Multipart Form Data)
-        let boundary = UUID().uuidString
-        request.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
+        print("📸 Image selected, loading...")
         
-        guard let imageData = image.jpegData(compressionQuality: 0.5) else { return }
-        
-        var body = Data()
-        
-        // إضافة upload_preset
-        body.append("--\(boundary)\r\n".data(using: .utf8)!)
-        body.append("Content-Disposition: form-data; name=\"upload_preset\"\r\n\r\n".data(using: .utf8)!)
-        body.append("\(cloudinaryUploadPreset)\r\n".data(using: .utf8)!)
-        
-        // إضافة الصورة
-        body.append("--\(boundary)\r\n".data(using: .utf8)!)
-        body.append("Content-Disposition: form-data; name=\"file\"; filename=\"image.jpg\"\r\n".data(using: .utf8)!)
-        body.append("Content-Type: image/jpeg\r\n\r\n".data(using: .utf8)!)
-        body.append(imageData)
-        body.append("\r\n".data(using: .utf8)!)
-        
-        body.append("--\(boundary)--\r\n".data(using: .utf8)!)
-        request.httpBody = body
-        
-        // 4. الإرسال
-        URLSession.shared.dataTask(with: request) { data, response, error in
+        result.itemProvider.loadObject(ofClass: UIImage.self) { [weak self] (object, error) in
+            guard let self = self else { return }
+            
             if let error = error {
+                print("❌ Error loading image: \(error.localizedDescription)")
                 DispatchQueue.main.async {
-                    loadingAlert.message = "Upload Failed: \(error.localizedDescription)"
-                    loadingAlert.addAction(UIAlertAction(title: "OK", style: .default))
+                    self.showAlert("Failed to load image: \(error.localizedDescription)")
                 }
                 return
             }
             
-            guard let data = data else { return }
+            guard let image = object as? UIImage else {
+                print("❌ Failed to convert to UIImage")
+                DispatchQueue.main.async {
+                    self.showAlert("Failed to process selected image")
+                }
+                return
+            }
             
-            do {
-                // 5. قراءة الرد (JSON) لاستخراج الرابط
-                if let json = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any],
-                   let secureUrl = json["secure_url"] as? String {
-                    
-                    print("✅ Cloudinary Upload Success: \(secureUrl)")
-                    
-                    // 6. الحفظ في فايربيس
-                    self.saveImageURLToFirestore(url: secureUrl, loadingAlert: loadingAlert)
-                    
+            print("✅ Image loaded successfully, size: \(image.size)")
+            
+            DispatchQueue.main.async {
+                // Update UI immediately
+                self.currentProfileImage = image
+                self.tableView.reloadData()
+                
+                // Check if admin
+                if self.isAdmin {
+                    // Save admin image locally
+                    print("👑 Saving admin profile image locally...")
+                    self.saveAdminImageLocally(image: image)
                 } else {
-                    print("❌ Cloudinary Response Error: \(String(data: data, encoding: .utf8) ?? "")")
+                    // Upload regular user image to Cloudinary
+                    let alert = UIAlertController(title: "Uploading...", message: "Please wait while we upload your image.", preferredStyle: .alert)
+                    self.present(alert, animated: true)
+                    self.uploadToCloudinary(image: image, loadingAlert: alert)
+                }
+            }
+        }
+    }
+    
+    // Save admin profile image to UserDefaults
+    func saveAdminImageLocally(image: UIImage) {
+        guard let imageData = image.jpegData(compressionQuality: 0.7) else {
+            print("❌ Failed to convert admin image to JPEG")
+            showAlert("Failed to save profile picture")
+            return
+        }
+        
+        let base64String = imageData.base64EncodedString()
+        UserDefaults.standard.set(base64String, forKey: "adminProfileImage")
+        UserDefaults.standard.synchronize()
+        
+        print("✅ Admin profile image saved locally (\(imageData.count) bytes)")
+        showAlert("✅ Admin profile picture saved successfully!")
+    }
+    
+    // 🔥 Improved Cloudinary Upload with extensive debugging
+    func uploadToCloudinary(image: UIImage, loadingAlert: UIAlertController) {
+        print("🚀 Starting Cloudinary upload...")
+        print("📋 Cloud Name: \(cloudinaryCloudName)")
+        print("📋 Upload Preset: \(cloudinaryUploadPreset)")
+        
+        // 1. Validate configuration
+        guard !cloudinaryCloudName.isEmpty,
+              cloudinaryCloudName != "YOUR_CLOUD_NAME",
+              !cloudinaryUploadPreset.isEmpty,
+              cloudinaryUploadPreset != "YOUR_UPLOAD_PRESET" else {
+            print("❌ Invalid Cloudinary configuration")
+            DispatchQueue.main.async {
+                loadingAlert.dismiss(animated: true) {
+                    self.showAlert("⚠️ Cloudinary not configured properly")
+                }
+            }
+            return
+        }
+
+        // 2. Build URL
+        let urlString = "https://api.cloudinary.com/v1_1/\(cloudinaryCloudName)/image/upload"
+        guard let url = URL(string: urlString) else {
+            print("❌ Invalid URL: \(urlString)")
+            DispatchQueue.main.async {
+                loadingAlert.dismiss(animated: true) {
+                    self.showAlert("❌ Invalid Cloudinary URL")
+                }
+            }
+            return
+        }
+        
+        print("🌐 Upload URL: \(urlString)")
+        
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.timeoutInterval = 60
+        
+        // 3. Convert image
+        guard let imageData = image.jpegData(compressionQuality: 0.7) else {
+            print("❌ Failed to convert image to JPEG")
+            DispatchQueue.main.async {
+                loadingAlert.dismiss(animated: true) {
+                    self.showAlert("❌ Failed to process image")
+                }
+            }
+            return
+        }
+        
+        print("📦 Image data size: \(imageData.count) bytes (\(imageData.count / 1024) KB)")
+        
+        // 4. Build multipart form data
+        let boundary = "Boundary-\(UUID().uuidString)"
+        request.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
+        
+        var body = Data()
+        
+        // Add upload_preset
+        body.append("--\(boundary)\r\n".data(using: .utf8)!)
+        body.append("Content-Disposition: form-data; name=\"upload_preset\"\r\n\r\n".data(using: .utf8)!)
+        body.append("\(cloudinaryUploadPreset)\r\n".data(using: .utf8)!)
+        
+        // Add file
+        body.append("--\(boundary)\r\n".data(using: .utf8)!)
+        body.append("Content-Disposition: form-data; name=\"file\"; filename=\"profile.jpg\"\r\n".data(using: .utf8)!)
+        body.append("Content-Type: image/jpeg\r\n\r\n".data(using: .utf8)!)
+        body.append(imageData)
+        body.append("\r\n".data(using: .utf8)!)
+        
+        // Close boundary
+        body.append("--\(boundary)--\r\n".data(using: .utf8)!)
+        
+        request.httpBody = body
+        print("📤 Total request size: \(body.count) bytes (\(body.count / 1024) KB)")
+        print("⏳ Sending request to Cloudinary...")
+        
+        // 5. Send request
+        URLSession.shared.dataTask(with: request) { [weak self] data, response, error in
+            guard let self = self else { return }
+            
+            // Check for network error
+            if let error = error {
+                print("❌ Network error: \(error.localizedDescription)")
+                DispatchQueue.main.async {
+                    loadingAlert.dismiss(animated: true) {
+                        self.showAlert("❌ Upload failed: Network error")
+                    }
+                }
+                return
+            }
+            
+            // Check HTTP response
+            if let httpResponse = response as? HTTPURLResponse {
+                print("📡 HTTP Status Code: \(httpResponse.statusCode)")
+                
+                if httpResponse.statusCode != 200 {
+                    print("⚠️ Unexpected status code: \(httpResponse.statusCode)")
+                }
+            }
+            
+            // Check data
+            guard let data = data else {
+                print("❌ No data received from server")
+                DispatchQueue.main.async {
+                    loadingAlert.dismiss(animated: true) {
+                        self.showAlert("❌ No response from server")
+                    }
+                }
+                return
+            }
+            
+            print("📥 Received data: \(data.count) bytes")
+            
+            // Parse JSON response
+            do {
+                if let json = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any] {
+                    print("📋 Response JSON keys: \(json.keys)")
+                    
+                    // Check for error in response
+                    if let errorDict = json["error"] as? [String: Any],
+                       let message = errorDict["message"] as? String {
+                        print("❌ Cloudinary error: \(message)")
+                        DispatchQueue.main.async {
+                            loadingAlert.dismiss(animated: true) {
+                                self.showAlert("❌ Upload failed: \(message)")
+                            }
+                        }
+                        return
+                    }
+                    
+                    // Extract secure URL
+                    if let secureUrl = json["secure_url"] as? String {
+                        print("✅ Upload successful!")
+                        print("🔗 Image URL: \(secureUrl)")
+                        
+                        // Save to Firebase
+                        self.saveImageURLToFirestore(url: secureUrl, loadingAlert: loadingAlert)
+                    } else {
+                        print("❌ No secure_url in response")
+                        print("📋 Full response: \(json)")
+                        DispatchQueue.main.async {
+                            loadingAlert.dismiss(animated: true) {
+                                self.showAlert("❌ Invalid response from Cloudinary")
+                            }
+                        }
+                    }
+                } else {
+                    print("❌ Response is not JSON")
+                    if let responseString = String(data: data, encoding: .utf8) {
+                        print("📋 Raw response: \(responseString)")
+                    }
                     DispatchQueue.main.async {
-                        loadingAlert.message = "Upload Failed: Check Cloud Name/Preset."
-                        loadingAlert.addAction(UIAlertAction(title: "OK", style: .default))
+                        loadingAlert.dismiss(animated: true) {
+                            self.showAlert("❌ Invalid response format")
+                        }
                     }
                 }
             } catch {
-                print("❌ JSON Parsing Error: \(error)")
+                print("❌ JSON parsing error: \(error.localizedDescription)")
+                if let responseString = String(data: data, encoding: .utf8) {
+                    print("📋 Raw response: \(responseString)")
+                }
+                DispatchQueue.main.async {
+                    loadingAlert.dismiss(animated: true) {
+                        self.showAlert("❌ Failed to parse server response")
+                    }
+                }
             }
         }.resume()
     }
     
     func saveImageURLToFirestore(url: String, loadingAlert: UIAlertController) {
-        guard let uid = Auth.auth().currentUser?.uid else { return }
+        print("💾 Saving image URL to Firestore...")
+        print("🔗 URL to save: \(url)")
         
-        Firestore.firestore().collection("users").document(uid).setData([
-            "profileImageURL": url
-        ], merge: true) { error in
-            
+        guard let uid = Auth.auth().currentUser?.uid else {
+            print("❌ No user ID found")
+            DispatchQueue.main.async {
+                loadingAlert.dismiss(animated: true) {
+                    self.showAlert("❌ User not logged in")
+                }
+            }
+            return
+        }
+        
+        print("👤 User ID: \(uid)")
+        
+        let userData: [String: Any] = [
+            "profileImageURL": url,
+            "profileImageUpdatedAt": FieldValue.serverTimestamp()
+        ]
+        
+        Firestore.firestore().collection("users").document(uid).setData(userData, merge: true) { error in
             DispatchQueue.main.async {
                 loadingAlert.dismiss(animated: true) {
                     if let error = error {
-                        self.showAlert("Failed to save URL: \(error.localizedDescription)")
+                        print("❌ Firestore save error: \(error.localizedDescription)")
+                        self.showAlert("❌ Failed to save: \(error.localizedDescription)")
                     } else {
-                        self.showAlert("✅ Avatar updated successfully!")
+                        print("✅ Profile image URL saved successfully!")
+                        self.showAlert("✅ Profile picture updated successfully!")
                     }
                 }
             }

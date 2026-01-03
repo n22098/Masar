@@ -527,13 +527,22 @@ class ServiceItemTableViewController: UITableViewController {
     
     // MARK: - Navigation
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-        if segue.identifier == "showDetails", let destVC = segue.destination as? ServiceInformationTableViewController, let service = sender as? ServiceModel {
+        if segue.identifier == "showDetails",
+           let destVC = segue.destination as? ServiceInformationTableViewController,
+           let service = sender as? ServiceModel {
+            
+            // ✅ 1. تمرير الخدمة كاملة (هذا أهم سطر)
+            destVC.service = service
+            
+            // البيانات القديمة (لا تحذفها)
             destVC.receivedServiceName = service.name
             destVC.receivedServicePrice = String(format: "BHD %.3f", service.price)
             destVC.receivedServiceDetails = service.description
             destVC.receivedServiceItems = service.addOns
             destVC.providerData = self.providerData
-        } else if segue.identifier == "showPortfolio", let destVC = segue.destination as? ProviderPortfolioTableViewController {
+        }
+        else if segue.identifier == "showPortfolio",
+                let destVC = segue.destination as? ProviderPortfolioTableViewController {
             destVC.providerData = self.providerData
             destVC.isReadOnlyMode = true
         }

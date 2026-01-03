@@ -179,6 +179,20 @@ final class ChatViewController: UIViewController, UITextFieldDelegate, UIImagePi
 
     // MARK: - Actions
     
+    private func presentImagePicker(source: UIImagePickerController.SourceType) {
+        guard UIImagePickerController.isSourceTypeAvailable(source) else { return }
+        
+        let picker = UIImagePickerController()
+        picker.sourceType = source
+        picker.delegate = self
+        
+        // ✅ This is the "Video Tab" enabler.
+        // It tells iOS to show both images and videos in the picker.
+        picker.mediaTypes = ["public.image", "public.movie"]
+        
+        present(picker, animated: true)
+    }
+    
     // 🔥 القائمة المنسدلة عند الضغط على (+)
     @objc private func didTapAttach() {
         let alert = UIAlertController(title: nil, message: nil, preferredStyle: .actionSheet)
@@ -200,12 +214,7 @@ final class ChatViewController: UIViewController, UITextFieldDelegate, UIImagePi
         present(alert, animated: true)
     }
     
-    private func presentImagePicker(source: UIImagePickerController.SourceType) {
-        let picker = UIImagePickerController()
-        picker.sourceType = source
-        picker.delegate = self
-        present(picker, animated: true)
-    }
+    
     
     // رفع الصورة عند اختيارها
     func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey : Any]) {

@@ -13,6 +13,12 @@ class ProviderManagementVC: UITableViewController {
         fetchProvidersFromFirestore()
     }
     
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        navigationItem.largeTitleDisplayMode = .always
+        navigationController?.navigationBar.prefersLargeTitles = true
+    }
+    
     func fetchProvidersFromFirestore() {
         let db = Firestore.firestore()
         db.collection("users").whereField("role", isEqualTo: "provider")
@@ -29,16 +35,29 @@ class ProviderManagementVC: UITableViewController {
 
     private func setupUI() {
         self.title = "Provider Management"
+        
         let appearance = UINavigationBarAppearance()
         appearance.configureWithOpaqueBackground()
         appearance.backgroundColor = brandColor
+        
+        let titleAttributes: [NSAttributedString.Key: Any] = [
+            .foregroundColor: UIColor.white,
+            .font: UIFont.systemFont(ofSize: 34, weight: .bold)
+        ]
+        
+        appearance.largeTitleTextAttributes = titleAttributes
         appearance.titleTextAttributes = [.foregroundColor: UIColor.white]
+        
         navigationController?.navigationBar.standardAppearance = appearance
         navigationController?.navigationBar.scrollEdgeAppearance = appearance
+        navigationController?.navigationBar.compactAppearance = appearance
+        
         navigationController?.navigationBar.tintColor = .white
         navigationController?.navigationBar.prefersLargeTitles = true
+        
         tableView.backgroundColor = UIColor(red: 248/255, green: 248/255, blue: 252/255, alpha: 1.0)
         tableView.separatorStyle = .none
+        tableView.contentInset = UIEdgeInsets(top: 15, left: 0, bottom: 0, right: 0)
     }
 
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
@@ -50,17 +69,14 @@ class ProviderManagementVC: UITableViewController {
             return UITableViewCell()
         }
         let provider = providers[indexPath.row]
-        // عرض اسم البروفايدر فقط
         cell.configure(name: provider.fullName, category: "")
         return cell
     }
 
-    // MARK: - Navigation (إضافة منطق الانتقال)
+    // MARK: - Navigation
     
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
-        
-        // استخدام المعرف الذي وضعته في الـ Storyboard
         let selectedProvider = providers[indexPath.row]
         performSegue(withIdentifier: "showProviderDetailsSegue", sender: selectedProvider)
     }
@@ -69,12 +85,11 @@ class ProviderManagementVC: UITableViewController {
         if segue.identifier == "showProviderDetailsSegue",
            let destinationVC = segue.destination as? ProviderDetailsTVC,
            let selectedProvider = sender as? Provider {
-            // تمرير كائن الـ Provider للصفحة التالية
             destinationVC.provider = selectedProvider
         }
     }
 
-    // MARK: - Actions (حذف البروفايدر)
+    // MARK: - Actions (Delete Logic)
 
     override func tableView(_ tableView: UITableView, trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
         let deleteAction = UIContextualAction(style: .destructive, title: "Delete") { [weak self] _, _, completionHandler in
@@ -91,12 +106,13 @@ class ProviderManagementVC: UITableViewController {
         let alert = UIAlertController(title: "Delete Provider", message: "Are you sure you want to delete \(providerToDelete.fullName)?", preferredStyle: .alert)
         alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
         alert.addAction(UIAlertAction(title: "Delete", style: .destructive) { [weak self] _ in
-            self?.performDelete(provider: providerToDelete, at: indexPath)
+            // تم إزالة indexPath من هنا لأنه لم يعد مطلوباً
+            self?.performDelete(provider: providerToDelete)
         })
         present(alert, animated: true)
     }
 
-    private func performDelete(provider: Provider, at indexPath: IndexPath) {
+    private func performDelete(provider: Provider) {
         let db = Firestore.firestore()
         db.collection("users").document(provider.uid).delete { [weak self] error in
             guard let self = self else { return }
@@ -104,8 +120,10 @@ class ProviderManagementVC: UITableViewController {
                 self.showAlert(title: "Error", message: "Failed to delete provider")
                 return
             }
-            self.providers.remove(at: indexPath.row)
-            self.tableView.deleteRows(at: [indexPath], with: .fade)
+            
+            // --- تم تعديل هذا الجزء ---
+            // تم حذف سطر remove(at:) وسطر deleteRows لأن addSnapshotListener
+            // سيتكفل بتحديث المصفوفة والجدول تلقائياً فور نجاح الحذف من السيرفر.
             
             if let currentUser = Auth.auth().currentUser, currentUser.uid == provider.uid {
                 self.kickUserFromApp()

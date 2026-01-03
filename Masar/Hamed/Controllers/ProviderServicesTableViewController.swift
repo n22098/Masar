@@ -1,14 +1,14 @@
 import UIKit
-import FirebaseAuth // 🔥 ضروري جداً لجلب رقم المزود
+import FirebaseAuth
+import FirebaseFirestore
 
 class ProviderServicesTableViewController: UITableViewController {
     
     // MARK: - Properties
     let brandColor = UIColor(red: 0.35, green: 0.34, blue: 0.91, alpha: 1.0)
+    let db = Firestore.firestore()
     
-    // المصفوفة تبدأ فارغة لانتظار البيانات من Firebase
     var myServices: [ServiceModel] = []
-    
     var selectedServiceIndex: Int?
     
     // MARK: - Lifecycle
@@ -20,19 +20,15 @@ class ProviderServicesTableViewController: UITableViewController {
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         setupNavigationBar()
-        
-        // جلب البيانات من Firebase في كل مرة تظهر الشاشة
         fetchServicesFromFirebase()
     }
     
-    // MARK: - Firebase Fetching (🔥 تم الإصلاح هنا)
+    // MARK: - Firebase Fetching
     func fetchServicesFromFirebase() {
         self.title = "Updating..."
         
-        // الحصول على رقم المستخدم الحالي
         guard let uid = Auth.auth().currentUser?.uid else { return }
         
-        // 🔥 جلب خدمات هذا المزود فقط (وليس كل الخدمات)
         ServiceManager.shared.fetchServicesForProvider(providerId: uid) { [weak self] services in
             DispatchQueue.main.async {
                 self?.title = "Services"
@@ -47,7 +43,6 @@ class ProviderServicesTableViewController: UITableViewController {
         setupNavigationBar()
         setupTableView()
         
-        // إضافة Refresh Control
         let refreshControl = UIRefreshControl()
         refreshControl.addTarget(self, action: #selector(handleRefresh), for: .valueChanged)
         tableView.refreshControl = refreshControl
@@ -135,7 +130,7 @@ class ProviderServicesTableViewController: UITableViewController {
         performSegue(withIdentifier: "editService", sender: indexPath)
     }
     
-    // MARK: - Delete & Navigation
+    // MARK: - Delete & Swipe Actions
     override func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
         if editingStyle == .delete {
             deleteService(at: indexPath)
@@ -160,37 +155,100 @@ class ProviderServicesTableViewController: UITableViewController {
         return UISwipeActionsConfiguration(actions: [deleteAction, editAction])
     }
     
-    // دالة الحذف
+    // MARK: - Delete Service (🔥 تم الإصلاح هنا)
     private func deleteService(at indexPath: IndexPath) {
         let service = myServices[indexPath.row]
         let serviceName = service.name
         
-        guard let serviceId = service.id else { return }
-        
+        // إظهار Alert للتأكيد
         let alert = UIAlertController(
             title: "Delete Service",
-            message: "Are you sure you want to delete '\(serviceName)'?",
+            message: "Do you want to delete this service?",
             preferredStyle: .alert
         )
         
         alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
+        
         alert.addAction(UIAlertAction(title: "Delete", style: .destructive) { [weak self] _ in
+            guard let self = self else { return }
             
-            // الاتصال بـ Firebase للحذف
-            ServiceManager.shared.deleteService(serviceId: serviceId) { error in
-                if let error = error {
-                    print("Error deleting service: \(error.localizedDescription)")
-                    return
-                }
-                
-                DispatchQueue.main.async {
-                    self?.myServices.remove(at: indexPath.row)
-                    self?.tableView.deleteRows(at: [indexPath], with: .fade)
-                }
-            }
+            // عرض loading indicator
+            let loadingAlert = UIAlertController(title: nil, message: "Deleting service...", preferredStyle: .alert)
+            let loadingIndicator = UIActivityIndicatorView(frame: CGRect(x: 10, y: 5, width: 50, height: 50))
+            loadingIndicator.hidesWhenStopped = true
+            loadingIndicator.style = .medium
+            loadingIndicator.startAnimating()
+            loadingAlert.view.addSubview(loadingIndicator)
+            self.present(loadingAlert, animated: true)
+            
+            // الحذف من Firebase
+            self.deleteServiceFromFirebase(service: service, at: indexPath, loadingAlert: loadingAlert)
         })
         
         present(alert, animated: true)
+    }
+    
+    private func deleteServiceFromFirebase(service: ServiceModel, at indexPath: IndexPath, loadingAlert: UIAlertController) {
+        
+        // الطريقة الأولى: إذا عندنا ID
+        if let serviceId = service.id, !serviceId.isEmpty {
+            print("🔥 Deleting service with ID: \(serviceId)")
+            
+            db.collection("services").document(serviceId).delete { [weak self] error in
+                guard let self = self else { return }
+                
+                loadingAlert.dismiss(animated: true) {
+                    if let error = error {
+                        print("❌ Delete error: \(error.localizedDescription)")
+                        self.showAlert(title: "Error", message: "Failed to delete: \(error.localizedDescription)")
+                    } else {
+                        print("✅ Service deleted successfully!")
+                        self.myServices.remove(at: indexPath.row)
+                        self.tableView.deleteRows(at: [indexPath], with: .fade)
+                    }
+                }
+            }
+        } else {
+            // الطريقة الثانية: البحث بالاسم إذا ما فيه ID
+            print("⚠️ No ID found, searching by name: \(service.name)")
+            
+            db.collection("services")
+                .whereField("title", isEqualTo: service.name)
+                .getDocuments { [weak self] snapshot, error in
+                    guard let self = self else { return }
+                    
+                    if let error = error {
+                        loadingAlert.dismiss(animated: true) {
+                            print("❌ Search error: \(error.localizedDescription)")
+                            self.showAlert(title: "Error", message: "Failed to find service: \(error.localizedDescription)")
+                        }
+                        return
+                    }
+                    
+                    guard let document = snapshot?.documents.first else {
+                        loadingAlert.dismiss(animated: true) {
+                            print("❌ Service not found in Firebase")
+                            self.showAlert(title: "Error", message: "Service not found")
+                        }
+                        return
+                    }
+                    
+                    print("🔥 Found service, deleting document: \(document.documentID)")
+                    
+                    document.reference.delete { error in
+                        loadingAlert.dismiss(animated: true) {
+                            if let error = error {
+                                print("❌ Delete error: \(error.localizedDescription)")
+                                self.showAlert(title: "Error", message: "Failed to delete: \(error.localizedDescription)")
+                            } else {
+                                print("✅ Service deleted successfully!")
+                                self.myServices.remove(at: indexPath.row)
+                                self.tableView.deleteRows(at: [indexPath], with: .fade)
+                            }
+                        }
+                    }
+                }
+        }
     }
     
     // MARK: - Navigation / Segue
@@ -229,6 +287,11 @@ class ProviderServicesTableViewController: UITableViewController {
                         }
                     }
                 }
+                
+                // التعامل مع الحذف من صفحة Edit
+                destVC.onDeleteComplete = { [weak self] in
+                    self?.fetchServicesFromFirebase()
+                }
             }
         }
     }
@@ -236,10 +299,16 @@ class ProviderServicesTableViewController: UITableViewController {
     @objc private func addServiceTapped() {
         performSegue(withIdentifier: "editService", sender: nil)
     }
+    
+    // MARK: - Helper Methods
+    private func showAlert(title: String, message: String) {
+        let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: "OK", style: .default))
+        present(alert, animated: true)
+    }
 }
 
 // MARK: - Service Cell Class
-// (كما هي لم تتغير)
 class ServiceCell: UITableViewCell {
     
     private let containerView: UIView = {
@@ -307,10 +376,9 @@ class ServiceCell: UITableViewCell {
     }
     
     required init?(coder: NSCoder) {
-            super.init(coder: coder)
-            setupUI()
-        }
-    
+        super.init(coder: coder)
+        setupUI()
+    }
     
     private func setupUI() {
         backgroundColor = .clear

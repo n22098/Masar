@@ -1,10 +1,3 @@
-//
-//  ConversationCell.swift
-//  Masar
-//
-//  Created by BP-36-212-19 on 11/12/2025.
-//
-
 import UIKit
 
 final class ConversationCell: UITableViewCell {
@@ -12,12 +5,12 @@ final class ConversationCell: UITableViewCell {
     static let reuseIdentifier = "ConversationCell"
 
     // MARK: - UI Components (Programmatic)
-    private let avatarLabel = UILabel()
+    private let customProfileImageView = UIImageView()
     private let nameLabel = UILabel()
     private let subtitleLabel = UILabel()
     private let chevronImageView = UIImageView()
     
-    // MARK: - UI Components (Storyboard - Optional)
+    // MARK: - UI Components (Storyboard Outlets)
     @IBOutlet weak var profileImageView: UIImageView?
     @IBOutlet weak var nameLabelOutlet: UILabel?
     @IBOutlet weak var lastMessageLabel: UILabel?
@@ -31,73 +24,81 @@ final class ConversationCell: UITableViewCell {
 
     required init?(coder: NSCoder) {
         super.init(coder: coder)
-        // Storyboard mode - UI already setup
     }
     
     override func awakeFromNib() {
         super.awakeFromNib()
-        // Setup for Storyboard mode
-        profileImageView?.layer.cornerRadius = 30
+        // إعداد الصورة في الـ Storyboard لتكون دائرية
+        profileImageView?.layer.cornerRadius = 25
         profileImageView?.clipsToBounds = true
+        profileImageView?.contentMode = .scaleAspectFill
     }
 
-    // MARK: - Setup (Programmatic)
     private func setupProgrammaticViews() {
         selectionStyle = .none
-
-        avatarLabel.translatesAutoresizingMaskIntoConstraints = false
-        avatarLabel.font = UIFont.systemFont(ofSize: 32)
-        contentView.addSubview(avatarLabel)
+        
+        customProfileImageView.translatesAutoresizingMaskIntoConstraints = false
+        customProfileImageView.layer.cornerRadius = 25
+        customProfileImageView.clipsToBounds = true
+        customProfileImageView.contentMode = .scaleAspectFill
+        customProfileImageView.backgroundColor = .systemGray6
+        customProfileImageView.image = UIImage(systemName: "person.circle.fill")
+        customProfileImageView.tintColor = .lightGray
+        contentView.addSubview(customProfileImageView)
 
         nameLabel.translatesAutoresizingMaskIntoConstraints = false
-        nameLabel.font = UIFont.systemFont(ofSize: 17, weight: .semibold)
-        nameLabel.textColor = .label
+        nameLabel.font = .systemFont(ofSize: 16, weight: .bold)
         contentView.addSubview(nameLabel)
 
         subtitleLabel.translatesAutoresizingMaskIntoConstraints = false
-        subtitleLabel.font = UIFont.systemFont(ofSize: 14)
-        subtitleLabel.textColor = .secondaryLabel
+        subtitleLabel.font = .systemFont(ofSize: 14)
+        subtitleLabel.textColor = .gray
         contentView.addSubview(subtitleLabel)
 
         chevronImageView.translatesAutoresizingMaskIntoConstraints = false
         chevronImageView.image = UIImage(systemName: "chevron.right")
-        chevronImageView.tintColor = .tertiaryLabel
+        chevronImageView.tintColor = .systemGray4
         contentView.addSubview(chevronImageView)
 
         NSLayoutConstraint.activate([
-            avatarLabel.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
-            avatarLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
+            customProfileImageView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
+            customProfileImageView.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
+            customProfileImageView.widthAnchor.constraint(equalToConstant: 50),
+            customProfileImageView.heightAnchor.constraint(equalToConstant: 50),
 
-            chevronImageView.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
             chevronImageView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
+            chevronImageView.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
+            chevronImageView.widthAnchor.constraint(equalToConstant: 12),
+            chevronImageView.heightAnchor.constraint(equalToConstant: 16),
 
-            nameLabel.leadingAnchor.constraint(equalTo: avatarLabel.trailingAnchor, constant: 12),
+            nameLabel.leadingAnchor.constraint(equalTo: customProfileImageView.trailingAnchor, constant: 12),
             nameLabel.trailingAnchor.constraint(lessThanOrEqualTo: chevronImageView.leadingAnchor, constant: -8),
-            nameLabel.bottomAnchor.constraint(equalTo: contentView.centerYAnchor, constant: -1),
+            nameLabel.bottomAnchor.constraint(equalTo: contentView.centerYAnchor, constant: -2),
 
             subtitleLabel.leadingAnchor.constraint(equalTo: nameLabel.leadingAnchor),
             subtitleLabel.trailingAnchor.constraint(lessThanOrEqualTo: chevronImageView.leadingAnchor, constant: -8),
-            subtitleLabel.topAnchor.constraint(equalTo: contentView.centerYAnchor, constant: 1)
+            subtitleLabel.topAnchor.constraint(equalTo: contentView.centerYAnchor, constant: 2)
         ])
     }
 
-    // MARK: - Configure
-    // ✅ Use MessageConversation instead of Conversation
-    func configure(with conversation: MessageConversation) {
-        // Check if using Storyboard outlets or programmatic views
-        if let profileImageView = profileImageView,
-           let nameLabelOutlet = nameLabelOutlet,
-           let lastMessageLabel = lastMessageLabel {
-            // Storyboard mode
-            nameLabelOutlet.text = conversation.otherUserName
-            lastMessageLabel.text = conversation.lastMessage
-            profileImageView.image = UIImage(systemName: "person.circle.fill")
-            profileImageView.tintColor = UIColor(red: 98/255, green: 84/255, blue: 243/255, alpha: 1.0)
+    func setProfileImage(_ image: UIImage) {
+        if let iv = profileImageView {
+            iv.image = image
         } else {
-            // Programmatic mode
+            customProfileImageView.image = image
+        }
+    }
+    
+    func configure(with conversation: MessageConversation) {
+        if let nameLbl = nameLabelOutlet, let lastMsgLbl = lastMessageLabel {
+            nameLbl.text = conversation.otherUserName
+            lastMsgLbl.text = conversation.lastMessage
+            profileImageView?.image = UIImage(systemName: "person.circle.fill")
+            profileImageView?.tintColor = UIColor(red: 98/255, green: 84/255, blue: 243/255, alpha: 1.0)
+        } else {
             nameLabel.text = conversation.otherUserName
             subtitleLabel.text = conversation.lastMessage
-            avatarLabel.text = "👤"
+            customProfileImageView.image = UIImage(systemName: "person.circle.fill")
         }
     }
 }

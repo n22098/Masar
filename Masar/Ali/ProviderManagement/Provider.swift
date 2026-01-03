@@ -11,6 +11,7 @@ struct Provider {
     var status: String
     var category: String
     var imageName: String
+    var profileImageURL: String?
     
     init(document: QueryDocumentSnapshot) {
         let data = document.data()
@@ -20,8 +21,10 @@ struct Provider {
         self.phone = data["phone"] as? String ?? ""
         self.username = data["username"] as? String ?? ""
         self.role = data["role"] as? String ?? "provider"
+        // Mapping "providerRequestStatus" or "status" based on your Firestore screenshot
         self.status = data["status"] as? String ?? "Active"
         self.category = data["category"] as? String ?? "Uncategorized"
         self.imageName = "profile1"
+        self.profileImageURL = data["profileImageURL"] as? String
     }
 }

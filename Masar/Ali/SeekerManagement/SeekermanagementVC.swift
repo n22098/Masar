@@ -79,7 +79,7 @@ class SeekermanagementVC: UITableViewController {
         }
         
         let seeker = seekers[indexPath.row]
-        cell.configure(name: seeker.fullName)
+        cell.configure(name: seeker.name)
         return cell
     }
     
@@ -90,7 +90,7 @@ class SeekermanagementVC: UITableViewController {
         performSegue(withIdentifier: "showSeekerDetailsSegue", sender: nil)
     }
     
-    // 🔥 NEW: Swipe to Delete Functionality
+    // Swipe to Delete Functionality
     override func tableView(_ tableView: UITableView, trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
         
         let deleteAction = UIContextualAction(style: .destructive, title: "Delete") { [weak self] _, _, completionHandler in
@@ -107,26 +107,26 @@ class SeekermanagementVC: UITableViewController {
         return configuration
     }
     
-    // 🔥 NEW: Delete Seeker Function
+    // Delete Seeker Function
     private func deleteSeeker(at indexPath: IndexPath) {
         let seekerToDelete = seekers[indexPath.row]
         
         let alert = UIAlertController(
             title: "Delete Seeker",
-            message: "Are you sure you want to delete \(seekerToDelete.fullName)?",
+            message: "Are you sure you want to delete \(seekerToDelete.name)?",
             preferredStyle: .alert
         )
         
         alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
         alert.addAction(UIAlertAction(title: "Delete", style: .destructive) { [weak self] _ in
-            self?.performDelete(seeker: seekerToDelete, at: indexPath)
+            self?.performDelete(seeker: seekerToDelete)
         })
         
         present(alert, animated: true)
     }
     
-    // 🔥 NEW: Perform Delete from Firebase
-    private func performDelete(seeker: Seeker, at indexPath: IndexPath) {
+    // Perform Delete from Firebase
+    private func performDelete(seeker: Seeker) {
         let db = Firestore.firestore()
         
         // Delete from Firebase
@@ -141,11 +141,10 @@ class SeekermanagementVC: UITableViewController {
             
             print("✅ Seeker deleted from Firebase: \(seeker.uid)")
             
-            // Remove from local array
-            self.seekers.remove(at: indexPath.row)
-            
-            // Update table view
-            self.tableView.deleteRows(at: [indexPath], with: .fade)
+            /* ملاحظة: لا نحتاج لحذف الصف يدوياً هنا لأن
+               addSnapshotListener
+               سيقوم بتحديث المصفوفة والجدول تلقائياً فور حذف المستند من السيرفر.
+            */
             
             // If deleted user is currently logged in, kick them out
             if let currentUser = Auth.auth().currentUser, currentUser.uid == seeker.uid {
@@ -156,7 +155,7 @@ class SeekermanagementVC: UITableViewController {
         }
     }
     
-    // 🔥 NEW: Kick user from app if they delete themselves
+    // Kick user from app if they delete themselves
     private func kickUserFromApp() {
         do {
             try Auth.auth().signOut()
@@ -166,7 +165,7 @@ class SeekermanagementVC: UITableViewController {
         }
     }
     
-    // 🔥 NEW: Navigate to login screen
+    // Navigate to login screen
     private func navigateToLogin() {
         DispatchQueue.main.async {
             let storyboard = UIStoryboard(name: "Main", bundle: nil)
@@ -181,7 +180,7 @@ class SeekermanagementVC: UITableViewController {
         }
     }
     
-    // 🔥 NEW: Show alert helper
+    // Show alert helper
     private func showAlert(title: String, message: String) {
         let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
         alert.addAction(UIAlertAction(title: "OK", style: .default))

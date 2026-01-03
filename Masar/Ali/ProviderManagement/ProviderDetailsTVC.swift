@@ -6,8 +6,13 @@ class ProviderDetailsTVC: UITableViewController {
 
     var provider: Provider?
     private var currentStatus: String = "Active"
-    let brandColor = UIColor(red: 98/255, green: 84/255, blue: 243/255, alpha: 1.0)
     
+    // MARK: - Theme Colors
+    let brandColor = UIColor(red: 98/255, green: 84/255, blue: 243/255, alpha: 1.0)
+    let secondaryTextColor = UIColor.systemGray
+    let surfaceColor = UIColor(red: 246/255, green: 247/255, blue: 250/255, alpha: 1.0)
+    
+    // MARK: - Outlets
     @IBOutlet weak var profileImageView: UIImageView!
     @IBOutlet weak var usernameLabel: UILabel!
     @IBOutlet weak var roleLabel: UILabel!
@@ -21,64 +26,75 @@ class ProviderDetailsTVC: UITableViewController {
     @IBOutlet weak var statusButton: UIButton!
     @IBOutlet weak var saveButton: UIButton!
     
+    // MARK: - Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
+        setupNavigation()
+        setupTableView()
         setupUI()
+        setupStatusMenu()
         loadData()
+        
+        if #available(iOS 15.0, *) {
+            tableView.sectionHeaderTopPadding = 0
+        }
+    }
+    
+    private func setupNavigation() {
+        title = "Provider Details"
+        let appearance = UINavigationBarAppearance()
+        appearance.configureWithOpaqueBackground()
+        appearance.backgroundColor = brandColor
+        appearance.shadowColor = .clear
+        appearance.titleTextAttributes = [
+            .foregroundColor: UIColor.white,
+            .font: UIFont.systemFont(ofSize: 18, weight: .bold)
+        ]
+        
+        navigationController?.navigationBar.standardAppearance = appearance
+        navigationController?.navigationBar.scrollEdgeAppearance = appearance
+        navigationController?.navigationBar.tintColor = .white
+    }
+    
+    private func setupTableView() {
+        tableView.backgroundColor = surfaceColor
+        tableView.separatorStyle = .none
+        tableView.contentInset = UIEdgeInsets(top: 0, left: 0, bottom: 20, right: 0)
     }
     
     private func setupUI() {
-        // 1. Style Save Button (Purple background, White text)
+        usernameLabel?.font = .systemFont(ofSize: 20, weight: .bold)
+        roleLabel?.font = .systemFont(ofSize: 15, weight: .medium)
+        roleLabel?.textColor = secondaryTextColor
+        
+        [fullNameValueLabel, emailValueLabel, phoneValueLabel, usernameValueLabel].forEach { label in
+            label?.font = .systemFont(ofSize: 15, weight: .semibold)
+            label?.textColor = .darkGray
+            label?.textAlignment = .left
+            label?.adjustsFontSizeToFitWidth = true
+            label?.minimumScaleFactor = 0.5
+        }
+
+        profileImageView?.layer.cornerRadius = 45
+        profileImageView?.layer.borderWidth = 4
+        profileImageView?.layer.borderColor = UIColor.white.cgColor
+        profileImageView?.clipsToBounds = true
+        profileImageView?.contentMode = .scaleAspectFill
+        
+        statusBadge?.layer.cornerRadius = 4
+        statusBadge?.clipsToBounds = true
+        
+        statusButton?.titleLabel?.font = .systemFont(ofSize: 14, weight: .medium)
+        statusButton?.layer.cornerRadius = 15
+        statusButton?.showsMenuAsPrimaryAction = true
+        
         saveButton?.backgroundColor = brandColor
         saveButton?.setTitleColor(.white, for: .normal)
+        saveButton?.titleLabel?.font = .systemFont(ofSize: 15, weight: .bold)
         saveButton?.layer.cornerRadius = 15
-        saveButton?.titleLabel?.font = .systemFont(ofSize: 17, weight: .bold)
-        
-        // Shadow for Save Button
-        saveButton?.layer.shadowColor = brandColor.cgColor
-        saveButton?.layer.shadowOpacity = 0.3
-        saveButton?.layer.shadowOffset = CGSize(width: 0, height: 4)
-        saveButton?.layer.shadowRadius = 8
-        
-        // 2. Style Status Button
-        statusButton?.layer.cornerRadius = 15
-        statusButton?.titleLabel?.font = .systemFont(ofSize: 16, weight: .semibold)
-        
-        // 3. Header Styling
-        statusBadge?.layer.cornerRadius = 10
-        statusBadge?.clipsToBounds = true
-        statusBadge?.font = .systemFont(ofSize: 12, weight: .bold)
-        
-        // Profile Image Setup (Person Circle Icon)
-        profileImageView?.image = UIImage(systemName: "person.circle.fill")
-        profileImageView?.tintColor = brandColor.withAlphaComponent(0.3)
-        profileImageView?.layer.cornerRadius = 45
-        profileImageView?.clipsToBounds = true
-        
-        // 4. Add Interactions (Hover/Press effect)
-        [saveButton, statusButton].forEach { button in
-            button?.addTarget(self, action: #selector(handlePressDown), for: .touchDown)
-            button?.addTarget(self, action: #selector(handlePressUp), for: [.touchUpInside, .touchUpOutside, .touchCancel])
-        }
-        
-        setupStatusMenu()
+        saveButton?.addTarget(self, action: #selector(saveButtonTapped), for: .touchUpInside)
     }
 
-    // MARK: - Interactions (Hover Effects)
-    @objc private func handlePressDown(_ sender: UIButton) {
-        UIView.animate(withDuration: 0.1) {
-            sender.transform = CGAffineTransform(scaleX: 0.95, y: 0.95)
-            sender.alpha = 0.9
-        }
-    }
-
-    @objc private func handlePressUp(_ sender: UIButton) {
-        UIView.animate(withDuration: 0.1) {
-            sender.transform = .identity
-            sender.alpha = 1.0
-        }
-    }
-    
     private func setupStatusMenu() {
         let actions = [
             UIAction(title: "Active", image: UIImage(systemName: "checkmark.circle.fill")) { [weak self] _ in
@@ -91,17 +107,28 @@ class ProviderDetailsTVC: UITableViewController {
             }
         ]
         statusButton?.menu = UIMenu(children: actions)
-        statusButton?.showsMenuAsPrimaryAction = true
     }
     
     private func loadData() {
         guard let provider = provider else { return }
+        
+        if let urlString = provider.profileImageURL, let url = URL(string: urlString) {
+            URLSession.shared.dataTask(with: url) { [weak self] data, _, _ in
+                if let data = data, let image = UIImage(data: data) {
+                    DispatchQueue.main.async { self?.profileImageView.image = image }
+                }
+            }.resume()
+        } else {
+            profileImageView?.image = UIImage(systemName: "person.crop.circle.fill")
+        }
+        
         usernameLabel?.text = provider.fullName
-        roleLabel?.text = "Provider"
+        roleLabel?.text = provider.role.uppercased()
         fullNameValueLabel?.text = provider.fullName
         emailValueLabel?.text = provider.email
         phoneValueLabel?.text = provider.phone
         usernameValueLabel?.text = provider.username
+        
         currentStatus = provider.status
         updateStatusUI()
     }
@@ -109,33 +136,77 @@ class ProviderDetailsTVC: UITableViewController {
     private func updateStatusUI() {
         let isBan = currentStatus.lowercased() == "ban"
         let color: UIColor = isBan ? .systemRed : .systemGreen
-        let displayStatus = isBan ? "Ban" : "Active"
         
-        statusBadge?.text = "  \(displayStatus.uppercased())  "
+        statusBadge?.text = currentStatus.uppercased()
         statusBadge?.textColor = color
         statusBadge?.backgroundColor = color.withAlphaComponent(0.12)
         
-        statusButton?.setTitle(displayStatus, for: .normal)
-        statusButton?.backgroundColor = color.withAlphaComponent(0.1)
+        statusButton?.setTitle(currentStatus, for: .normal)
         statusButton?.setTitleColor(color, for: .normal)
+        statusButton?.backgroundColor = color.withAlphaComponent(0.1)
         statusButton?.layer.borderColor = color.withAlphaComponent(0.3).cgColor
         statusButton?.layer.borderWidth = 1
     }
 
-    @IBAction func saveButtonTapped(_ sender: UIButton) {
+    // MARK: - TableView Design Logic
+    override func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
+        return section == 1 ? 40 : 0.1
+    }
+    
+    override func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
+        if section == 1 {
+            let headerView = UIView()
+            let label = UILabel()
+            label.text = "Personal Information"
+            label.font = .systemFont(ofSize: 14, weight: .bold)
+            label.textColor = .systemGray
+            label.frame = CGRect(x: 20, y: 10, width: 200, height: 20)
+            headerView.addSubview(label)
+            return headerView
+        }
+        return UIView()
+    }
+
+    override func tableView(_ tableView: UITableView, heightForFooterInSection section: Int) -> CGFloat {
+        return 0.1
+    }
+
+    override func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
+        if indexPath.section == 0 { return 140 }
+        // Changed from 70 to 65 to match SeekerDetailsTVC
+        if indexPath.section == tableView.numberOfSections - 1 { return 65 }
+        return 50
+    }
+
+    override func tableView(_ tableView: UITableView, willDisplay cell: UITableViewCell, forRowAt indexPath: IndexPath) {
+        cell.backgroundColor = .clear
+        cell.selectionStyle = .none
+        cell.contentView.layer.sublayers?.filter { $0 is CAShapeLayer }.forEach { $0.removeFromSuperlayer() }
+        
+        let totalSections = tableView.numberOfSections
+        if indexPath.section > 0 && indexPath.section < (totalSections - 1) {
+            let cardLayer = CAShapeLayer()
+            cardLayer.fillColor = UIColor.white.cgColor
+            // Changed top/bottom from 4 to 1 to match SeekerDetailsTVC
+            let cardFrame = cell.bounds.inset(by: UIEdgeInsets(top: 1, left: 16, bottom: 1, right: 16))
+            cardLayer.path = UIBezierPath(roundedRect: cardFrame, cornerRadius: 12).cgPath
+            cell.layer.insertSublayer(cardLayer, at: 0)
+        }
+    }
+
+    @objc @IBAction func saveButtonTapped(_ sender: UIButton) {
         guard let uid = provider?.uid else { return }
-        saveButton.isEnabled = false
+        saveButton?.isEnabled = false
         
         Firestore.firestore().collection("users").document(uid).updateData(["status": currentStatus]) { [weak self] error in
             guard let self = self else { return }
-            self.saveButton.isEnabled = true
+            self.saveButton?.isEnabled = true
             
             if let error = error {
                 self.showAlert(title: "Error", message: error.localizedDescription)
             } else {
                 self.provider?.status = self.currentStatus
-                let msg = self.currentStatus == "Ban" ? "Provider banned successfully" : "Provider activated successfully"
-                self.showAlert(title: "Success", message: msg)
+                self.showAlert(title: "Success", message: "Updated successfully")
             }
         }
     }

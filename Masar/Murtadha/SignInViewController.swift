@@ -28,31 +28,27 @@ class SignInViewController: UIViewController, UITextFieldDelegate {
         emailTextField.delegate = self
         passwordTextField.delegate = self
         
-        // 🔥 NEW: Configure Return Keys
-        emailTextField.returnKeyType = .next  // Shows "Next" on keyboard
-        passwordTextField.returnKeyType = .go // Shows "Go" on keyboard
+        // Configure Return Keys
+        emailTextField.returnKeyType = .next
+        passwordTextField.returnKeyType = .go
         
         // Apply Design
         setupProfessionalUI()
-        
-        // 🔥 تطبيق التوسيط وتكبير الصورة (الإصلاح الجديد)
         centerContentProgrammatically()
     }
     
-    // MARK: - 🔥 NEW: Handle Return Key Logic
+    // MARK: - Handle Return Key Logic
     func textFieldShouldReturn(_ textField: UITextField) -> Bool {
         if textField == emailTextField {
-            // If user presses Next on email, go to password
             passwordTextField.becomeFirstResponder()
         } else if textField == passwordTextField {
-            // If user presses Go on password, hide keyboard and Sign In
             textField.resignFirstResponder()
             signInPressed(signInButton)
         }
         return true
     }
     
-    // MARK: - 🎨 Layout Fix
+    // MARK: - Layout Fix
     private func centerContentProgrammatically() {
         guard let logo = logoImageView,
               let email = emailTextField,
@@ -61,13 +57,11 @@ class SignInViewController: UIViewController, UITextFieldDelegate {
               let signIn = signInButton,
               let register = registerButton else { return }
         
-        // إيقاف القيود القديمة
         [logo, email, pass, forgot, signIn, register].forEach {
             $0.translatesAutoresizingMaskIntoConstraints = false
             $0.removeFromSuperview()
         }
         
-        // إنشاء StackView
         let stackView = UIStackView(arrangedSubviews: [logo, email, pass, forgot, signIn, register])
         stackView.axis = .vertical
         stackView.spacing = 20
@@ -75,49 +69,34 @@ class SignInViewController: UIViewController, UITextFieldDelegate {
         stackView.distribution = .fill
         stackView.translatesAutoresizingMaskIntoConstraints = false
         
-        // تخصيص المسافات
-        stackView.setCustomSpacing(30, after: logo) // قللت المسافة قليلاً لأن الشعار سيكبر
+        stackView.setCustomSpacing(30, after: logo)
         stackView.setCustomSpacing(10, after: pass)
         stackView.setCustomSpacing(30, after: forgot)
         
         view.addSubview(stackView)
         
-        // وضع القيود
         NSLayoutConstraint.activate([
-            // توسيط عمودي
             stackView.centerYAnchor.constraint(equalTo: view.centerYAnchor),
-            
-            // هوامش جانبية
             stackView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 40),
             stackView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -40),
-            
-            // 🔥 التعديل الجذري هنا:
-            // 1. زيادة الارتفاع إلى 230 كما طلبت
             logo.heightAnchor.constraint(equalToConstant: 230),
-            
-            // ارتفاع الحقول والأزرار
             email.heightAnchor.constraint(equalToConstant: 50),
             pass.heightAnchor.constraint(equalToConstant: 50),
             signIn.heightAnchor.constraint(equalToConstant: 50)
         ])
         
-        // 🔥 الحل السحري لتكبير الشعار:
-        // scaleAspectFill: يكبر الصورة لتملأ الارتفاع 230، حتى لو انقصت الحواف الشفافة
         logo.contentMode = .scaleAspectFill
-        logo.clipsToBounds = true // لضمان عدم خروج الصورة عن الإطار
+        logo.clipsToBounds = true
     }
     
-    // MARK: - 🎨 Professional UI Setup
+    // MARK: - Professional UI Setup
     private func setupProfessionalUI() {
-        // 1. Dismiss keyboard on tap
         let tap = UITapGestureRecognizer(target: self, action: #selector(dismissKeyboard))
         view.addGestureRecognizer(tap)
         
-        // 2. Style TextFields
         styleTextField(emailTextField, iconName: "envelope", placeholder: "Username or Email")
         styleTextField(passwordTextField, iconName: "lock", placeholder: "Password")
         
-        // 3. Style Sign In Button
         if let btn = signInButton {
             btn.backgroundColor = brandColor
             btn.setTitle("Sign In", for: .normal)
@@ -130,7 +109,6 @@ class SignInViewController: UIViewController, UITextFieldDelegate {
             btn.layer.shadowRadius = 6
         }
         
-        // 4. Style Secondary Buttons
         registerButton?.setTitleColor(brandColor, for: .normal)
         registerButton?.titleLabel?.font = UIFont.systemFont(ofSize: 16, weight: .medium)
         
@@ -138,7 +116,6 @@ class SignInViewController: UIViewController, UITextFieldDelegate {
         forgotPasswordButton?.titleLabel?.font = UIFont.systemFont(ofSize: 14, weight: .regular)
         forgotPasswordButton?.contentHorizontalAlignment = .right
         
-        // 5. Style Logo
         if let logo = logoImageView {
             logo.layer.shadowColor = UIColor.clear.cgColor
             logo.backgroundColor = .clear
@@ -179,13 +156,13 @@ class SignInViewController: UIViewController, UITextFieldDelegate {
             return
         }
 
-        // 1. Admin Check
+        // Admin Check
         if (input == adminEmail || input == adminUsername), password == adminPassword {
             navigateToAdmin()
             return
         }
 
-        // 2. User Login
+        // User Login
         loginUser(emailOrUsername: input, password: password)
     }
 
@@ -221,7 +198,6 @@ class SignInViewController: UIViewController, UITextFieldDelegate {
             
             print("✅ User logged in successfully: \(uid)")
             
-            // Fetch User Data
             let db = Firestore.firestore()
             db.collection("users").document(uid).getDocument { [weak self] document, error in
                 guard let self = self else { return }
@@ -257,6 +233,10 @@ class SignInViewController: UIViewController, UITextFieldDelegate {
         print("🚫 User is banned - signing out")
         try? Auth.auth().signOut()
         
+        // ✅ Clear user role from UserDefaults
+        UserDefaults.standard.removeObject(forKey: "userRole")
+        UserDefaults.standard.synchronize()
+        
         let alert = UIAlertController(
             title: "Account Banned",
             message: "Your account has been banned by the administrator. Please contact support.",
@@ -268,14 +248,24 @@ class SignInViewController: UIViewController, UITextFieldDelegate {
 
     private func showLoginError() {
         DispatchQueue.main.async {
-            let alert = UIAlertController(title: "Login Error", message: "The provided credentials are incorrect.", preferredStyle: .alert)
-            alert.addAction(UIAlertAction(title: "Try Again", style: .default))
+            let alert = UIAlertController(
+                title: "Login Failed",
+                message: "Username or password are incorrect.",
+                preferredStyle: .alert
+            )
+            alert.addAction(UIAlertAction(title: "OK", style: .default))
             self.present(alert, animated: true)
         }
     }
 
+
     // MARK: - Navigation
     private func redirectBasedOnRole(role: String) {
+        // ✅ Save user role to UserDefaults
+        UserDefaults.standard.set(role, forKey: "userRole")
+        UserDefaults.standard.synchronize()
+        print("✅ User role saved to UserDefaults: \(role)")
+        
         if let sceneDelegate = UIApplication.shared.connectedScenes.first?.delegate as? SceneDelegate {
             if role.lowercased() == "provider" {
                 sceneDelegate.navigateToStoryboard("Provider")
@@ -286,6 +276,11 @@ class SignInViewController: UIViewController, UITextFieldDelegate {
     }
 
     private func navigateToAdmin() {
+        // ✅ Save admin role to UserDefaults
+        UserDefaults.standard.set("admin", forKey: "userRole")
+        UserDefaults.standard.synchronize()
+        print("✅ Admin role saved to UserDefaults")
+        
         let storyboard = UIStoryboard(name: "admin", bundle: nil)
         if let adminVC = storyboard.instantiateInitialViewController() {
             if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,

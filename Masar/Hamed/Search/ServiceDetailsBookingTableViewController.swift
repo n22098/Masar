@@ -19,7 +19,7 @@ class ServiceDetailsBookingTableViewController: UITableViewController {
     var receivedServicePrice: String?
     var receivedServiceDetails: String?
     var receivedServiceItems: String?
-    
+    var serviceId: String?
     var providerData: ServiceProviderModel?
     let brandColor = UIColor(red: 98/255, green: 84/255, blue: 243/255, alpha: 1.0)
     
@@ -200,16 +200,16 @@ class ServiceDetailsBookingTableViewController: UITableViewController {
             id: UUID().uuidString,
             serviceName: serviceName,
             providerName: providerName,
-            seekerName: seekerName, // ✅ Should now be "Ali123" not "Guest"
+            seekerName: seekerName,
             date: date,
             status: .upcoming,
             totalPrice: price,
             notes: itemsText,
-            email: seekerEmail,     // ✅ Real email
-            phoneNumber: seekerPhone, // ✅ Real phone
+            email: seekerEmail,
+            phoneNumber: seekerPhone, 
             providerId: providerId,
             seekerId: seekerId,
-            serviceId: "",
+            serviceId: self.serviceId ?? "",
             descriptionText: realDescription
         )
     }

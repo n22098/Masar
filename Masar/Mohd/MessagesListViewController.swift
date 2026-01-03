@@ -5,9 +5,7 @@ import FirebaseAuth
 final class MessagesListViewController: UIViewController {
 
     private let tableView = UITableView()
-    // نستخدم MessageConversation المعرف في ملف خارجي
     private var conversations: [MessageConversation] = []
-    // نستخدم AppUser
     private var providers: [AppUser] = []
 
     private let db = Firestore.firestore()
@@ -67,27 +65,19 @@ final class MessagesListViewController: UIViewController {
 
     private func loadMessagesScreen() {
         guard let currentUid = Auth.auth().currentUser?.uid else { return }
-        // جلب المحادثات أولاً
         startListeningForConversations(currentUid: currentUid)
     }
 
     private func startListeningForConversations(currentUid: String) {
         listener?.remove()
-        
-        // استمع للمحادثات
         listener = db.collection("conversations")
             .whereField("participants", arrayContains: currentUid)
             .addSnapshotListener { [weak self] snapshot, error in
-                guard let self = self else { return }
-                
-                guard let documents = snapshot?.documents, !documents.isEmpty else {
-                    // لا توجد محادثات؟ اعرض البروفايدرز إذا كان المستخدم Seeker
-                    self.conversations = []
-                    self.fetchProvidersIfSeeker(currentUid: currentUid)
+                guard let self = self, let documents = snapshot?.documents, !documents.isEmpty else {
+                    self?.conversations = []
+                    self?.fetchProvidersIfSeeker(currentUid: currentUid)
                     return
                 }
-                
-                // معالجة المحادثات
                 self.processConversations(documents: documents, currentUid: currentUid)
             }
     }
@@ -107,7 +97,6 @@ final class MessagesListViewController: UIViewController {
                 let userData = snapshot?.data()
                 let name = userData?["name"] as? String ?? "Unknown"
                 let email = userData?["email"] as? String ?? ""
-                
                 let lastMsg = data["lastMessage"] as? String ?? "Chat"
                 let ts = (data["updatedAt"] as? Timestamp)?.dateValue() ?? Date()
                 
@@ -125,13 +114,12 @@ final class MessagesListViewController: UIViewController {
         
         group.notify(queue: .main) {
             self.conversations = loadedConversations.sorted(by: { $0.lastUpdated > $1.lastUpdated })
-            self.providers = [] // إخفاء البروفايدرز لأن لدينا محادثات
+            self.providers = []
             self.tableView.reloadData()
         }
     }
     
     private func fetchProvidersIfSeeker(currentUid: String) {
-        // التحقق من أن المستخدم ليس بروفايدر
         db.collection("users").document(currentUid).getDocument { snapshot, _ in
             let role = snapshot?.data()?["role"] as? String ?? "seeker"
             if role != "provider" {
@@ -152,7 +140,9 @@ final class MessagesListViewController: UIViewController {
                     id: doc.documentID,
                     name: data["name"] as? String ?? "Provider",
                     email: data["email"] as? String ?? "",
-                    phone: "", role: "provider"
+                    phone: "",
+                    role: "provider",
+                    profileImageName: data["profileImageUrl"] as? String ?? data["imageName"] as? String
                 )
             }
             DispatchQueue.main.async { self.tableView.reloadData() }
@@ -169,43 +159,45 @@ extension MessagesListViewController: UITableViewDataSource, UITableViewDelegate
         let cell = tableView.dequeueReusableCell(withIdentifier: "ConversationCell", for: indexPath) as! ConversationCell
         
         if !conversations.isEmpty {
-            cell.configure(with: conversations[indexPath.row])
+            let conv = conversations[indexPath.row]
+            cell.configure(with: conv)
+            
+            // جلب الصورة الحقيقية للمستخدم
+            db.collection("users").document(conv.otherUserId).getDocument { snap, _ in
+                if let imageUrl = snap?.data()?["profileImageUrl"] as? String ?? snap?.data()?["imageName"] as? String, let url = URL(string: imageUrl) {
+                    URLSession.shared.dataTask(with: url) { data, _, _ in
+                        if let data = data, let image = UIImage(data: data) {
+                            DispatchQueue.main.async { cell.setProfileImage(image) }
+                        }
+                    }.resume()
+                }
+            }
         } else {
-            // عرض البروفايدر كأنه محادثة فارغة
             let provider = providers[indexPath.row]
-            // ✅ تم الإصلاح: تمرير نص فارغ "" بدلاً من nil
-            let tempConv = MessageConversation(
-                id: "",
-                otherUserId: provider.id,
-                otherUserName: provider.name,
-                otherUserEmail: provider.email,
-                lastMessage: "Start Chatting",
-                lastUpdated: Date()
-            )
+            let tempConv = MessageConversation(id: "", otherUserId: provider.id, otherUserName: provider.name, otherUserEmail: provider.email, lastMessage: "Start Chatting", lastUpdated: Date())
             cell.configure(with: tempConv)
+            
+            if let imageUrl = provider.profileImageName, let url = URL(string: imageUrl) {
+                URLSession.shared.dataTask(with: url) { data, _, _ in
+                    if let data = data, let image = UIImage(data: data) {
+                        DispatchQueue.main.async { cell.setProfileImage(image) }
+                    }
+                }.resume()
+            }
         }
         return cell
     }
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
-        
         let chatVC = SimpleChatViewController()
-        var targetUser: AppUser
-        var convId: String?
-        
         if !conversations.isEmpty {
             let conv = conversations[indexPath.row]
-            targetUser = AppUser(id: conv.otherUserId, name: conv.otherUserName, email: conv.otherUserEmail, phone: "")
-            convId = conv.id
+            chatVC.otherUser = AppUser(id: conv.otherUserId, name: conv.otherUserName, email: conv.otherUserEmail, phone: "")
+            chatVC.conversationId = conv.id
         } else {
-            targetUser = providers[indexPath.row]
-            convId = nil
+            chatVC.otherUser = providers[indexPath.row]
         }
-        
-        // تمرير البيانات للشات
-        chatVC.otherUser = targetUser
-        chatVC.conversationId = convId
         chatVC.hidesBottomBarWhenPushed = true
         navigationController?.pushViewController(chatVC, animated: true)
     }

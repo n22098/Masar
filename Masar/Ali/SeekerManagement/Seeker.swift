@@ -3,43 +3,45 @@
 //  Masar
 //
 //  Created by BP-36-201-10 on 21/12/2025.
-//
-import Foundation
+//import Foundation
 import FirebaseFirestore
 
 struct Seeker {
     var uid: String
-    var fullName: String
+    var name: String
     var email: String
     var phone: String
     var username: String
     var role: String
     var status: String
-    var imageName: String // Keeping this for your UI compatibility
+    var profileImageURL: String? // Added to match Firestore screenshot
+    var imageName: String // Keeping for UI compatibility
     
     // Initialize from Firebase Document
     init(document: QueryDocumentSnapshot) {
         let data = document.data()
         
-        self.uid = document.documentID
-        self.fullName = data["name"] as? String ?? "No Name"
+        self.uid = data["uid"] as? String ?? document.documentID
+        self.name = data["name"] as? String ?? "No Name"
         self.email = data["email"] as? String ?? ""
         self.phone = data["phone"] as? String ?? ""
         self.username = data["username"] as? String ?? ""
         self.role = data["role"] as? String ?? "seeker"
         self.status = data["status"] as? String ?? "Active"
-        self.imageName = "profile1" // Default placeholder since Firebase uses URLs
+        self.profileImageURL = data["profileImageURL"] as? String
+        self.imageName = "profile1"
     }
     
-    // Initializer for creating a new user manually (if needed)
-    init(fullName: String, email: String, phone: String, username: String, status: String, imageName: String, roleType: String) {
-        self.uid = "" // Will be assigned by Firebase
-        self.fullName = fullName
+    // Initializer for manual creation
+    init(fullName: String, email: String, phone: String, username: String, status: String, imageName: String, roleType: String, profileImageURL: String? = nil) {
+        self.uid = ""
+        self.name = fullName
         self.email = email
         self.phone = phone
         self.username = username
         self.role = roleType
         self.status = status
         self.imageName = imageName
+        self.profileImageURL = profileImageURL
     }
 }
