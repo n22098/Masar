@@ -152,7 +152,8 @@ The app supports booking management, communication, reviews, provider verificati
 
 ## Simulators Used for Testing
 - iPhone 16 Pro Simulator  
-- iOS 16.4 
+- iOS 18.5
+
 
 ---
 
