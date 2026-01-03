@@ -9,9 +9,9 @@ class ProfileTableViewController: UITableViewController {
     // MARK: - Properties
     let brandColor = UIColor(red: 98/255, green: 84/255, blue: 243/255, alpha: 1.0)
     
-    // ⚠️⚠️ إعدادات Cloudinary (استبدل هذه بالبيانات من حسابك) ⚠️⚠️
-    let cloudinaryCloudName = "YOUR_CLOUD_NAME" // ضع اسم حسابك هنا
-    let cloudinaryUploadPreset = "YOUR_UPLOAD_PRESET" // ضع اسم الـ Preset هنا (تأكد أنه Unsigned)
+    // ⚠️⚠️ إعدادات Cloudinary (تم التعديل بناءً على بياناتك) ⚠️⚠️
+    let cloudinaryCloudName = "dsjx9ehz2"
+    let cloudinaryUploadPreset = "ml_default"
 
     // Dynamic Background Color
     let dynamicBg = UIColor { traitCollection in

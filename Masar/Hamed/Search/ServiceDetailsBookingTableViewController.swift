@@ -54,10 +54,13 @@ class ServiceDetailsBookingTableViewController: UITableViewController {
             btn.setTitleColor(.white, for: .normal)
         }
         
+        // 🔥 التعديل هنا: تفعيل اختيار الوقت والتاريخ معاً
         if let picker = datePicker {
+            picker.datePickerMode = .dateAndTime // ✅ يضيف خيار الوقت
             picker.preferredDatePickerStyle = .compact
             picker.tintColor = brandColor
             picker.contentHorizontalAlignment = .trailing
+            picker.minimumDate = Date() // ✅ يمنع اختيار وقت في الماضي
         }
     }
     
@@ -169,13 +172,13 @@ class ServiceDetailsBookingTableViewController: UITableViewController {
         navigationController?.pushViewController(paymentVC, animated: true)
     }
     
-    // MARK: - Create Booking Model (Crash Fix Here)
+    // MARK: - Create Booking Model
     func createBookingModel() -> BookingModel {
         let serviceName = receivedServiceName ?? "Unknown"
         let priceString = receivedServicePrice?.replacingOccurrences(of: "BHD ", with: "") ?? "0"
         let price = Double(priceString) ?? 0.0
         
-        // 🛡 CRASH FIX: Safely unwrap datePicker. If missing, use current date.
+        // 🛡 بما أننا فعلنا التاريخ والوقت في الأعلى، هذا المتغير الآن يحمل الوقت المختار أيضاً
         let date = datePicker?.date ?? Date()
         
         let providerName = providerData?.name ?? "Unknown"
@@ -192,6 +195,7 @@ class ServiceDetailsBookingTableViewController: UITableViewController {
         var itemsText = receivedServiceItems ?? "None"
         if itemsText.isEmpty { itemsText = "None" }
         
+        // عند حفظ هذا المودل، الفايربيس سيحفظ (date) كاملاً مع الساعة والدقيقة تلقائياً
         return BookingModel(
             id: UUID().uuidString,
             serviceName: serviceName,
@@ -229,7 +233,7 @@ class ServiceDetailsBookingTableViewController: UITableViewController {
     }
 }
 
-// MARK: - Payment View Controller (UPDATED)
+// MARK: - Payment View Controller (نفسه لم يتغير، فقط وضعته ليكون الملف مكتملاً)
 class PaymentViewController: UIViewController {
     
     let brandColor = UIColor(red: 98/255, green: 84/255, blue: 243/255, alpha: 1.0)

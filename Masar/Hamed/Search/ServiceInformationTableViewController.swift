@@ -12,7 +12,7 @@ class ServiceInformationTableViewController: UITableViewController {
     
     var providerData: ServiceProviderModel?
     
-    let brandColor = UIColor(red: 0.35, green: 0.34, blue: 0.91, alpha: 1.0)
+    let brandColor = UIColor(red: 98/255, green: 84/255, blue: 243/255, alpha: 1.0)
     
     // MARK: - ✅ THE FIX IS HERE
     // This initializer is required to prevent the "Fatal error: init(coder:) has not been implemented" crash.
@@ -144,35 +144,44 @@ class ServiceInformationTableViewController: UITableViewController {
         populateData()
     }
     
+    // لجعل شريط الحالة (الساعة والبطارية) أبيض
+    override var preferredStatusBarStyle: UIStatusBarStyle {
+        return .lightContent
+    }
+    
     // MARK: - Setup UI
     private func setupUI() {
         let appearance = UINavigationBarAppearance()
         appearance.configureWithOpaqueBackground()
         appearance.backgroundColor = brandColor
         
+        // 🔥 إجبار العنوان الصغير على اللون الأبيض
         appearance.titleTextAttributes = [
             .foregroundColor: UIColor.white,
             .font: UIFont.systemFont(ofSize: 18, weight: .semibold)
         ]
+        
+        // 🔥 إجبار العنوان الكبير على اللون الأبيض
         appearance.largeTitleTextAttributes = [
             .foregroundColor: UIColor.white,
             .font: UIFont.systemFont(ofSize: 34, weight: .bold)
         ]
+        
         appearance.shadowColor = .clear
         
         navigationController?.navigationBar.standardAppearance = appearance
         navigationController?.navigationBar.scrollEdgeAppearance = appearance
         navigationController?.navigationBar.compactAppearance = appearance
+        
+        // 🔥 جعل زر الرجوع والأيقونات باللون الأبيض
         navigationController?.navigationBar.tintColor = .white
+        
+        // تفعيل العنوان الكبير
         navigationController?.navigationBar.prefersLargeTitles = true
         
-        if providerData?.role.contains("Designer") == true || providerData?.role.contains("Creator") == true {
-            title = "Digital Services"
-        } else if providerData?.role.contains("Teacher") == true {
-            title = "Teaching"
-        } else {
-            title = "IT Solutions"
-        }
+        // 🔥 التصحيح هنا: إزالة كود الـ IT Solutions ووضع الاسم الحقيقي للكاتيجوري
+        // سيأخذ الـ Role (التخصص) من بيانات البروفايدر مباشرة
+        title = receivedServiceName ?? providerData?.role ?? "Service Details"
         
         tableView.backgroundColor = UIColor(red: 248/255, green: 248/255, blue: 252/255, alpha: 1.0)
         tableView.separatorStyle = .none

@@ -138,7 +138,7 @@ class SearchTableViewController: UITableViewController {
                 return ServiceProviderModel(
                     id: providerId,
                     name: profile?["name"] as? String ?? profile?["username"] as? String ?? "Provider",
-                    role: profile?["category"] as? String ?? services.first?.category ?? "Service Provider",
+                    role: profile?["category"] as? String ?? profile?["specialty"] as? String ?? services.first?.category ?? "Service Provider",
                     imageName: "person.circle.fill",
                     rating: 5.0,
                     skills: services.map { $0.name },

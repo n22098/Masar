@@ -76,7 +76,7 @@
                                     <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="G0V-Ww-00i">
                                         <rect key="frame" x="0.0" y="394.66666666666663" width="250" height="38.333333333333314"/>
                                         <state key="normal" title="Button"/>
-                                        <buttonConfiguration key="configuration" style="plain" title="Register"/>
+                                        <buttonConfiguration key="configuration" style="plain" title="Register as A Seeker"/>
                                         <connections>
                                             <segue destination="kFI-yE-roE" kind="show" id="TUa-e0-7rD"/>
                                         </connections>
