@@ -8,7 +8,6 @@
 ## GitHub Repository Link (Public)
 ///////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////
-> ⚠️ Make sure the repository is set to **Public**.
 
 ---
 
@@ -100,7 +99,7 @@ The app supports booking management, communication, reviews, provider verificati
 ---
 
 ## Extra Features
-❌ No extra features were implemented.
+ No extra features were implemented.
 
 ---
 
@@ -159,10 +158,10 @@ The app supports booking management, communication, reviews, provider verificati
 ---
 
 ## Admin Login Credentials
-- **Email:** admin@masar.com  
-- **Password:** Admin@123  
+username:admin
+Password:admin123 
 
-> ⚠️ For testing purposes only.
+>  For testing purposes only.
 
 ---
 
