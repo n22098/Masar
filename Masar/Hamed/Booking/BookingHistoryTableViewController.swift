@@ -41,9 +41,8 @@ class BookingHistoryTableViewController: UITableViewController {
         fetchBookingsFromFirebase()
     }
     
-    // MARK: - Firebase Fetching (🔥 تم الإصلاح هنا)
+    // MARK: - Firebase Fetching
     func fetchBookingsFromFirebase() {
-        // نستخدم الدالة الجديدة fetchBookings بدلاً من fetchAllBookings
         ServiceManager.shared.fetchBookings { [weak self] bookings in
             guard let self = self else { return }
             
@@ -175,6 +174,64 @@ class BookingHistoryTableViewController: UITableViewController {
         }
         
         return cell
+    }
+    
+    // MARK: - Swipe to Delete Actions (تمت الإضافة هنا)
+    
+    override func tableView(_ tableView: UITableView, trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
+        
+        let deleteAction = UIContextualAction(style: .destructive, title: "Delete") { [weak self] (action, view, completionHandler) in
+            // إظهار التنبيه عند الضغط على زر الحذف
+            self?.showDeleteAlert(at: indexPath)
+            completionHandler(true)
+        }
+        
+        deleteAction.backgroundColor = .red
+        // يمكنك إضافة أيقونة سلة المهملات إذا رغبت
+        deleteAction.image = UIImage(systemName: "trash.fill")
+        
+        return UISwipeActionsConfiguration(actions: [deleteAction])
+    }
+    
+    // دالة لعرض التنبيه
+    func showDeleteAlert(at indexPath: IndexPath) {
+        let alert = UIAlertController(title: nil, message: "Do you want delete this service?", preferredStyle: .alert)
+        
+        // زر "Yes" للحذف
+        let yesAction = UIAlertAction(title: "Yes", style: .destructive) { [weak self] _ in
+            self?.deleteBooking(at: indexPath)
+        }
+        
+        // زر "Cancel" للإلغاء
+        let cancelAction = UIAlertAction(title: "Cancel", style: .cancel, handler: nil)
+        
+        alert.addAction(yesAction)
+        alert.addAction(cancelAction)
+        
+        present(alert, animated: true, completion: nil)
+    }
+    
+    // دالة تنفيذ الحذف الفعلي من القوائم
+    func deleteBooking(at indexPath: IndexPath) {
+        // 1. تحديد الحجز المراد حذفه
+        let bookingToDelete = filteredBookings[indexPath.row]
+        
+        // 2. حذفه من القائمة المفلترة
+        filteredBookings.remove(at: indexPath.row)
+        
+        // 3. حذفه من القائمة الرئيسية (allBookings)
+        if let index = allBookings.firstIndex(where: { $0.id == bookingToDelete.id }) {
+            allBookings.remove(at: index)
+        }
+        
+        // 4. حذف الصف من الجدول بتأثير حركي
+        tableView.deleteRows(at: [indexPath], with: .automatic)
+        
+        // 5. تحديث الخلفية إذا أصبحت القائمة فارغة
+        updateBackgroundView()
+        
+        // ملاحظة: هنا يمكنك إضافة كود لحذف العنصر من قاعدة البيانات Firebase إذا كنت تريد ذلك
+        // ServiceManager.shared.deleteBooking(id: bookingToDelete.id)
     }
     
     // MARK: - Navigation

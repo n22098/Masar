@@ -1,5 +1,6 @@
 import UIKit
-import FirebaseAuth // 🔥 ضروري جداً لجلب رقم المزود
+import FirebaseAuth // ضروري لجلب رقم المزود
+import FirebaseFirestore // 🔥 ضروري للحذف من قاعدة البيانات
 
 class BookingsProviderTableViewController: UITableViewController {
     
@@ -30,22 +31,20 @@ class BookingsProviderTableViewController: UITableViewController {
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         setupNavigationBar()
-        // fetchDataFromFirebase() // يمكنك تفعيلها هنا أيضاً إذا أردت تحديثاً مستمراً
+        // fetchDataFromFirebase()
     }
     
     // MARK: - Firebase Fetching 📡
     private func fetchDataFromFirebase() {
-        // إضافة مؤشر تحميل بسيط في العنوان
         self.title = "Loading..."
         
-        // 🔥 تم الإصلاح هنا: نستخدم دالة المزود الخاصة التي تعرض طلباته هو فقط
         ServiceManager.shared.fetchProviderBookings { [weak self] bookings in
             guard let self = self else { return }
             
             DispatchQueue.main.async {
                 self.title = "Bookings"
                 self.allBookings = bookings
-                self.updateListForCurrentSegment() // تحديث القائمة بناءً على الفلتر الحالي
+                self.updateListForCurrentSegment()
             }
         }
     }
@@ -58,7 +57,6 @@ class BookingsProviderTableViewController: UITableViewController {
         setupHeaderView()
         setupSegmentedControlStyle()
         
-        // إضافة Refresh Control (سحب للتحديث)
         let refreshControl = UIRefreshControl()
         refreshControl.addTarget(self, action: #selector(handleRefresh), for: .valueChanged)
         tableView.refreshControl = refreshControl
@@ -177,6 +175,74 @@ class BookingsProviderTableViewController: UITableViewController {
         return 110
     }
     
+    // MARK: - Swipe to Delete
+    
+    override func tableView(_ tableView: UITableView, trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
+        
+        let deleteAction = UIContextualAction(style: .destructive, title: "Delete") { [weak self] (action, view, completion) in
+            self?.showDeleteAlert(at: indexPath)
+            completion(true)
+        }
+        
+        deleteAction.backgroundColor = .red
+        deleteAction.image = UIImage(systemName: "trash.fill")
+        
+        return UISwipeActionsConfiguration(actions: [deleteAction])
+    }
+    
+    func showDeleteAlert(at indexPath: IndexPath) {
+        let alert = UIAlertController(title: nil, message: "Do you want delete this service?", preferredStyle: .alert)
+        
+        let yesAction = UIAlertAction(title: "Yes", style: .destructive) { [weak self] _ in
+            self?.deleteBooking(at: indexPath)
+        }
+        
+        let cancelAction = UIAlertAction(title: "Cancel", style: .cancel, handler: nil)
+        
+        alert.addAction(yesAction)
+        alert.addAction(cancelAction)
+        
+        present(alert, animated: true, completion: nil)
+    }
+    
+    func deleteBooking(at indexPath: IndexPath) {
+        // 1. تحديد الحجز المطلوب حذفه
+        let bookingToDelete = filteredBookings[indexPath.row]
+        
+        // 🔥 التصحيح هنا: نستخدم guard let للتأكد من وجود الـ id قبل استخدامه
+        guard let bookingId = bookingToDelete.id else {
+            print("Error: Booking ID is missing")
+            return
+        }
+        
+        // 2. الحذف من Firebase أولاً
+        let db = Firestore.firestore()
+        db.collection("bookings").document(bookingId).delete { [weak self] error in
+            guard let self = self else { return }
+            
+            if let error = error {
+                print("Error removing document: \(error)")
+            } else {
+                print("Document successfully removed from Firebase!")
+                
+                // 3. التحديث المحلي (UI) بعد نجاح الحذف من السيرفر
+                DispatchQueue.main.async {
+                    // حذف من القائمة المفلترة
+                    self.filteredBookings.remove(at: indexPath.row)
+                    
+                    // حذف من القائمة الرئيسية باستخدام نفس الـ id المؤكد
+                    if let index = self.allBookings.firstIndex(where: { $0.id == bookingId }) {
+                        self.allBookings.remove(at: index)
+                    }
+                    
+                    // حذف الصف من الجدول
+                    self.tableView.deleteRows(at: [indexPath], with: .automatic)
+                }
+            }
+        }
+    }
+    
+    // MARK: - Navigation
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
         
@@ -193,24 +259,24 @@ class BookingsProviderTableViewController: UITableViewController {
         performSegue(withIdentifier: "ShowBookingDetails", sender: indexPath)
     }
     
-    // MARK: - Navigation
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
         if segue.identifier == "ShowBookingDetails" {
             if let destinationVC = segue.destination as? BookingProviderDetailsTableViewController,
                let indexPath = sender as? IndexPath {
                 
-                let selectedBooking = filteredBookings[indexPath.row]
-                destinationVC.bookingData = selectedBooking
-                
-                destinationVC.onStatusChanged = { [weak self] newStatus in
-                    guard let self = self else { return }
+                if indexPath.row < filteredBookings.count {
+                    let selectedBooking = filteredBookings[indexPath.row]
+                    destinationVC.bookingData = selectedBooking
                     
-                    // تحديث العنصر في المصفوفة المحلية فوراً لسرعة الاستجابة
-                    if let index = self.allBookings.firstIndex(where: { $0.id == selectedBooking.id }) {
-                        self.allBookings[index].status = newStatus
+                    destinationVC.onStatusChanged = { [weak self] newStatus in
+                        guard let self = self else { return }
+                        
+                        if let index = self.allBookings.firstIndex(where: { $0.id == selectedBooking.id }) {
+                            self.allBookings[index].status = newStatus
+                        }
+                        
+                        self.updateListForCurrentSegment()
                     }
-                    
-                    self.updateListForCurrentSegment()
                 }
             }
         }

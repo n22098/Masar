@@ -233,8 +233,8 @@ class SignInViewController: UIViewController, UITextFieldDelegate {
         print("🚫 User is banned - signing out")
         try? Auth.auth().signOut()
         
-        // ✅ Clear user role from UserDefaults
         UserDefaults.standard.removeObject(forKey: "userRole")
+        UserDefaults.standard.removeObject(forKey: "isUserLoggedIn")
         UserDefaults.standard.synchronize()
         
         let alert = UIAlertController(
@@ -261,10 +261,13 @@ class SignInViewController: UIViewController, UITextFieldDelegate {
 
     // MARK: - Navigation
     private func redirectBasedOnRole(role: String) {
-        // ✅ Save user role to UserDefaults
+        // ✅ 1. حفظ حالة تسجيل الدخول (هذا السطر كان ناقص وهو سبب المشكلة)
+        UserDefaults.standard.set(true, forKey: "isUserLoggedIn")
+        
+        // 2. حفظ الدور
         UserDefaults.standard.set(role, forKey: "userRole")
         UserDefaults.standard.synchronize()
-        print("✅ User role saved to UserDefaults: \(role)")
+        print("✅ User role saved: \(role), Login State: Active")
         
         if let sceneDelegate = UIApplication.shared.connectedScenes.first?.delegate as? SceneDelegate {
             if role.lowercased() == "provider" {
@@ -276,10 +279,11 @@ class SignInViewController: UIViewController, UITextFieldDelegate {
     }
 
     private func navigateToAdmin() {
-        // ✅ Save admin role to UserDefaults
+        // ✅ حفظ حالة الأدمن
+        UserDefaults.standard.set(true, forKey: "isUserLoggedIn")
         UserDefaults.standard.set("admin", forKey: "userRole")
         UserDefaults.standard.synchronize()
-        print("✅ Admin role saved to UserDefaults")
+        print("✅ Admin role saved")
         
         let storyboard = UIStoryboard(name: "admin", bundle: nil)
         if let adminVC = storyboard.instantiateInitialViewController() {

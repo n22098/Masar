@@ -10,10 +10,26 @@ enum SortOption {
     case priceHighToLow
 }
 
-class SearchTableViewController: UITableViewController {
+// 🔥 التعديل: نستخدم UISearchBarDelegate بدلاً من UISearchResultUpdating
+class SearchTableViewController: UITableViewController, UISearchBarDelegate {
     
     // MARK: - Properties
-    private let searchController = UISearchController(searchResultsController: nil)
+    
+    // 🔥 استبدلنا searchController بـ searchBar عادي لحل مشكلة الكتابة
+    private lazy var searchBar: UISearchBar = {
+        let sb = UISearchBar()
+        sb.placeholder = "Search provider..."
+        sb.searchBarStyle = .minimal
+        sb.delegate = self // ربط الديليقيت
+        sb.backgroundImage = UIImage() // إزالة الخلفية الرمادية
+        sb.searchTextField.backgroundColor = .white
+        sb.searchTextField.textColor = .black
+        sb.searchTextField.layer.cornerRadius = 10
+        sb.searchTextField.clipsToBounds = true
+        sb.translatesAutoresizingMaskIntoConstraints = false
+        return sb
+    }()
+    
     private var currentSort: SortOption = .nameAZ
     
     // شريط التصنيفات
@@ -34,24 +50,18 @@ class SearchTableViewController: UITableViewController {
         return sc
     }()
     
-    // زر الترتيب في الهيدر
+    // زر الترتيب
     private lazy var sortHeaderButton: UIButton = {
         let btn = UIButton(type: .system)
-        
-        // Icon changed to Sort Icon
         let config = UIImage.SymbolConfiguration(pointSize: 20, weight: .semibold)
         btn.setImage(UIImage(systemName: "line.3.horizontal.decrease.circle", withConfiguration: config), for: .normal)
-        
-        // Same styling
         btn.tintColor = UIColor(red: 98/255, green: 84/255, blue: 243/255, alpha: 1)
         btn.backgroundColor = .white
-        
         btn.layer.cornerRadius = 12
         btn.layer.shadowColor = UIColor.black.cgColor
         btn.layer.shadowOpacity = 0.08
         btn.layer.shadowOffset = CGSize(width: 0, height: 2)
         btn.layer.shadowRadius = 6
-        
         btn.translatesAutoresizingMaskIntoConstraints = false
         btn.addTarget(self, action: #selector(sortTapped), for: .touchUpInside)
         return btn
@@ -78,12 +88,14 @@ class SearchTableViewController: UITableViewController {
     // MARK: - Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
-        setupNavigationBar()
-        setupSearchController()
         setupTableView()
-        
         fetchCategoriesFromFirebase()
         fetchProvidersFromFirebase()
+    }
+    
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        setupNavigationBar()
     }
     
     // MARK: - Firebase Fetching
@@ -196,6 +208,7 @@ class SearchTableViewController: UITableViewController {
         let appearance = UINavigationBarAppearance()
         appearance.configureWithOpaqueBackground()
         appearance.backgroundColor = UIColor(red: 98/255, green: 84/255, blue: 243/255, alpha: 1)
+        appearance.titleTextAttributes = [.foregroundColor: UIColor.white]
         appearance.largeTitleTextAttributes = [.foregroundColor: UIColor.white]
         
         navigationController?.navigationBar.standardAppearance = appearance
@@ -203,18 +216,8 @@ class SearchTableViewController: UITableViewController {
         navigationController?.navigationBar.compactAppearance = appearance
         navigationController?.navigationBar.tintColor = .white
         
-        // زر التنبيهات في الأعلى (Nav Bar)
         let notifButton = UIBarButtonItem(image: UIImage(systemName: "bell.fill"), style: .plain, target: self, action: #selector(notificationsTapped))
         navigationItem.rightBarButtonItem = notifButton
-    }
-    
-    private func setupSearchController() {
-        searchController.searchResultsUpdater = self
-        searchController.obscuresBackgroundDuringPresentation = false
-        searchController.searchBar.placeholder = "Search provider..."
-        searchController.searchBar.searchBarStyle = .minimal
-        searchController.searchBar.backgroundColor = .clear
-        definesPresentationContext = true
     }
     
     private func setupTableView() {
@@ -235,8 +238,8 @@ class SearchTableViewController: UITableViewController {
         headerView.addSubview(sortHeaderButton)
         headerView.addSubview(categorySegment)
         
-        searchController.searchBar.translatesAutoresizingMaskIntoConstraints = false
-        searchBarContainer.addSubview(searchController.searchBar)
+        // 🔥 إضافة الـ SearchBar إلى الكونتينر
+        searchBarContainer.addSubview(searchBar)
         
         categorySegment.translatesAutoresizingMaskIntoConstraints = false
         
@@ -251,10 +254,11 @@ class SearchTableViewController: UITableViewController {
             searchBarContainer.trailingAnchor.constraint(equalTo: sortHeaderButton.leadingAnchor, constant: -10),
             searchBarContainer.heightAnchor.constraint(equalToConstant: 50),
             
-            searchController.searchBar.topAnchor.constraint(equalTo: searchBarContainer.topAnchor),
-            searchController.searchBar.bottomAnchor.constraint(equalTo: searchBarContainer.bottomAnchor),
-            searchController.searchBar.leadingAnchor.constraint(equalTo: searchBarContainer.leadingAnchor),
-            searchController.searchBar.trailingAnchor.constraint(equalTo: searchBarContainer.trailingAnchor),
+            // قيود الـ SearchBar داخل الكونتينر
+            searchBar.topAnchor.constraint(equalTo: searchBarContainer.topAnchor),
+            searchBar.bottomAnchor.constraint(equalTo: searchBarContainer.bottomAnchor),
+            searchBar.leadingAnchor.constraint(equalTo: searchBarContainer.leadingAnchor),
+            searchBar.trailingAnchor.constraint(equalTo: searchBarContainer.trailingAnchor),
             
             categorySegment.topAnchor.constraint(equalTo: searchBarContainer.bottomAnchor, constant: 16),
             categorySegment.leadingAnchor.constraint(equalTo: headerView.leadingAnchor, constant: 16),
@@ -265,10 +269,17 @@ class SearchTableViewController: UITableViewController {
         return headerView
     }
     
-    // MARK: - Actions
+    // MARK: - Search Logic (Delegate)
+    func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
+        filterProvidersByCategory()
+    }
     
+    func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
+        searchBar.resignFirstResponder()
+    }
+    
+    // MARK: - Actions
     @objc private func notificationsTapped() {
-        // بما أنك أنشأت الملف، سيتعرف عليه هنا تلقائياً
         let notificationsVC = NotificationsViewController()
         notificationsVC.hidesBottomBarWhenPushed = true
         navigationController?.pushViewController(notificationsVC, animated: true)
@@ -312,7 +323,8 @@ class SearchTableViewController: UITableViewController {
         if selectedCategory != "All" {
             results = results.filter { $0.role.lowercased().contains(selectedCategory.lowercased()) }
         }
-        if let searchText = searchController.searchBar.text, !searchText.isEmpty {
+        // استخدام النص من searchBar
+        if let searchText = searchBar.text, !searchText.isEmpty {
             results = results.filter { $0.name.lowercased().contains(searchText.lowercased()) || $0.role.lowercased().contains(searchText.lowercased()) }
         }
         self.filteredProviders = results
@@ -358,13 +370,6 @@ class SearchTableViewController: UITableViewController {
            let provider = sender as? ServiceProviderModel {
             destVC.providerData = provider
         }
-    }
-}
-
-// MARK: - Extensions
-extension SearchTableViewController: UISearchResultsUpdating {
-    func updateSearchResults(for searchController: UISearchController) {
-        filterProvidersByCategory()
     }
 }
 
