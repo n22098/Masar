@@ -1,6 +1,20 @@
+// ===================================================================================
+// SERVICE ITEMS SELECTION VIEW CONTROLLER
+// ===================================================================================
+// PURPOSE: A multi-selection list that allows Service Providers to tag specific
+// skills or sub-services they offer.
+//
+// KEY FEATURES:
+// 1. Master Catalog: A pre-defined list of popular services categorized by industry.
+// 2. Multi-Selection: Users can select multiple items (Checkmark logic).
+// 3. State Persistence: If a user edits a service, previously selected items appear checked.
+// 4. Data Callback: Uses a Closure to send the selected list back to the previous screen.
+// ===================================================================================
+
 import UIKit
 
-// The Model
+// MARK: - Data Model
+// Simple structure to hold the name of the service and its selection state.
 struct ServiceItemOption {
     let name: String
     var isSelected: Bool
@@ -8,16 +22,17 @@ struct ServiceItemOption {
 
 class ServiceItemsSelectionTableViewController: UITableViewController {
 
-    // ✅ UPDATED: Organized "Master Catalog" of Services
-    // هذه القائمة تمثل "Tags" يمكن للمزود اختيارها لتحديد تفاصيل خدمته بدقة
+    // MARK: - Data Source
+    // ✅ Master Catalog: The complete list of available tags/sub-services.
+    // This acts as the "Menu" for the provider to choose from.
     var items: [ServiceItemOption] = [
         
-        //MARK: - General Add-ons (تنفع للكل)
-        ServiceItemOption(name: "Online Consultation", isSelected: false), // استشارة أونلاين
-        ServiceItemOption(name: "Urgent Service (Priority)", isSelected: false), // خدمة مستعجلة
-        ServiceItemOption(name: "Home Visit", isSelected: false), // زيارة منزلية
+        // General Add-ons (Applicable to most categories)
+        ServiceItemOption(name: "Online Consultation", isSelected: false),
+        ServiceItemOption(name: "Urgent Service (Priority)", isSelected: false),
+        ServiceItemOption(name: "Home Visit", isSelected: false),
         
-        //MARK: - IT & Technical Support
+        // IT & Technical Support
         ServiceItemOption(name: "PC & Laptop Repair", isSelected: false),
         ServiceItemOption(name: "Virus & Malware Removal", isSelected: false),
         ServiceItemOption(name: "Data Recovery", isSelected: false),
@@ -25,7 +40,7 @@ class ServiceItemsSelectionTableViewController: UITableViewController {
         ServiceItemOption(name: "Software Installation", isSelected: false),
         ServiceItemOption(name: "Custom PC Building", isSelected: false),
         
-        //MARK: - Digital & Creative Services
+        // Digital & Creative Services
         ServiceItemOption(name: "Logo & Brand Identity", isSelected: false),
         ServiceItemOption(name: "Mobile App Development", isSelected: false),
         ServiceItemOption(name: "Website Maintenance", isSelected: false),
@@ -33,7 +48,7 @@ class ServiceItemsSelectionTableViewController: UITableViewController {
         ServiceItemOption(name: "Video Editing & Montage", isSelected: false),
         ServiceItemOption(name: "Social Media Management", isSelected: false),
         
-        //MARK: - Education & Training
+        // Education & Training
         ServiceItemOption(name: "Private Tutoring", isSelected: false),
         ServiceItemOption(name: "Exam Preparation", isSelected: false),
         ServiceItemOption(name: "Coding Lessons (Python/Swift)", isSelected: false),
@@ -42,26 +57,34 @@ class ServiceItemsSelectionTableViewController: UITableViewController {
         ServiceItemOption(name: "Project Mentorship", isSelected: false)
     ]
     
-    // Variable to receive previously selected items
+    // MARK: - Inputs & Outputs
+    
+    // Input: Receives data from the previous screen to show what was already picked.
     var previouslySelectedItems: [String] = []
     
+    // Output: A Closure (Callback) to send the final list back when "Done" is tapped.
     var onSelectionComplete: (([String]) -> Void)?
 
+    // MARK: - Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
         title = "Select Services"
         
-        // Logic to check previously selected items
+        // Pre-Selection Logic:
+        // Iterate through the master list. If an item exists in 'previouslySelectedItems',
+        // mark it as true so the checkmark appears.
         for i in 0..<items.count {
             if previouslySelectedItems.contains(items[i].name) {
                 items[i].isSelected = true
             }
         }
         
+        // Add "Done" button to the navigation bar
         navigationItem.rightBarButtonItem = UIBarButtonItem(title: "Done", style: .done, target: self, action: #selector(doneTapped))
     }
 
-    // MARK: - Table view data source
+    // MARK: - Table View Data Source
+    
     override func numberOfSections(in tableView: UITableView) -> Int {
         return 1
     }
@@ -70,12 +93,14 @@ class ServiceItemsSelectionTableViewController: UITableViewController {
         return items.count
     }
 
+    // Configures the cell appearance based on the model state
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "ItemCell", for: indexPath)
         
         let item = items[indexPath.row]
         cell.textLabel?.text = item.name
         
+        // Visual Logic: If selected, show Checkmark and Blue Text. If not, show plain text.
         if item.isSelected {
             cell.accessoryType = .checkmark
             cell.textLabel?.textColor = .systemBlue
@@ -89,16 +114,29 @@ class ServiceItemsSelectionTableViewController: UITableViewController {
         return cell
     }
     
+    // MARK: - Interaction Handling
+    
+    // Handles the toggle logic when a row is tapped
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
+        
+        // 1. Toggle the boolean state (true -> false, or false -> true)
         items[indexPath.row].isSelected.toggle()
+        
+        // 2. Reload only this specific row to update the checkmark UI immediately
         tableView.reloadRows(at: [indexPath], with: .automatic)
     }
     
+    // MARK: - Actions
+    
     @objc func doneTapped() {
+        // Filter Logic: Create a new array containing ONLY the names of items where isSelected == true
         let selectedNames = items.filter { $0.isSelected }.map { $0.name }
+        
+        // Execute the closure to pass data back to the previous controller
         onSelectionComplete?(selectedNames)
+        
+        // Close the screen
         navigationController?.popViewController(animated: true)
     }
-    
 }

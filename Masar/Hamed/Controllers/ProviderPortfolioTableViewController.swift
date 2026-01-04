@@ -1,10 +1,23 @@
+// ===================================================================================
+// PROVIDER PORTFOLIO VIEW CONTROLLER
+// ===================================================================================
+// PURPOSE: Allows providers to showcase their work by uploading images, videos, or documents.
+//
+// KEY FEATURES:
+// 1. Multi-Format Upload: Supports Images, Videos, and PDF Documents.
+// 2. Local Persistence: Saves file references locally using UserDefaults and FileManager.
+// 3. Dynamic Sections: Automatically adjusts based on whether the viewer is the owner or a seeker.
+// 4. Quick Look: Integrated preview for viewing uploaded documents and media.
+// ===================================================================================
+
 import UIKit
 import PhotosUI
 import UniformTypeIdentifiers
 import QuickLook
 
-// MARK: - Models
+// MARK: - Data Models
 
+// Represents a section in the table view (e.g., "About Me", "Skills", "Uploads")
 struct PortfolioSection {
     let title: String
     let content: String?
@@ -22,12 +35,14 @@ enum PortfolioMediaType: String, Codable {
     case video
 }
 
+// Represents a single uploaded file
 struct PortfolioMedia: Codable {
     let id: String
     let type: PortfolioMediaType
     let fileName: String
     let name: String
 
+    // Computed property to retrieve the full file path from the Documents directory
     var url: URL? {
         let documents = FileManager.default.urls(
             for: .documentDirectory,
@@ -53,13 +68,14 @@ class ProviderPortfolioTableViewController: UITableViewController {
     var providerData: ServiceProviderModel?
     var uploadedMedia: [PortfolioMedia] = []
 
-    /// Set to true when navigating from Seeker/Search
+    /// Flag to disable editing if accessed by a Seeker
     var isReadOnlyMode: Bool = false
 
     private var currentPreviewURL: URL?
 
-    // MARK: Storage Key
-
+    // MARK: Storage Logic
+    
+    // Generates a unique key for each provider to keep portfolios separate
     private var storageKey: String {
         if let id = providerData?.id, !id.isEmpty {
             return "Portfolio_\(id)"
@@ -68,7 +84,7 @@ class ProviderPortfolioTableViewController: UITableViewController {
     }
 
     // MARK: Portfolio Sections
-
+    // Dynamically builds the list of sections based on available data
     private var portfolioSections: [PortfolioSection] {
         var sections: [PortfolioSection] = []
 
@@ -97,6 +113,7 @@ class ProviderPortfolioTableViewController: UITableViewController {
                 )
             )
         } else {
+            // Default placeholder content if no provider data is loaded
             sections.append(
                 PortfolioSection(
                     title: "About me",
@@ -114,7 +131,7 @@ class ProviderPortfolioTableViewController: UITableViewController {
             )
         }
 
-        // Only show upload buttons if not read-only
+        // Only show the "Upload" buttons if the user is editing their own portfolio
         if !isReadOnlyMode {
             sections.append(
                 PortfolioSection(
@@ -136,24 +153,26 @@ class ProviderPortfolioTableViewController: UITableViewController {
         loadSavedMedia()
     }
 
-    // MARK: Persistence
+    // MARK: Persistence Logic
 
+    // Loads saved media metadata from UserDefaults
     private func loadSavedMedia() {
+        // Reset array to avoid duplicating data
+        uploadedMedia = []
+        
+        // Attempt to decode saved JSON data
         if let data = UserDefaults.standard.data(forKey: storageKey),
            let decoded = try? JSONDecoder().decode([PortfolioMedia].self, from: data) {
             uploadedMedia = decoded
-        } else if let data = UserDefaults.standard.data(forKey: "DefaultPortfolioStorage"),
-                  let decoded = try? JSONDecoder().decode([PortfolioMedia].self, from: data) {
-            uploadedMedia = decoded
         }
-
+        
         tableView.reloadData()
     }
 
+    // Saves the current media array to UserDefaults as JSON
     private func saveToMemory() {
         if let encoded = try? JSONEncoder().encode(uploadedMedia) {
             UserDefaults.standard.set(encoded, forKey: storageKey)
-            UserDefaults.standard.set(encoded, forKey: "DefaultPortfolioStorage")
         }
     }
 
@@ -173,78 +192,46 @@ class ProviderPortfolioTableViewController: UITableViewController {
 
         tableView.separatorStyle = .none
 
-        tableView.register(
-            PortfolioTextCell.self,
-            forCellReuseIdentifier: "PortfolioTextCell"
-        )
-
-        tableView.register(
-            PortfolioButtonsCell.self,
-            forCellReuseIdentifier: "PortfolioButtonsCell"
-        )
-
-        tableView.register(
-            PortfolioMediaCell.self,
-            forCellReuseIdentifier: "PortfolioMediaCell"
-        )
+        // Register custom cells
+        tableView.register(PortfolioTextCell.self, forCellReuseIdentifier: "PortfolioTextCell")
+        tableView.register(PortfolioButtonsCell.self, forCellReuseIdentifier: "PortfolioButtonsCell")
+        tableView.register(PortfolioMediaCell.self, forCellReuseIdentifier: "PortfolioMediaCell")
     }
 
     // MARK: Table View Data Source
 
-    override func tableView(
-        _ tableView: UITableView,
-        numberOfRowsInSection section: Int
-    ) -> Int {
-        portfolioSections.count + uploadedMedia.count
+    override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        return portfolioSections.count + uploadedMedia.count
     }
 
-    override func tableView(
-        _ tableView: UITableView,
-        cellForRowAt indexPath: IndexPath
-    ) -> UITableViewCell {
+    override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
 
+        // Render Static Sections (Text or Buttons)
         if indexPath.row < portfolioSections.count {
             let section = portfolioSections[indexPath.row]
 
             if section.type == .text {
-                let cell = tableView.dequeueReusableCell(
-                    withIdentifier: "PortfolioTextCell",
-                    for: indexPath
-                ) as! PortfolioTextCell
-
-                cell.configure(
-                    title: section.title,
-                    content: section.content ?? ""
-                )
-
+                let cell = tableView.dequeueReusableCell(withIdentifier: "PortfolioTextCell", for: indexPath) as! PortfolioTextCell
+                cell.configure(title: section.title, content: section.content ?? "")
                 return cell
             } else {
-                let cell = tableView.dequeueReusableCell(
-                    withIdentifier: "PortfolioButtonsCell",
-                    for: indexPath
-                ) as! PortfolioButtonsCell
-
+                let cell = tableView.dequeueReusableCell(withIdentifier: "PortfolioButtonsCell", for: indexPath) as! PortfolioButtonsCell
+                
+                // Closure callbacks for button actions
                 cell.onImageTapped = { [weak self] in self?.pickImage() }
                 cell.onDocumentTapped = { [weak self] in self?.pickDocument() }
                 cell.onVideoTapped = { [weak self] in self?.pickVideo() }
-
                 return cell
             }
         }
 
+        // Render Dynamic Media Rows
         let mediaIndex = indexPath.row - portfolioSections.count
         let media = uploadedMedia[mediaIndex]
 
-        let cell = tableView.dequeueReusableCell(
-            withIdentifier: "PortfolioMediaCell",
-            for: indexPath
-        ) as! PortfolioMediaCell
+        let cell = tableView.dequeueReusableCell(withIdentifier: "PortfolioMediaCell", for: indexPath) as! PortfolioMediaCell
 
-        cell.configure(
-            with: media,
-            brandColor: brandColor,
-            isReadOnly: isReadOnlyMode
-        )
+        cell.configure(with: media, brandColor: brandColor, isReadOnly: isReadOnlyMode)
 
         cell.onDeleteTapped = { [weak self] in
             self?.deleteMedia(at: mediaIndex)
@@ -253,10 +240,8 @@ class ProviderPortfolioTableViewController: UITableViewController {
         return cell
     }
 
-    override func tableView(
-        _ tableView: UITableView,
-        didSelectRowAt indexPath: IndexPath
-    ) {
+    override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        // Handle tapping on a media item to preview it
         if indexPath.row >= portfolioSections.count {
             let media = uploadedMedia[indexPath.row - portfolioSections.count]
             previewMedia(media)
@@ -264,7 +249,7 @@ class ProviderPortfolioTableViewController: UITableViewController {
     }
 
     // MARK: Media Preview
-
+    // Uses QuickLook framework to display files natively
     private func previewMedia(_ media: PortfolioMedia) {
         guard let url = media.url else { return }
 
@@ -298,23 +283,18 @@ class ProviderPortfolioTableViewController: UITableViewController {
     }
 
     private func pickDocument() {
-        let picker = UIDocumentPickerViewController(
-            forOpeningContentTypes: [.pdf, .plainText]
-        )
+        let picker = UIDocumentPickerViewController(forOpeningContentTypes: [.pdf, .plainText])
         picker.delegate = self
         present(picker, animated: true)
     }
 
     // MARK: Media Storage
 
+    // Copies the selected file to the app's document directory and saves metadata
     func saveFile(from url: URL, type: PortfolioMediaType) {
         let fileName = "\(UUID().uuidString)_\(url.lastPathComponent)"
 
-        let documentsURL = FileManager.default.urls(
-            for: .documentDirectory,
-            in: .userDomainMask
-        ).first!
-
+        let documentsURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
         let destURL = documentsURL.appendingPathComponent(fileName)
 
         do {
@@ -358,26 +338,20 @@ extension ProviderPortfolioTableViewController:
     UIDocumentPickerDelegate,
     QLPreviewControllerDataSource {
 
-    func picker(
-        _ picker: PHPickerViewController,
-        didFinishPicking results: [PHPickerResult]
-    ) {
+    // Helper: Handle selection from Photo Picker
+    func picker(_ picker: PHPickerViewController, didFinishPicking results: [PHPickerResult]) {
         picker.dismiss(animated: true)
 
         guard let result = results.first else { return }
 
-        // Determine if it's a video or image
         let isVideo = result.itemProvider.hasItemConformingToTypeIdentifier(UTType.movie.identifier)
         let typeIdentifier = isVideo ? UTType.movie.identifier : UTType.item.identifier
         let mediaType: PortfolioMediaType = isVideo ? .video : .image
 
-        result.itemProvider.loadFileRepresentation(
-            forTypeIdentifier: typeIdentifier
-        ) { url, _ in
+        result.itemProvider.loadFileRepresentation(forTypeIdentifier: typeIdentifier) { url, _ in
             if let url = url {
-                let tempURL = FileManager.default.temporaryDirectory
-                    .appendingPathComponent(url.lastPathComponent)
-
+                // Copy to temp directory to persist access
+                let tempURL = FileManager.default.temporaryDirectory.appendingPathComponent(url.lastPathComponent)
                 try? FileManager.default.copyItem(at: url, to: tempURL)
 
                 DispatchQueue.main.async {
@@ -387,41 +361,33 @@ extension ProviderPortfolioTableViewController:
         }
     }
 
-    func documentPicker(
-        _ controller: UIDocumentPickerViewController,
-        didPickDocumentsAt urls: [URL]
-    ) {
+    // Helper: Handle selection from Document Picker
+    func documentPicker(_ controller: UIDocumentPickerViewController, didPickDocumentsAt urls: [URL]) {
         if let url = urls.first {
             saveFile(from: url, type: .document)
         }
     }
 
-    func numberOfPreviewItems(
-        in controller: QLPreviewController
-    ) -> Int {
-        1
+    // Helper: QuickLook Data Source
+    func numberOfPreviewItems(in controller: QLPreviewController) -> Int {
+        return 1
     }
 
-    func previewController(
-        _ controller: QLPreviewController,
-        previewItemAt index: Int
-    ) -> QLPreviewItem {
-        (currentPreviewURL as NSURL?) ?? NSURL()
+    func previewController(_ controller: QLPreviewController, previewItemAt index: Int) -> QLPreviewItem {
+        return (currentPreviewURL as NSURL?) ?? NSURL()
     }
 }
 
-// MARK: - Cells
+// MARK: - Cells (Programmatic UI)
 
+// Cell for displaying Text Blocks (About Me, Skills)
 class PortfolioTextCell: UITableViewCell {
 
     private let container = UIView()
     private let titleLbl = UILabel()
     private let contentLbl = UILabel()
 
-    override init(
-        style: UITableViewCell.CellStyle,
-        reuseIdentifier: String?
-    ) {
+    override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
         setup()
     }
@@ -467,6 +433,7 @@ class PortfolioTextCell: UITableViewCell {
     }
 }
 
+// Cell for displaying the "Upload" buttons
 class PortfolioButtonsCell: UITableViewCell {
 
     var onImageTapped: (() -> Void)?
@@ -475,10 +442,7 @@ class PortfolioButtonsCell: UITableViewCell {
 
     private let container = UIView()
 
-    override init(
-        style: UITableViewCell.CellStyle,
-        reuseIdentifier: String?
-    ) {
+    override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
         setup()
     }
@@ -542,7 +506,7 @@ class PortfolioButtonsCell: UITableViewCell {
     private func createBtn(t: String, i: String) -> UIButton {
         let b = UIButton(type: .system)
         
-        // Create vertical stack for icon and text
+        // Custom button content (Icon + Text)
         let iconView = UIImageView(image: UIImage(systemName: i))
         iconView.contentMode = .scaleAspectFit
         iconView.tintColor = UIColor(red: 0.35, green: 0.34, blue: 0.91, alpha: 1.0)
@@ -584,6 +548,7 @@ class PortfolioButtonsCell: UITableViewCell {
     @objc func vid() { onVideoTapped?() }
 }
 
+// Cell for displaying an uploaded media item
 class PortfolioMediaCell: UITableViewCell {
 
     var onDeleteTapped: (() -> Void)?
@@ -594,10 +559,7 @@ class PortfolioMediaCell: UITableViewCell {
     private let typeLbl = UILabel()
     private let delBtn = UIButton(type: .system)
 
-    override init(
-        style: UITableViewCell.CellStyle,
-        reuseIdentifier: String?
-    ) {
+    override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
         setup()
     }
@@ -618,7 +580,7 @@ class PortfolioMediaCell: UITableViewCell {
 
         contentView.addSubview(container)
 
-        // Icon background
+        // Icon background circle
         let iconBackground = UIView()
         iconBackground.backgroundColor = UIColor(red: 0.35, green: 0.34, blue: 0.91, alpha: 0.1)
         iconBackground.layer.cornerRadius = 10
@@ -631,12 +593,10 @@ class PortfolioMediaCell: UITableViewCell {
         iconBackground.addSubview(iconView)
         container.addSubview(iconBackground)
 
-        // Name label
         nameLbl.font = .systemFont(ofSize: 15, weight: .medium)
         nameLbl.textColor = .black
         nameLbl.translatesAutoresizingMaskIntoConstraints = false
 
-        // Type label
         typeLbl.font = .systemFont(ofSize: 13, weight: .regular)
         typeLbl.textColor = .systemGray
         typeLbl.translatesAutoresizingMaskIntoConstraints = false
@@ -686,15 +646,10 @@ class PortfolioMediaCell: UITableViewCell {
         ])
     }
 
-    func configure(
-        with m: PortfolioMedia,
-        brandColor: UIColor,
-        isReadOnly: Bool
-    ) {
+    func configure(with m: PortfolioMedia, brandColor: UIColor, isReadOnly: Bool) {
         nameLbl.text = m.name
         delBtn.isHidden = isReadOnly
         
-        // Set icon and type based on media type
         switch m.type {
         case .image:
             iconView.image = UIImage(systemName: "photo.fill")
@@ -712,4 +667,3 @@ class PortfolioMediaCell: UITableViewCell {
         onDeleteTapped?()
     }
 }
-

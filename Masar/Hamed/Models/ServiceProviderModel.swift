@@ -25,7 +25,6 @@ struct ServiceProviderModel {
 }
 
 // MARK: - Portfolio Item
-// (هذا هو الجزء الذي كان ناقصاً ويسبب الأخطاء)
 struct PortfolioItem {
     let id: String
     let title: String

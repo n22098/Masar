@@ -1,26 +1,43 @@
+// ===================================================================================
+// SERVICE MANAGER (SINGLETON)
+// ===================================================================================
+// PURPOSE: A centralized manager for handling all Database interactions related to
+// Services and Bookings.
+//
+// KEY FEATURES:
+// 1. Singleton: Only one instance handles all network requests.
+// 2. Booking Management: Create, Fetch, Update, and Delete bookings.
+// 3. Service Management: Create, Fetch, Update, and Delete service listings.
+// 4. Role-Based Fetching: Fetches different data depending on if the user is a Seeker or Provider.
+// 5. Error Handling: Uses closures to return success/failure states to the UI.
+// ===================================================================================
+
 import Foundation
 import FirebaseFirestore
 import FirebaseAuth
 
 class ServiceManager {
     
+    // MARK: - Singleton Setup
     static let shared = ServiceManager()
     private let db = Firestore.firestore()
     
     private init() {}
     
     // =====================================================
-    // MARK: - 1. BOOKINGS (الحجوزات)
+    // MARK: - 1. BOOKINGS MANAGEMENT
     // =====================================================
     
-    /// حفظ حجز جديد (يستخدمها الباحث)
+    // Saves a new booking to Firestore. Used by the Seeker during checkout.
     func saveBooking(booking: BookingModel, completion: @escaping (Bool) -> Void) {
         var finalBooking = booking
+        // Ensure the booking is linked to the current user
         if finalBooking.seekerId == nil {
             finalBooking.seekerId = Auth.auth().currentUser?.uid
         }
         
         do {
+            // "addDocument" automatically creates a new unique ID
             let _ = try db.collection("bookings").addDocument(from: finalBooking) { error in
                 completion(error == nil)
             }
@@ -30,52 +47,52 @@ class ServiceManager {
         }
     }
     
-    /// جلب حجوزات الباحث فقط (لشاشة History)
-    // MARK: - 1. دالة للباحث (Seeker) - تعرض حجوزاته فقط
-        func fetchBookings(completion: @escaping ([BookingModel]) -> Void) {
-            guard let uid = Auth.auth().currentUser?.uid else {
-                print("❌ Error: No user logged in!")
-                completion([])
-                return
-            }
-            
-            print("🔍 أنا الآن أبحث عن حجوزات للمستخدم رقم: \(uid)")
-            
-            // ⚠️ ملاحظة: ألغيت الترتيب مؤقتاً للتأكد من ظهور البيانات
-            // بمجرد أن تعمل، سنعيد الترتيب وننشئ الفهرس
-            db.collection("bookings")
-                .whereField("seekerId", isEqualTo: uid)
-                //.order(by: "date", descending: true) // 👈 هذا السطر هو سبب المشكلة حالياً
-                .addSnapshotListener { snapshot, error in
-                    
-                    if let error = error {
-                        print("❌ خطأ في جلب البيانات: \(error.localizedDescription)")
-                        // 🔥 انتبه: إذا ظهر رابط في الكونسول هنا، انسخه وضعه في المتصفح
-                        completion([])
-                        return
-                    }
-                    
-                    guard let documents = snapshot?.documents else {
-                        print("⚠️ القائمة فارغة! لا توجد حجوزات لهذا المستخدم.")
-                        completion([])
-                        return
-                    }
-                    
-                    print("✅ وجدنا \(documents.count) حجز لهذا المستخدم!")
-                    
-                    let bookings = documents.compactMap { try? $0.data(as: BookingModel.self) }
-                    completion(bookings)
-                }
+    // Fetches bookings specifically for the Seeker (My Bookings)
+    // Uses a Listener for real-time updates.
+    func fetchBookings(completion: @escaping ([BookingModel]) -> Void) {
+        guard let uid = Auth.auth().currentUser?.uid else {
+            print("Error: No user logged in!")
+            completion([])
+            return
         }
+        
+        print("Fetching bookings for user ID: \(uid)")
+        
+        // Query: Get bookings where 'seekerId' matches current user
+        db.collection("bookings")
+            .whereField("seekerId", isEqualTo: uid)
+            // Note: Ordering is temporarily disabled to ensure data retrieval works first.
+            // .order(by: "date", descending: true)
+            .addSnapshotListener { snapshot, error in
+                
+                if let error = error {
+                    print("Error fetching data: \(error.localizedDescription)")
+                    completion([])
+                    return
+                }
+                
+                guard let documents = snapshot?.documents else {
+                    print("List is empty! No bookings found.")
+                    completion([])
+                    return
+                }
+                
+                print("Found \(documents.count) bookings for this user!")
+                
+                // Convert Firestore documents into BookingModel objects
+                let bookings = documents.compactMap { try? $0.data(as: BookingModel.self) }
+                completion(bookings)
+            }
+    }
     
-    /// جلب حجوزات مقدم الخدمة فقط (لشاشة Provider Bookings & Dashboard)
-    /// 🔥 (هذه الدالة كانت تسبب لك مشكلة، الآن هي موجودة)
+    // Fetches bookings specifically for the Provider (Incoming Jobs)
     func fetchProviderBookings(completion: @escaping ([BookingModel]) -> Void) {
         guard let uid = Auth.auth().currentUser?.uid else {
             completion([])
             return
         }
         
+        // Query: Get bookings where 'providerId' matches current user
         db.collection("bookings")
             .whereField("providerId", isEqualTo: uid)
             .order(by: "date", descending: true)
@@ -89,14 +106,14 @@ class ServiceManager {
             }
     }
     
-    /// تحديث حالة الحجز (قبول/رفض/إكمال)
+    // Updates the status of a booking (e.g., Pending -> Approved)
     func updateBookingStatus(bookingId: String, newStatus: BookingStatus, completion: @escaping (Bool) -> Void) {
         db.collection("bookings").document(bookingId).updateData(["status": newStatus.rawValue]) { error in
             completion(error == nil)
         }
     }
     
-    /// حذف حجز
+    // Deletes a booking from the database
     func deleteBooking(bookingId: String, completion: @escaping (Bool) -> Void) {
         db.collection("bookings").document(bookingId).delete { error in
             completion(error == nil)
@@ -104,10 +121,10 @@ class ServiceManager {
     }
     
     // =====================================================
-    // MARK: - 2. SERVICES (إدارة الخدمات) - الجزء المفقود
+    // MARK: - 2. SERVICES MANAGEMENT
     // =====================================================
     
-    /// جلب جميع الخدمات (لشاشة البحث الرئيسية)
+    // Fetches all available services for the Search/Home screen
     func fetchAllServices(completion: @escaping ([ServiceModel]) -> Void) {
         db.collection("services").getDocuments { snapshot, _ in
             let services = snapshot?.documents.compactMap { try? $0.data(as: ServiceModel.self) } ?? []
@@ -115,7 +132,7 @@ class ServiceManager {
         }
     }
     
-    /// جلب خدمات مقدم خدمة معين (لشاشة Provider Services)
+    // Fetches services created by a specific provider (For "My Services" screen)
     func fetchServicesForProvider(providerId: String, completion: @escaping ([ServiceModel]) -> Void) {
         db.collection("services")
             .whereField("providerId", isEqualTo: providerId)
@@ -125,11 +142,11 @@ class ServiceManager {
             }
     }
     
-    /// إضافة خدمة جديدة
+    // Creates a new Service listing
     func addService(_ service: ServiceModel, completion: @escaping (Error?) -> Void) {
         var serviceToSave = service
         
-        // التأكد من إضافة ID المزود
+        // Ensure provider ID is attached
         if serviceToSave.providerId == nil {
             serviceToSave.providerId = Auth.auth().currentUser?.uid
         }
@@ -141,7 +158,7 @@ class ServiceManager {
         }
     }
     
-    /// تحديث خدمة موجودة 🔥 (كانت ناقصة)
+    // Updates an existing Service
     func updateService(_ service: ServiceModel, completion: @escaping (Error?) -> Void) {
         guard let id = service.id else { return }
         do {
@@ -151,7 +168,7 @@ class ServiceManager {
         }
     }
     
-    /// حذف خدمة 🔥 (كانت ناقصة)
+    // Deletes a Service listing
     func deleteService(serviceId: String, completion: @escaping (Error?) -> Void) {
         db.collection("services").document(serviceId).delete { error in
             completion(error)

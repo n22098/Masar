@@ -2020,7 +2020,7 @@
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <stackView opaque="NO" contentMode="scaleToFill" fixedFrame="YES" axis="vertical" distribution="fillProportionally" spacing="15" translatesAutoresizingMaskIntoConstraints="NO" id="MJ2-td-9I8">
-                                <rect key="frame" x="30" y="202" width="114.33333333333331" height="297.66666666666663"/>
+                                <rect key="frame" x="30" y="202.00000000000003" width="114.33333333333331" height="297.66666666666674"/>
                                 <subviews>
                                     <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="person.fill" catalog="system" translatesAutoresizingMaskIntoConstraints="NO" id="h8N-Sd-BDR">
                                         <rect key="frame" x="0.0" y="1.6666666666666661" width="114.33333333333333" height="17"/>
@@ -2358,7 +2358,7 @@
                                 </subviews>
                             </stackView>
                             <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="person.circle" catalog="system" translatesAutoresizingMaskIntoConstraints="NO" id="bBO-9V-eSM">
-                                <rect key="frame" x="6" y="222.66666666666666" width="112" height="58.666666666666714"/>
+                                <rect key="frame" x="6" y="222" width="112" height="60"/>
                                 <color key="tintColor" systemColor="systemIndigoColor"/>
                             </imageView>
                         </subviews>
@@ -2380,6 +2380,7 @@
                     <navigationItem key="navigationItem" title="Rating and Reviews" id="chl-SW-btr"/>
                     <connections>
                         <outlet property="averageRatingLabel" destination="f53-3k-Aqm" id="fvf-h3-0DG"/>
+                        <outlet property="providerImageView" destination="bBO-9V-eSM" id="LKz-k1-SM8"/>
                         <outlet property="tableView" destination="04m-mo-cCO" id="fjU-Mv-9vQ"/>
                         <outlet property="totalRatingsLabel" destination="ScQ-rl-DF2" id="oEU-P4-2nw"/>
                     </connections>
@@ -2657,7 +2658,7 @@
                                 <textInputTraits key="textInputTraits" autocapitalizationType="sentences"/>
                             </textView>
                             <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="person.circle" catalog="system" translatesAutoresizingMaskIntoConstraints="NO" id="XKQ-2v-Rsk">
-                                <rect key="frame" x="98" y="256.66666666666669" width="197" height="89.666666666666686"/>
+                                <rect key="frame" x="98" y="256" width="197" height="91"/>
                                 <color key="tintColor" systemColor="systemIndigoColor"/>
                             </imageView>
                         </subviews>
@@ -2685,6 +2686,7 @@
                     <navigationItem key="navigationItem" title="Rating" id="KNp-1g-vLX"/>
                     <connections>
                         <outlet property="feedbackTextView" destination="q0N-Ly-KPw" id="JPB-pS-nyp"/>
+                        <outlet property="providerImageView" destination="XKQ-2v-Rsk" id="IlB-5v-1ly"/>
                         <outlet property="starStackView" destination="edA-75-uPT" id="6tZ-Oz-0MH"/>
                         <outlet property="submitButton" destination="qkJ-b7-3zS" id="si7-t5-bY6"/>
                     </connections>

@@ -1,11 +1,26 @@
+// ===================================================================================
+// SAMPLE DATA EXTENSION
+// ===================================================================================
+// PURPOSE: Provides mock data for testing the application without a live backend.
+//
+// KEY FEATURES:
+// 1. Static Access: Accessible globally via ServiceProviderModel.sampleProviders.
+// 2. Realistic Data: Includes diverse roles, prices, and descriptions to test UI layouts.
+// 3. Unique IDs: Each mock provider has a distinct ID for safe referencing.
+// ===================================================================================
+
 import Foundation
 
-// MARK: - Sample Providers with Unique Portfolio Content
+// MARK: - Sample Providers Extension
+// Extends the ServiceProviderModel to include a static list of test users.
 
 extension ServiceProviderModel {
+    
+    // Static computed property returns a fresh array of providers every time it's accessed
     static var sampleProviders: [ServiceProviderModel] {
         return [
-            // Provider 1: Amin Altajer
+            
+            // Provider 1: Hardware Specialist
             ServiceProviderModel(
                 id: "provider_001",
                 name: "Amin Altajer",
@@ -17,7 +32,7 @@ extension ServiceProviderModel {
                 location: "Riffa",
                 phone: "39999999",
                 services: [
-                    // 👇 التصليح: حذفنا الخانات الزائدة وحولنا السعر لرقم
+                    // Prices are stored as Doubles for calculations
                     ServiceModel(
                         name: "Computer Diagnostics",
                         price: 15.0,
@@ -37,7 +52,7 @@ extension ServiceProviderModel {
                 completedProjects: 250
             ),
             
-            // Provider 2: Joe Dean
+            // Provider 2: Network Specialist
             ServiceProviderModel(
                 id: "provider_002",
                 name: "Joe Dean",
@@ -63,7 +78,7 @@ extension ServiceProviderModel {
                 completedProjects: 180
             ),
             
-            // Provider 3: Sayed Husain
+            // Provider 3: Software Developer
             ServiceProviderModel(
                 id: "provider_003",
                 name: "Sayed Husain",

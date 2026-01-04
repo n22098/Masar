@@ -121,10 +121,10 @@
                                 <rect key="frame" x="20" y="171" width="353" height="572.33333333333337"/>
                                 <subviews>
                                     <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="ImageLogo11" translatesAutoresizingMaskIntoConstraints="NO" id="cys-7t-C5c">
-                                        <rect key="frame" x="0.0" y="0.0" width="353" height="90"/>
+                                        <rect key="frame" x="0.0" y="0.0" width="353" height="60"/>
                                     </imageView>
                                     <textField opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="248" contentHorizontalAlignment="left" contentVerticalAlignment="center" borderStyle="roundedRect" placeholder="Name" textAlignment="natural" minimumFontSize="17" translatesAutoresizingMaskIntoConstraints="NO" id="bHE-AY-8Gt">
-                                        <rect key="frame" x="0.0" y="120" width="353" height="34"/>
+                                        <rect key="frame" x="0.0" y="90" width="353" height="34"/>
                                         <constraints>
                                             <constraint firstAttribute="height" constant="34" id="HdK-2k-k3m"/>
                                         </constraints>
@@ -135,7 +135,7 @@
                                         </connections>
                                     </textField>
                                     <textField opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="248" contentHorizontalAlignment="left" contentVerticalAlignment="center" borderStyle="roundedRect" placeholder="Email" textAlignment="natural" minimumFontSize="17" translatesAutoresizingMaskIntoConstraints="NO" id="MYS-vc-RLx">
-                                        <rect key="frame" x="0.0" y="184" width="353" height="34"/>
+                                        <rect key="frame" x="0.0" y="154" width="353" height="34"/>
                                         <constraints>
                                             <constraint firstAttribute="height" constant="34" id="Ulm-xm-e5N"/>
                                         </constraints>
@@ -146,7 +146,7 @@
                                         </connections>
                                     </textField>
                                     <textField opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="248" contentHorizontalAlignment="left" contentVerticalAlignment="center" borderStyle="roundedRect" placeholder="Phone Number" textAlignment="natural" minimumFontSize="17" translatesAutoresizingMaskIntoConstraints="NO" id="C8L-Bp-SZl">
-                                        <rect key="frame" x="0.0" y="248" width="353" height="34"/>
+                                        <rect key="frame" x="0.0" y="218" width="353" height="34"/>
                                         <constraints>
                                             <constraint firstAttribute="height" constant="34" id="s45-e4-Cbd"/>
                                         </constraints>
@@ -157,7 +157,7 @@
                                         </connections>
                                     </textField>
                                     <textField opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="248" contentHorizontalAlignment="left" contentVerticalAlignment="center" borderStyle="roundedRect" placeholder="Username" textAlignment="natural" minimumFontSize="17" translatesAutoresizingMaskIntoConstraints="NO" id="3OH-ch-o16">
-                                        <rect key="frame" x="0.0" y="312" width="353" height="34"/>
+                                        <rect key="frame" x="0.0" y="282" width="353" height="34"/>
                                         <constraints>
                                             <constraint firstAttribute="height" constant="34" id="AFz-mp-pSw"/>
                                         </constraints>
@@ -168,7 +168,7 @@
                                         </connections>
                                     </textField>
                                     <textField opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="248" contentHorizontalAlignment="left" contentVerticalAlignment="center" borderStyle="roundedRect" placeholder="Password" textAlignment="natural" minimumFontSize="17" translatesAutoresizingMaskIntoConstraints="NO" id="T48-Sm-Gwa">
-                                        <rect key="frame" x="0.0" y="376" width="353" height="34"/>
+                                        <rect key="frame" x="0.0" y="346" width="353" height="34"/>
                                         <constraints>
                                             <constraint firstAttribute="height" constant="34" id="O6f-rp-Kzg"/>
                                         </constraints>
@@ -179,13 +179,16 @@
                                         </connections>
                                     </textField>
                                     <textField opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="248" contentHorizontalAlignment="left" contentVerticalAlignment="center" borderStyle="roundedRect" placeholder="Confirm Password" textAlignment="natural" minimumFontSize="17" translatesAutoresizingMaskIntoConstraints="NO" id="PYg-wi-qXH">
-                                        <rect key="frame" x="0.0" y="440" width="353" height="34"/>
+                                        <rect key="frame" x="0.0" y="410" width="353" height="34"/>
                                         <constraints>
                                             <constraint firstAttribute="height" constant="34" id="wXs-vo-AmK"/>
                                         </constraints>
                                         <fontDescription key="fontDescription" type="system" pointSize="14"/>
                                         <textInputTraits key="textInputTraits" autocorrectionType="no" returnKeyType="done" secureTextEntry="YES"/>
                                     </textField>
+                                    <stackView opaque="NO" contentMode="scaleToFill" spacing="8" translatesAutoresizingMaskIntoConstraints="NO" id="KFk-a2-dQz">
+                                        <rect key="frame" x="0.0" y="474" width="353" height="0.0"/>
+                                    </stackView>
                                     <stackView opaque="NO" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="uh4-S9-lLe">
                                         <rect key="frame" x="0.0" y="504" width="353" height="0.0"/>
                                     </stackView>

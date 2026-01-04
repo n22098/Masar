@@ -14,7 +14,6 @@ class ProvidersTableViewController: UITableViewController {
         super.viewDidLoad()
         setupUI()
         
-        // إعدادات الجدول
         tableView.rowHeight = UITableView.automaticDimension
         tableView.estimatedRowHeight = 70
         tableView.register(CategoryCardCell.self, forCellReuseIdentifier: "CategoryCardCell")
@@ -61,7 +60,6 @@ class ProvidersTableViewController: UITableViewController {
     
     private func hideEmptyState() { tableView.backgroundView = nil }
     
-    // MARK: - Table View Data Source
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return providers.count
     }
@@ -75,74 +73,37 @@ class ProvidersTableViewController: UITableViewController {
         cell.configure(name: name)
         return cell
     }
-
-    // MARK: - 🗑️ Swipe to Delete with Alert
-    override func tableView(_ tableView: UITableView, trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
-        
-        let deleteAction = UIContextualAction(style: .destructive, title: "Delete") { [weak self] (_, _, completionHandler) in
-            guard let self = self else { return }
-            
-            // ✅ إظهار تنبيه التأكيد قبل الحذف
-            let providerName = self.providers[indexPath.row].get("name") as? String ?? "this provider"
-            let alert = UIAlertController(title: "Confirm Delete",
-                                          message: "Are you sure you want to delete \(providerName)?",
-                                          preferredStyle: .alert)
-            
-            // زر الإلغاء
-            alert.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: { _ in
-                completionHandler(false)
-            }))
-            
-            // زر الحذف الفعلي
-            alert.addAction(UIAlertAction(title: "Delete", style: .destructive, handler: { _ in
-                let documentID = self.providers[indexPath.row].documentID
-                
-                // الحذف من Firebase
-                self.db.collection("provider_requests").document(documentID).delete { error in
-                    if let error = error {
-                        print("❌ Error: \(error.localizedDescription)")
-                        completionHandler(false)
-                    } else {
-                        print("✅ Deleted successfully")
-                        completionHandler(true)
-                    }
-                }
-            }))
-            
-            self.present(alert, animated: true)
-        }
-        
-        deleteAction.image = UIImage(systemName: "trash")
-        deleteAction.backgroundColor = .systemRed
-        
-        return UISwipeActionsConfiguration(actions: [deleteAction])
-    }
     
-    // MARK: - Navigation
+    // MARK: - Navigation: Linking to ServicesController
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         let doc = providers[indexPath.row]
         let data = doc.data()
         
-        let providerUID = data["uid"] as? String ?? ""
-        let detailsVC = ProviderDetailsVcontrol()
-        detailsVC.providerID = doc.documentID
-        detailsVC.providerName = data["name"] as? String ?? "Unknown"
-        detailsVC.providerPhone = data["phone"] as? String ?? "N/A"
-        detailsVC.providerEmail = data["email"] as? String ?? "N/A"
-        detailsVC.categoryName = self.selectedCategory
-        detailsVC.providerUsername = "Loading..."
+        // Initializing the renamed ServicesController
+        let servicesVC = ServicesController()
+        
+        // Passing the provider documentID to filter the Services collection
+        servicesVC.providerID = doc.documentID
+        servicesVC.providerName = data["name"] as? String ?? "Provider"
+        
+        self.navigationController?.pushViewController(servicesVC, animated: true)
+    }
 
-        if !providerUID.isEmpty {
-            Firestore.firestore().collection("users").document(providerUID).getDocument { (userDoc, error) in
-                if let userData = userDoc?.data(), let actualUsername = userData["username"] as? String {
-                    DispatchQueue.main.async {
-                        detailsVC.providerUsername = actualUsername
-                    }
-                } else {
-                    DispatchQueue.main.async { detailsVC.providerUsername = "N/A" }
+    override func tableView(_ tableView: UITableView, trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
+        let deleteAction = UIContextualAction(style: .destructive, title: "Delete") { [weak self] (_, _, completionHandler) in
+            guard let self = self else { return }
+            let providerName = self.providers[indexPath.row].get("name") as? String ?? "this provider"
+            let alert = UIAlertController(title: "Confirm Delete", message: "Are you sure you want to delete \(providerName)?", preferredStyle: .alert)
+            alert.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: { _ in completionHandler(false) }))
+            alert.addAction(UIAlertAction(title: "Delete", style: .destructive, handler: { _ in
+                let documentID = self.providers[indexPath.row].documentID
+                self.db.collection("provider_requests").document(documentID).delete { error in
+                    completionHandler(error == nil)
                 }
-            }
+            }))
+            self.present(alert, animated: true)
         }
-        self.navigationController?.pushViewController(detailsVC, animated: true)
+        deleteAction.image = UIImage(systemName: "trash")
+        return UISwipeActionsConfiguration(actions: [deleteAction])
     }
 }

@@ -7,6 +7,7 @@ final class MessagesListViewController: UIViewController {
     private let tableView = UITableView()
     private var conversations: [MessageConversation] = []
     private var providers: [AppUser] = []
+    private var imageCache: [String: UIImage] = [:] // ✅ Cache for images
 
     private let db = Firestore.firestore()
     private var listener: ListenerRegistration?
@@ -92,7 +93,7 @@ final class MessagesListViewController: UIViewController {
             guard let otherUserId = participants.first(where: { $0 != currentUid }) else { continue }
 
             group.enter()
-            db.collection("users").document(otherUserId).getDocument { snapshot, _ in
+            db.collection("users").document(otherUserId).getDocument { [weak self] snapshot, _ in
                 defer { group.leave() }
                 let userData = snapshot?.data()
                 let name = userData?["name"] as? String ?? "Unknown"
@@ -109,6 +110,11 @@ final class MessagesListViewController: UIViewController {
                     lastUpdated: ts
                 )
                 loadedConversations.append(conv)
+                
+                // ✅ Load profile image immediately
+                if let imageUrl = userData?["profileImageUrl"] as? String ?? userData?["imageName"] as? String {
+                    self?.loadImage(from: imageUrl, for: otherUserId)
+                }
             }
         }
         
@@ -131,22 +137,46 @@ final class MessagesListViewController: UIViewController {
     }
 
     private func fetchAllProviders(currentUid: String) {
-        db.collection("users").whereField("role", isEqualTo: "provider").getDocuments { snapshot, _ in
-            guard let documents = snapshot?.documents else { return }
+        db.collection("users").whereField("role", isEqualTo: "provider").getDocuments { [weak self] snapshot, _ in
+            guard let self = self, let documents = snapshot?.documents else { return }
             self.providers = documents.compactMap { doc -> AppUser? in
                 if doc.documentID == currentUid { return nil }
                 let data = doc.data()
+                let imageUrl = data["profileImageUrl"] as? String ?? data["imageName"] as? String
+                
+                // ✅ Load provider images
+                if let url = imageUrl {
+                    self.loadImage(from: url, for: doc.documentID)
+                }
+                
                 return AppUser(
                     id: doc.documentID,
                     name: data["name"] as? String ?? "Provider",
                     email: data["email"] as? String ?? "",
                     phone: "",
                     role: "provider",
-                    profileImageName: data["profileImageUrl"] as? String ?? data["imageName"] as? String
+                    profileImageName: imageUrl
                 )
             }
             DispatchQueue.main.async { self.tableView.reloadData() }
         }
+    }
+    
+    // ✅ Optimized image loading with caching
+    private func loadImage(from urlString: String, for userId: String) {
+        // Check cache first
+        if imageCache[userId] != nil { return }
+        
+        guard let url = URL(string: urlString) else { return }
+        
+        URLSession.shared.dataTask(with: url) { [weak self] data, _, _ in
+            if let data = data, let image = UIImage(data: data) {
+                DispatchQueue.main.async {
+                    self?.imageCache[userId] = image
+                    self?.tableView.reloadData()
+                }
+            }
+        }.resume()
     }
 }
 
@@ -162,27 +192,29 @@ extension MessagesListViewController: UITableViewDataSource, UITableViewDelegate
             let conv = conversations[indexPath.row]
             cell.configure(with: conv)
             
-            // جلب الصورة الحقيقية للمستخدم
-            db.collection("users").document(conv.otherUserId).getDocument { snap, _ in
-                if let imageUrl = snap?.data()?["profileImageUrl"] as? String ?? snap?.data()?["imageName"] as? String, let url = URL(string: imageUrl) {
-                    URLSession.shared.dataTask(with: url) { data, _, _ in
-                        if let data = data, let image = UIImage(data: data) {
-                            DispatchQueue.main.async { cell.setProfileImage(image) }
-                        }
-                    }.resume()
-                }
+            // ✅ Use cached image
+            if let cachedImage = imageCache[conv.otherUserId] {
+                cell.setProfileImage(cachedImage)
+            } else {
+                cell.setProfileImage(UIImage(systemName: "person.circle.fill") ?? UIImage())
             }
         } else {
             let provider = providers[indexPath.row]
-            let tempConv = MessageConversation(id: "", otherUserId: provider.id, otherUserName: provider.name, otherUserEmail: provider.email, lastMessage: "Start Chatting", lastUpdated: Date())
+            let tempConv = MessageConversation(
+                id: "",
+                otherUserId: provider.id,
+                otherUserName: provider.name,
+                otherUserEmail: provider.email,
+                lastMessage: "Start Chatting",
+                lastUpdated: Date()
+            )
             cell.configure(with: tempConv)
             
-            if let imageUrl = provider.profileImageName, let url = URL(string: imageUrl) {
-                URLSession.shared.dataTask(with: url) { data, _, _ in
-                    if let data = data, let image = UIImage(data: data) {
-                        DispatchQueue.main.async { cell.setProfileImage(image) }
-                    }
-                }.resume()
+            // ✅ Use cached image
+            if let cachedImage = imageCache[provider.id] {
+                cell.setProfileImage(cachedImage)
+            } else {
+                cell.setProfileImage(UIImage(systemName: "person.circle.fill") ?? UIImage())
             }
         }
         return cell

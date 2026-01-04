@@ -5,18 +5,15 @@ class MainTabBarController: UITabBarController {
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        // 1. إنشاء مستخدم تجريبي (لأغراض الاختبار)
         createTestUser()
         
-        // 2. إعداد شكل الشريط
         setupTabBarAppearance()
         
-        // 3. بناء التابات
         setupTabs()
     }
     
     func setupTabs() {
-        // التأكد من وجود مستخدم
+        // Verify that a user exists
         guard let user = UserManager.shared.currentUser else {
             createTestUser()
             setupTabs()
@@ -46,7 +43,7 @@ class MainTabBarController: UITabBarController {
         controllers.append(historyVC)
         
         // ---------------------------------------------------------
-        // 3. Messages (✅ تم التعديل حسب الصورة: MessageProViewController)
+        // 3. Messages
         // ---------------------------------------------------------
         let messagesVC = createMessagesViewController()
         controllers.append(messagesVC)
@@ -73,22 +70,17 @@ class MainTabBarController: UITabBarController {
         )
         controllers.append(profileVC)
         
-        // تعيين الكل في الشريط
         viewControllers = controllers
         
-        // ألوان الشريط
         tabBar.tintColor = UIColor(red: 0.35, green: 0.34, blue: 0.91, alpha: 1.0)
         tabBar.unselectedItemTintColor = .systemGray
     }
     
     // MARK: - Helper Methods
     
-    // ✅ تم إصلاح هذه الدالة لإزالة التحذير الأصفر
     private func createFromProviderStoryboard(id: String, title: String, icon: String) -> UIViewController {
         let storyboard = UIStoryboard(name: "Provider", bundle: nil)
         
-        // نستخدم الطريقة القياسية المباشرة لتجنب التحذيرات
-        // ملاحظة: تأكد أن الـ ID موجود في الستوري بورد وإلا سيتوقف التطبيق (Crash)
         let vc = storyboard.instantiateViewController(withIdentifier: id)
         
         vc.title = title
@@ -104,11 +96,9 @@ class MainTabBarController: UITabBarController {
         return nav
     }
     
-    // ✅ تم وضع الاسم الصحيح MessageProViewController
     private func createMessagesViewController() -> UIViewController {
         let storyboard = UIStoryboard(name: "Provider", bundle: nil)
         
-        // استخدام الاسم كما ظهر في لقطة الشاشة
         if let messagesVC = storyboard.instantiateViewController(withIdentifier: "MessageProViewController") as? UIViewController {
             
             messagesVC.title = "Messages"
@@ -124,7 +114,6 @@ class MainTabBarController: UITabBarController {
             return nav
         }
         
-        // في حال لم يجد الاسم، يطبع خطأ وينشئ شاشة مؤقتة
         print("❌ Error: Could not find 'MessageProViewController' in Provider.storyboard")
         
         return createPlaceholderViewController(

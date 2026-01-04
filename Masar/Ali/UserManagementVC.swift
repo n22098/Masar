@@ -7,20 +7,26 @@
 
 import UIKit
 
+/// UserManagementVC: Handles the administrative interface for managing different user types.
+/// OOD Principle: Inheritance - Inherits from UITableViewController to leverage built-in
+/// list management and scrolling behavior.
 class UserManagementVC: UITableViewController {
 
-    // ألوان المشروع
+    // MARK: - Properties
+    /// Centralized color palette for the project (Encapsulation).
     let brandColor = UIColor(red: 98/255, green: 84/255, blue: 243/255, alpha: 1.0)
     let bgColor = UIColor(red: 248/255, green: 249/255, blue: 253/255, alpha: 1.0)
 
+    // MARK: - Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
-
         setupModernDesign()
     }
     
+    /// setupModernDesign: Configures the visual identity of the screen.
+    /// OOD Note: Separating the UI setup from the logic ensures better maintainability.
     private func setupModernDesign() {
-        // 1. إعداد العنوان والنافيجيشن بار
+        // 1. Navigation Bar Setup: Applying the brand identity to the top bar.
         self.navigationItem.title = "User Management"
         
         let appearance = UINavigationBarAppearance()
@@ -35,21 +41,24 @@ class UserManagementVC: UITableViewController {
         navigationController?.navigationBar.tintColor = .white
         navigationController?.navigationBar.prefersLargeTitles = false
 
-        // 2. إعداد خلفية الجدول
+        // 2. TableView Setup: Customizing the list background and spacing.
         tableView.backgroundColor = bgColor
-        tableView.separatorStyle = .none
+        tableView.separatorStyle = .none // Hiding default lines to use Card View design
         
-        // إزالة الهيدر الفائض
+        // Remove excess header space for a cleaner look
         tableView.tableHeaderView = nil
         
-        // إضافة مسافة علوية بسيطة
+        // Content Insets: Adding top padding for the first card
         tableView.contentInset = UIEdgeInsets(top: 20, left: 0, bottom: 0, right: 0)
     }
 
-    // MARK: - Table view data source logic
+    // MARK: - Table View Delegate logic
+    
+    /// willDisplay: This method is called right before a cell is shown.
+    /// We use it here to perform "View Injection" – adding custom card styling to standard cells.
     override func tableView(_ tableView: UITableView, willDisplay cell: UITableViewCell, forRowAt indexPath: IndexPath) {
         
-        // 1. تنظيف الخلية من العناصر الزائدة
+        // 1. View Cleanup: Removing or hiding default labels that aren't needed.
         cell.contentView.subviews.forEach { subview in
             if let label = subview as? UILabel {
                 if label != cell.textLabel && label != cell.detailTextLabel {
@@ -58,18 +67,16 @@ class UserManagementVC: UITableViewController {
             }
         }
         
-        // 2. إعدادات الخلية الأساسية
+        // 2. Basic Cell Configuration
         cell.backgroundColor = .clear
-        // 🛑 مهم جداً: نلغي السهم الافتراضي لأننا سنضيف سهماً مخصصاً داخل البطاقة
+        // OOD Note: Disabling the default system accessory to provide a custom-positioned one.
         cell.accessoryType = .none
-        // نخفي التفاصيل الافتراضية
         cell.detailTextLabel?.isHidden = true
         
-        // تعريف متغير للبطاقة الخلفية لنستخدمه في قيود السهم لاحقاً
         var cardBackgroundView: UIView?
 
-        // 3. إنشاء خلفية البطاقة (Card View)
-        // نستخدم تاج 999 للبطاقة
+        // 3. Card View Construction: Creating a rounded container with a shadow.
+        // OOD Principle: Reusability - We check for Tag 999 to avoid creating multiple views during scrolling.
         if let existingCard = cell.viewWithTag(999) {
             cardBackgroundView = existingCard
         } else {
@@ -78,20 +85,20 @@ class UserManagementVC: UITableViewController {
             cardBackground.backgroundColor = .white
             cardBackground.layer.cornerRadius = 12
             
-            // إضافة ظل
+            // Applying Core Animation Shadow (UX Depth)
             cardBackground.layer.shadowColor = UIColor.black.cgColor
             cardBackground.layer.shadowOpacity = 0.05
             cardBackground.layer.shadowOffset = CGSize(width: 0, height: 2)
             cardBackground.layer.shadowRadius = 4
             
             cell.contentView.addSubview(cardBackground)
-            cell.contentView.sendSubviewToBack(cardBackground)
+            cell.contentView.sendSubviewToBack(cardBackground) // Ensure text is visible on top
             
+            // Auto Layout Constraints for the Card
             cardBackground.translatesAutoresizingMaskIntoConstraints = false
             NSLayoutConstraint.activate([
                 cardBackground.topAnchor.constraint(equalTo: cell.contentView.topAnchor, constant: 5),
                 cardBackground.bottomAnchor.constraint(equalTo: cell.contentView.bottomAnchor, constant: -5),
-                // هوامش البطاقة الجانبية
                 cardBackground.leadingAnchor.constraint(equalTo: cell.contentView.leadingAnchor, constant: 16),
                 cardBackground.trailingAnchor.constraint(equalTo: cell.contentView.trailingAnchor, constant: -16)
             ])
@@ -99,38 +106,32 @@ class UserManagementVC: UITableViewController {
             cardBackgroundView = cardBackground
         }
         
-        // 4. ✅ إضافة سهم مخصص "داخل البوكس"
-        // نستخدم تاج مختلف (مثلاً 888) للسهم المخصص لضمان عدم تكراره
+        // 4. Custom Accessory: Adding a manual "Chevron" arrow inside the card.
+        // We use Tag 888 to ensure we only add this once per cell.
         if cell.contentView.viewWithTag(888) == nil, let cardBg = cardBackgroundView {
             let arrowImageView = UIImageView()
             arrowImageView.tag = 888
-            // استخدام أيقونة السهم الافتراضية للنظام
             arrowImageView.image = UIImage(systemName: "chevron.right")
-            // نفس اللون الرمادي الذي كنت تستخدمه
             arrowImageView.tintColor = .systemGray3
             arrowImageView.contentMode = .scaleAspectFit
             arrowImageView.translatesAutoresizingMaskIntoConstraints = false
             
             cell.contentView.addSubview(arrowImageView)
-            // التأكد من أن السهم يظهر فوق البطاقة
             cell.contentView.bringSubviewToFront(arrowImageView)
 
+            // Anchoring the arrow relative to the Card Background (OOD Component Design)
             NSLayoutConstraint.activate([
-                // توسيط السهم عمودياً
                 arrowImageView.centerYAnchor.constraint(equalTo: cell.contentView.centerYAnchor),
-                // ✅ ربط الحافة اليمنى للسهم بالحافة اليمنى للبطاقة (وليس الخلية) مع مسافة بسيطة
                 arrowImageView.trailingAnchor.constraint(equalTo: cardBg.trailingAnchor, constant: -16),
-                // تحديد حجم مناسب للسهم
                 arrowImageView.widthAnchor.constraint(equalToConstant: 12),
                 arrowImageView.heightAnchor.constraint(equalToConstant: 20)
             ])
         }
         
-        // 5. تنسيق النصوص الأساسية والأيقونات
+        // 5. Data Mapping: Assigning text and icons based on the row index.
         cell.textLabel?.font = .systemFont(ofSize: 17, weight: .semibold)
         cell.textLabel?.textColor = .darkGray
         
-        // تعبئة البيانات والأيقونات
         if indexPath.row == 0 {
             cell.textLabel?.text = "Seeker Management"
             cell.imageView?.image = UIImage(systemName: "person.2.circle.fill")
@@ -139,15 +140,18 @@ class UserManagementVC: UITableViewController {
             cell.imageView?.image = UIImage(systemName: "briefcase.circle.fill")
         }
         
-        // تلوين أيقونة السطر (التي على اليسار)
+        // Icon Styling
         cell.imageView?.tintColor = brandColor
     }
     
+    /// heightForRowAt: Sets a fixed height to accommodate the card design.
     override func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
         return 85
     }
 
+    /// didSelectRowAt: Handles user interaction.
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        // Immediate visual feedback: Deselecting the row after tap
         tableView.deselectRow(at: indexPath, animated: true)
     }
 }

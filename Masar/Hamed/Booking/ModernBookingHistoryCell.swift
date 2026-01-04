@@ -2,11 +2,19 @@ import UIKit
 import FirebaseFirestore
 
 // MARK: - ModernBookingHistoryCell
+/// ModernBookingHistoryCell: Custom UI for the customer's booking history list.
+/// OOD Principle: Encapsulation - This class hides the complex Auto Layout constraints
+/// and UI styling from the Rest of the app.
 class ModernBookingHistoryCell: UITableViewCell {
     
-    // Callback closure to tell the Controller that the button was tapped
+    /// didTapRateButton: A callback closure (Communication Pattern).
+    /// OOD Note: This allows the Cell to notify the Controller that a button was pressed
+    /// without the Cell needing to know anything about the Controller's logic.
     var didTapRateButton: (() -> Void)?
     
+    // MARK: - UI Components
+    
+    /// The card-like background with rounded corners and soft shadows.
     private let containerView: UIView = {
         let view = UIView()
         view.backgroundColor = .white
@@ -62,17 +70,21 @@ class ModernBookingHistoryCell: UITableViewCell {
         return label
     }()
     
-    // 🔥 NEW: The Rating Button
+    /// rateButton: A dynamic button that only appears for completed services.
+    /// OOD Principle: Lazy Loading - The button is only initialized when needed.
     lazy var rateButton: UIButton = {
         let btn = UIButton(type: .system)
         btn.setTitle("Rate", for: .normal)
         btn.setImage(UIImage(systemName: "star.fill"), for: .normal)
-        btn.tintColor = .systemBlue // Or your brand color
+        btn.tintColor = .systemBlue
         btn.titleLabel?.font = UIFont.systemFont(ofSize: 14, weight: .semibold)
         btn.translatesAutoresizingMaskIntoConstraints = false
+        // Target-Action Pattern: Linking the button click to a function
         btn.addTarget(self, action: #selector(rateButtonTapped), for: .touchUpInside)
         return btn
     }()
+    
+    // MARK: - Initializers
     
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
@@ -81,6 +93,9 @@ class ModernBookingHistoryCell: UITableViewCell {
     
     required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
     
+    // MARK: - UI Setup
+    
+    /// Builds the visual structure of the cell using programmatic Auto Layout.
     private func setupUI() {
         backgroundColor = .clear
         selectionStyle = .none
@@ -91,8 +106,9 @@ class ModernBookingHistoryCell: UITableViewCell {
         containerView.addSubview(dateLabel)
         containerView.addSubview(priceLabel)
         containerView.addSubview(statusLabel)
-        containerView.addSubview(rateButton) // Add button to view
+        containerView.addSubview(rateButton)
         
+        // Defining constraints to position elements within the card
         NSLayoutConstraint.activate([
             containerView.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 8),
             containerView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
@@ -110,22 +126,27 @@ class ModernBookingHistoryCell: UITableViewCell {
             dateLabel.leadingAnchor.constraint(equalTo: serviceNameLabel.leadingAnchor),
             dateLabel.bottomAnchor.constraint(equalTo: containerView.bottomAnchor, constant: -16),
             
-            // Status Label Constraints
+            // Status Label Constraints (Top-Right)
             statusLabel.topAnchor.constraint(equalTo: containerView.topAnchor, constant: 16),
             statusLabel.trailingAnchor.constraint(equalTo: containerView.trailingAnchor, constant: -16),
             statusLabel.heightAnchor.constraint(equalToConstant: 24),
             statusLabel.widthAnchor.constraint(greaterThanOrEqualToConstant: 80),
             
-            // 🔥 Rate Button Constraints (Below Status Label)
+            // Rate Button Constraints (Positioned strategically below the Status)
             rateButton.topAnchor.constraint(equalTo: statusLabel.bottomAnchor, constant: 8),
             rateButton.trailingAnchor.constraint(equalTo: containerView.trailingAnchor, constant: -16),
             rateButton.heightAnchor.constraint(equalToConstant: 30),
             
+            // Price Label Constraints (Bottom-Right)
             priceLabel.bottomAnchor.constraint(equalTo: containerView.bottomAnchor, constant: -16),
             priceLabel.trailingAnchor.constraint(equalTo: containerView.trailingAnchor, constant: -16),
         ])
     }
     
+    // MARK: - Configuration
+    
+    /// configure: Populates the UI elements with data from the Model.
+    /// OOD Principle: Model-View separation - The cell doesn't fetch data; it simply displays what it's given.
     func configure(with booking: BookingModel) {
         serviceNameLabel.text = booking.serviceName
         providerNameLabel.text = booking.providerName
@@ -133,13 +154,14 @@ class ModernBookingHistoryCell: UITableViewCell {
         priceLabel.text = booking.priceString
         statusLabel.text = "  \(booking.status.rawValue)  "
         
-        // Hide/Show Rate button based on status
+        // Business Logic: Only show the "Rate" button if the service is marked as completed.
         if booking.status == .completed {
             rateButton.isHidden = false
         } else {
             rateButton.isHidden = true
         }
         
+        // UI Logic: Applying semantic colors based on the booking's state.
         switch booking.status {
         case .upcoming:
             statusLabel.textColor = UIColor(red: 255/255, green: 149/255, blue: 0/255, alpha: 1)
@@ -153,6 +175,9 @@ class ModernBookingHistoryCell: UITableViewCell {
         }
     }
     
+    // MARK: - Actions
+    
+    /// rateButtonTapped: Executes the closure to inform the controller.
     @objc func rateButtonTapped() {
         didTapRateButton?()
     }

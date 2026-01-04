@@ -1,16 +1,33 @@
+// ===================================================================================
+// SEEKER SERVICE VIEW CONTROLLER
+// ===================================================================================
+// PURPOSE: Manages the "Become a Provider" dashboard for regular users.
+//
+// KEY FEATURES:
+// 1. Status Tracking: Checks if the user has already applied to be a provider.
+// 2. Dynamic UI: Switches between an "Apply" button and a "Status Card" based on data.
+// 3. Data Passing: Auto-fills the application form with existing user data.
+// 4. Feedback Loop: Visualizes Pending, Approved, and Rejected states clearly.
+// ===================================================================================
+
 import UIKit
-import FirebaseAuth
-import FirebaseFirestore
+import FirebaseAuth      // For User Authentication
+import FirebaseFirestore // For Database Status Checks
 
 class SeekerServiceViewController: UIViewController {
     
     // MARK: - Properties
     let brandColor = UIColor(red: 0.35, green: 0.34, blue: 0.91, alpha: 1.0)
     
+    // Stores user details fetched from Firebase to pass to the application form
     private var currentUserData: [String: String] = [:]
-    private var providerStatus: String = "none" // none, pending, approved, rejected
+    
+    // Tracks the current application state: "none", "pending", "approved", or "rejected"
+    private var providerStatus: String = "none"
     
     // MARK: - UI Components
+    // Defined programmatically to avoid Storyboard constraints issues
+    
     private let scrollView: UIScrollView = {
         let sv = UIScrollView()
         sv.translatesAutoresizingMaskIntoConstraints = false
@@ -29,10 +46,12 @@ class SeekerServiceViewController: UIViewController {
         return button
     }()
     
+    // The Status Card: Hidden by default, shown only when an application exists
     private let statusCard: UIView = {
         let view = UIView()
         view.backgroundColor = .white
         view.layer.cornerRadius = 16
+        // Card Shadow
         view.layer.shadowColor = UIColor.black.cgColor
         view.layer.shadowOpacity = 0.08
         view.layer.shadowOffset = CGSize(width: 0, height: 4)
@@ -74,12 +93,14 @@ class SeekerServiceViewController: UIViewController {
         setupNavigationBar()
     }
     
+    // Called every time the view appears to ensure status is up-to-date
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         fetchUserStatus()
     }
     
     // MARK: - Setup UI
+    // Configures the view hierarchy and Auto Layout constraints
     private func setupUI() {
         view.backgroundColor = UIColor(red: 248/255, green: 248/255, blue: 252/255, alpha: 1.0)
         
@@ -93,7 +114,7 @@ class SeekerServiceViewController: UIViewController {
         statusCard.addSubview(statusTitleLabel)
         statusCard.addSubview(statusMessageLabel)
         
-        // Setup button
+        // Setup button styling
         setupBecomeProviderButton()
         
         // Constraints
@@ -163,7 +184,7 @@ class SeekerServiceViewController: UIViewController {
         becomeProviderButton.backgroundColor = brandColor
         becomeProviderButton.layer.cornerRadius = 16
         
-        // Shadow
+        // Button Shadow
         becomeProviderButton.layer.shadowColor = brandColor.cgColor
         becomeProviderButton.layer.shadowOpacity = 0.4
         becomeProviderButton.layer.shadowOffset = CGSize(width: 0, height: 6)
@@ -172,7 +193,9 @@ class SeekerServiceViewController: UIViewController {
         becomeProviderButton.addTarget(self, action: #selector(becomeProviderTapped), for: .touchUpInside)
     }
     
-    // MARK: - Fetch User Status
+    // MARK: - Data Logic (Firebase)
+    
+    // Connects to Firestore to check the user's current 'providerRequestStatus'
     private func fetchUserStatus() {
         guard let uid = Auth.auth().currentUser?.uid else { return }
         
@@ -180,7 +203,7 @@ class SeekerServiceViewController: UIViewController {
         db.collection("users").document(uid).getDocument { [weak self] snapshot, error in
             guard let self = self, let data = snapshot?.data() else { return }
             
-            // Store user data
+            // Store user data to prepopulate the application form later
             self.currentUserData = [
                 "uid": uid,
                 "name": data["name"] as? String ?? "",
@@ -189,16 +212,19 @@ class SeekerServiceViewController: UIViewController {
                 "username": data["username"] as? String ?? ""
             ]
             
-            // Get provider request status
+            // Get provider request status (Defaults to "none")
             let status = data["providerRequestStatus"] as? String ?? "none"
             self.providerStatus = status
             
+            // Update the UI on the main thread
             DispatchQueue.main.async {
                 self.updateUIBasedOnStatus()
             }
         }
     }
     
+    // MARK: - State Management
+    // Determines visual state based on the 'providerStatus' variable
     private func updateUIBasedOnStatus() {
         switch providerStatus {
         case "pending":
@@ -208,15 +234,17 @@ class SeekerServiceViewController: UIViewController {
         case "rejected":
             showRejectedStatus()
         default:
-            showBecomeProviderButton()
+            showBecomeProviderButton() // State: "none"
         }
     }
     
+    // State 1: New User (Show Apply Button)
     private func showBecomeProviderButton() {
         becomeProviderButton.isHidden = false
         statusCard.isHidden = true
     }
     
+    // State 2: Pending (Show Clock Icon)
     private func showPendingStatus() {
         becomeProviderButton.isHidden = true
         statusCard.isHidden = false
@@ -228,6 +256,7 @@ class SeekerServiceViewController: UIViewController {
         statusMessageLabel.text = "Your provider application is under review. Please wait until the admin approves your request."
     }
     
+    // State 3: Approved (Show Checkmark)
     private func showApprovedStatus() {
         becomeProviderButton.isHidden = true
         statusCard.isHidden = false
@@ -239,8 +268,9 @@ class SeekerServiceViewController: UIViewController {
         statusMessageLabel.text = "Congratulations! Your provider application has been approved. Please log out and log back in to access your provider dashboard."
     }
     
+    // State 4: Rejected (Show X mark + Re-apply Button)
     private func showRejectedStatus() {
-        becomeProviderButton.isHidden = false
+        becomeProviderButton.isHidden = false // Allow them to apply again
         statusCard.isHidden = false
         
         statusIconView.image = UIImage(systemName: "xmark.circle.fill")
@@ -251,15 +281,17 @@ class SeekerServiceViewController: UIViewController {
     }
     
     // MARK: - Actions
+    
+    // Navigates to the Application Form
     @objc private func becomeProviderTapped() {
         guard !currentUserData.isEmpty else {
             showAlert("Unable to load user data", title: "Error")
             return
         }
         
-        // Navigate to ApplyProviderTableViewController
+        // Navigation Logic: Instantiate the form VC and pass data
         if let applyVC = storyboard?.instantiateViewController(withIdentifier: "ApplyProviderTableViewController") as? ApplyProviderTableViewController {
-            // تعبئة البيانات تلقائياً
+            // Auto-fill the form with data fetched in fetchUserStatus()
             applyVC.userName = currentUserData["name"]
             applyVC.userEmail = currentUserData["email"]
             applyVC.userPhone = currentUserData["phone"]

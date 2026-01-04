@@ -1,139 +1,157 @@
+// ===================================================================================
+// PROFILE VIEW CONTROLLER
+// ===================================================================================
+// PURPOSE: This is the central hub for user settings and account management.
+//
+// KEY FEATURES:
+// 1. Role-Based UI: Dynamically hides/shows menu items based on "Admin" vs "User" role.
+// 2. Cloudinary Integration: Uploads profile images to the cloud via raw HTTP requests.
+// 3. Dark Mode Toggle: Switches the app theme locally using UserDefaults.
+// 4. Firebase Integration: Fetches user data and image URLs.
+// 5. Custom UI: Programmatic header view and custom switch cells.
+// ===================================================================================
+
 import UIKit
-import FirebaseAuth
-import FirebaseFirestore
-import PhotosUI
+import FirebaseAuth      // For Authentication (Logout/Delete)
+import FirebaseFirestore // For Database (User Data)
+import PhotosUI          // For picking images from the gallery
 
 // MARK: - Profile View Controller
 class ProfileTableViewController: UITableViewController {
 
     // MARK: - Properties
+    
+    // Theme Color
     let brandColor = UIColor(red: 98/255, green: 84/255, blue: 243/255, alpha: 1.0)
     
-    // ⚠️⚠️ إعدادات Cloudinary ⚠️⚠️
+    // Cloudinary Configuration
+    // Credentials for the image hosting service
     let cloudinaryCloudName = "dsjx9ehz2"
     let cloudinaryUploadPreset = "ml_default"
 
-    // Dynamic Background Color
+    // Dynamic Background Color: Changes automatically based on Light/Dark mode
     let dynamicBg = UIColor { traitCollection in
         return traitCollection.userInterfaceStyle == .dark ? .systemBackground : UIColor(red: 248/255, green: 248/255, blue: 252/255, alpha: 1.0)
     }
     
-    // ✅ Check if user is admin from MULTIPLE sources
+    // Check if user is admin
+    // We check two sources (UserDefaults and Singleton) to ensure reliability.
     private var isAdmin: Bool {
         // Method 1: Check UserDefaults (set during login)
         let roleFromDefaults = UserDefaults.standard.string(forKey: "userRole") ?? ""
         if roleFromDefaults.lowercased() == "admin" {
-            print("🔍 Admin detected from UserDefaults")
+            print("Admin detected from UserDefaults")
             return true
         }
-        
-        // Method 2: Check UserManager (if available)
+       
+        // Method 2: Check UserManager (Singleton instance)
         if let userRole = UserManager.shared.currentUser?.role, userRole.lowercased() == "admin" {
-            print("🔍 Admin detected from UserManager")
+            print("Admin detected from UserManager")
             return true
         }
-        
-        print("🔍 Not an admin - showing full menu")
+       
+        print("Not an admin - showing full menu")
         return false
     }
     
-    // Menu Items - Dynamically filtered based on admin status
+    // MARK: - Dynamic Menu Data
+    // Returns a specific list of options based on the user's role.
     var menuItems: [String] {
         var items = [String]()
+       
+        // LOGIC: Admins get a shorter menu. Regular users get full profile management.
         
         // Only show Personal Information for non-admins
         if !isAdmin {
             items.append(NSLocalizedString("Personal Information", comment: ""))
         }
-        
+       
         items.append(NSLocalizedString("Privacy and Policy", comment: ""))
         items.append(NSLocalizedString("About", comment: ""))
-        
-        // ✅ Only show Report an Issue for non-admins
+       
+        // Only show Report an Issue for non-admins
         if !isAdmin {
             items.append(NSLocalizedString("Report an Issue", comment: ""))
         }
-        
-        // ✅ Only show Reset Password for non-admins
+       
+        // Only show Reset Password for non-admins
         if !isAdmin {
             items.append(NSLocalizedString("Reset Password", comment: ""))
         }
-        
-        // ✅ Only show Delete Account for non-admins
+       
+        // Only show Delete Account for non-admins
         if !isAdmin {
             items.append(NSLocalizedString("Delete Account", comment: ""))
         }
-        
+       
         items.append(NSLocalizedString("Log Out", comment: ""))
         items.append(NSLocalizedString("Dark Mode", comment: ""))
         items.append(NSLocalizedString("Language", comment: ""))
-        
+       
         return items
     }
     
+    // Returns corresponding SF Symbol icons for the menu items
     var menuIcons: [String] {
         var icons = [String]()
-        
-        // Only show Personal Information icon for non-admins
+       
         if !isAdmin {
             icons.append("person.circle")
         }
-        
+       
         icons.append("lock.shield")
         icons.append("info.circle")
-        
-        // ✅ Only show Report an Issue icon for non-admins
+       
         if !isAdmin {
             icons.append("exclamationmark.bubble")
         }
-        
-        // ✅ Only show Reset Password icon for non-admins
+       
         if !isAdmin {
             icons.append("key")
         }
-        
-        // ✅ Only show Delete Account icon for non-admins
+       
         if !isAdmin {
             icons.append("trash")
         }
-        
+       
         icons.append("arrow.right.square")
         icons.append("moon.fill")
         icons.append("globe")
-        
+       
         return icons
     }
 
+    // Holds the image currently displayed in the header
     var currentProfileImage: UIImage?
 
-    // MARK: - Lifecycle
+    // MARK: - Lifecycle Methods
     override func viewDidLoad() {
         super.viewDidLoad()
         setupNavigationBar()
         setupTableView()
-        loadAndApplyDarkMode()
-        
+        loadAndApplyDarkMode() // Checks saved preference
+       
         // Debug: Print admin status
-        print("🔍 DEBUG - Is Admin: \(isAdmin)")
-        print("🔍 DEBUG - Menu Items: \(menuItems)")
-        
-        // جلب الصورة المحفوظة
+        print("DEBUG - Is Admin: \(isAdmin)")
+        print("DEBUG - Menu Items: \(menuItems)")
+       
+        // Fetch the profile picture (Logic differs for Admin vs User inside)
         loadProfileImageFromFirebase()
     }
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         setupNavigationBar()
-        
-        // Debug: Print admin status on each appearance
-        print("🔍 DEBUG viewWillAppear - Is Admin: \(isAdmin)")
-        
+       
+        // Reload table to ensure menu items are correct if role changed
+        print("DEBUG viewWillAppear - Is Admin: \(isAdmin)")
         tableView.reloadData()
     }
     
     // MARK: - Setup UI
     func setupTableView() {
         tableView.backgroundColor = dynamicBg
+        // Register standard cell and custom switch cell
         tableView.register(UITableViewCell.self, forCellReuseIdentifier: "MenuCell")
         tableView.register(SwitchCell.self, forCellReuseIdentifier: "SwitchCell")
         tableView.separatorStyle = .singleLine
@@ -142,7 +160,7 @@ class ProfileTableViewController: UITableViewController {
     func setupNavigationBar() {
         title = NSLocalizedString("Profile", comment: "")
         navigationController?.navigationBar.prefersLargeTitles = true
-        
+       
         let appearance = UINavigationBarAppearance()
         appearance.configureWithOpaqueBackground()
         appearance.backgroundColor = brandColor
@@ -158,64 +176,69 @@ class ProfileTableViewController: UITableViewController {
         navigationController?.navigationBar.tintColor = .white
     }
     
+    // Reads "isDarkMode" from UserDefaults and applies it globally
     func loadAndApplyDarkMode() {
         let isDarkMode = UserDefaults.standard.bool(forKey: "isDarkMode")
         applyDarkModeToAllWindows(isDarkMode)
     }
     
-    // MARK: - Load Image Function
+    // MARK: - Image Loading Logic
     func loadProfileImageFromFirebase() {
-        // Check if admin - load from UserDefaults instead
+        // CASE 1: Admin User
+        // Admins store images locally on the device (UserDefaults) for simplicity.
         if isAdmin {
-            print("👑 Loading admin profile image from local storage...")
+            print("Loading admin profile image from local storage...")
             if let base64String = UserDefaults.standard.string(forKey: "adminProfileImage"),
                let imageData = Data(base64Encoded: base64String),
                let image = UIImage(data: imageData) {
-                print("✅ Admin profile image loaded from local storage")
+                print("Admin profile image loaded from local storage")
                 self.currentProfileImage = image
                 self.tableView.reloadData()
             } else {
-                print("ℹ️ No admin profile image found in local storage")
+                print("No admin profile image found in local storage")
             }
             return
         }
-        
-        // Regular user - load from Firebase
+       
+        // CASE 2: Regular User
+        // Regular users have their image URL stored in Firestore.
         guard let uid = Auth.auth().currentUser?.uid else {
-            print("❌ No user ID - cannot load profile image")
+            print("No user ID - cannot load profile image")
             return
         }
-        
-        print("📥 Loading profile image for user: \(uid)")
-        
+       
+        print("Loading profile image for user: \(uid)")
+       
         Firestore.firestore().collection("users").document(uid).getDocument { [weak self] snapshot, error in
             guard let self = self, let data = snapshot?.data(), error == nil else {
                 if let error = error {
-                    print("❌ Error loading user data: \(error.localizedDescription)")
+                    print("Error loading user data: \(error.localizedDescription)")
                 }
                 return
             }
-            
+           
+            // Get URL string from database
             if let imageUrlString = data["profileImageURL"] as? String, !imageUrlString.isEmpty {
-                print("✅ Found profile image URL: \(imageUrlString)")
-                
+                print("Found profile image URL: \(imageUrlString)")
+              
+                // Download the actual image data
                 if let url = URL(string: imageUrlString) {
                     DispatchQueue.global().async {
                         if let data = try? Data(contentsOf: url), let image = UIImage(data: data) {
-                            print("✅ Profile image downloaded successfully")
+                            print("Profile image downloaded successfully")
                             DispatchQueue.main.async {
                                 self.currentProfileImage = image
                                 self.tableView.reloadData()
                             }
                         } else {
-                            print("❌ Failed to download or convert image")
+                            print("Failed to download or convert image")
                         }
                     }
                 } else {
-                    print("❌ Invalid URL format")
+                    print("Invalid URL format")
                 }
             } else {
-                print("ℹ️ No profile image URL found in Firebase")
+                print("No profile image URL found in Firebase")
             }
         }
     }
@@ -225,19 +248,21 @@ class ProfileTableViewController: UITableViewController {
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int { return menuItems.count }
     
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        // Check if this is the Dark Mode row
-        // For admin: Dark Mode is at index 3 (Privacy, About, Logout, DarkMode)
-        // For non-admin: Dark Mode is at index 7 (PersonalInfo, Privacy, About, Report, Reset, Delete, Logout, DarkMode)
+        // Check if this row should contain the Dark Mode Switch
+        // Since the menu size changes (Admin vs User), the index of Dark Mode changes.
+        // Admin: Index 3. User: Index 7.
         let darkModeIndex = isAdmin ? 3 : 7
-        
+       
         if indexPath.row == darkModeIndex {
             let cell = tableView.dequeueReusableCell(withIdentifier: "SwitchCell", for: indexPath) as! SwitchCell
             cell.configure(title: menuItems[indexPath.row], icon: menuIcons[indexPath.row], color: brandColor)
+            // Callback closure for when switch is flipped
             cell.switchToggled = { [weak self] isOn in self?.darkModeToggled(isOn: isOn) }
             cell.backgroundColor = .secondarySystemGroupedBackground
             return cell
         }
-        
+       
+        // Standard Menu Cell
         let cell = tableView.dequeueReusableCell(withIdentifier: "MenuCell", for: indexPath)
         var content = cell.defaultContentConfiguration()
         content.text = menuItems[indexPath.row]
@@ -249,38 +274,40 @@ class ProfileTableViewController: UITableViewController {
         return cell
     }
     
-    // MARK: - Header View
+    // MARK: - Header View (Profile Picture)
     override func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
         let headerView = UIView()
         headerView.backgroundColor = .clear
-        
+       
+        // Container for the image
         let iconContainer = UIView()
         iconContainer.backgroundColor = brandColor.withAlphaComponent(0.15)
         iconContainer.layer.cornerRadius = 40
         iconContainer.clipsToBounds = true
         iconContainer.translatesAutoresizingMaskIntoConstraints = false
-        iconContainer.isUserInteractionEnabled = true  // ✅ Allow tapping for everyone
-        
+        iconContainer.isUserInteractionEnabled = true  // Allow tapping for everyone
+       
         let iconImageView = UIImageView()
         if let savedImage = currentProfileImage {
             iconImageView.image = savedImage
             iconImageView.contentMode = .scaleAspectFill
         } else {
+            // Default placeholder if no image exists
             iconImageView.image = UIImage(systemName: "person.fill")
             iconImageView.contentMode = .scaleAspectFit
         }
-        
+       
         iconImageView.tintColor = brandColor
         iconImageView.translatesAutoresizingMaskIntoConstraints = false
         iconImageView.tag = 100
-        
-        // ✅ Everyone can upload profile pictures
+       
+        // Add Tap Gesture to upload/change image
         let tapGesture = UITapGestureRecognizer(target: self, action: #selector(avatarTapped))
         iconContainer.addGestureRecognizer(tapGesture)
-        
+       
         headerView.addSubview(iconContainer)
         iconContainer.addSubview(iconImageView)
-        
+       
         NSLayoutConstraint.activate([
             iconContainer.centerXAnchor.constraint(equalTo: headerView.centerXAnchor),
             iconContainer.topAnchor.constraint(equalTo: headerView.topAnchor, constant: 20),
@@ -297,13 +324,13 @@ class ProfileTableViewController: UITableViewController {
     override func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat { return 120 }
     override func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat { return 55 }
     
-    // MARK: - Actions
+    // MARK: - Menu Actions
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
-        
+       
         let selectedItem = menuItems[indexPath.row]
-        
-        // Map the selected item to the appropriate action
+       
+        // Switch logic to determine which action to take based on the row clicked
         switch selectedItem {
         case NSLocalizedString("Personal Information", comment: ""):
             navigateToPersonalInfo()
@@ -326,6 +353,8 @@ class ProfileTableViewController: UITableViewController {
         }
     }
     
+    // MARK: - Navigation & Alerts
+    
     func showReportSheet() {
         let reportSheet = ReportSheetViewController()
         if let sheet = reportSheet.sheetPresentationController {
@@ -339,21 +368,23 @@ class ProfileTableViewController: UITableViewController {
     func navigateToPersonalInfo() { performSegue(withIdentifier: "goToPersonalInfo", sender: nil) }
     func navigateToResetPassword() { performSegue(withIdentifier: "goToResetPassword", sender: nil) }
 
+    // Logic for logging out
     func showLogOutAlert() {
         let alert = UIAlertController(title: "Log Out", message: "Are you sure?", preferredStyle: .alert)
         alert.addAction(UIAlertAction(title: "No", style: .cancel))
         alert.addAction(UIAlertAction(title: "Yes", style: .destructive) { [weak self] _ in
-            // ✅ Clear user role from UserDefaults on logout
+            // Clear user role from UserDefaults on logout to prevent access issues
             UserDefaults.standard.removeObject(forKey: "userRole")
             // Note: We keep adminProfileImage so it persists across logins
             UserDefaults.standard.synchronize()
-            
+           
             try? Auth.auth().signOut()
             self?.goToSignIn()
         })
         present(alert, animated: true)
     }
     
+    // Logic for account deletion
     func showDeleteAccountAlert() {
         let alert = UIAlertController(title: "Delete Account", message: "This action cannot be undone.", preferredStyle: .alert)
         alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
@@ -362,10 +393,10 @@ class ProfileTableViewController: UITableViewController {
                 if let error = error {
                     self?.showAlert("Error: \(error.localizedDescription)")
                 } else {
-                    // ✅ Clear user role from UserDefaults on delete
+                    // Clear user role from UserDefaults on delete
                     UserDefaults.standard.removeObject(forKey: "userRole")
                     UserDefaults.standard.synchronize()
-                    
+                   
                     self?.goToSignIn()
                 }
             }
@@ -373,6 +404,7 @@ class ProfileTableViewController: UITableViewController {
         present(alert, animated: true)
     }
     
+    // Redirect to Login Screen
     func goToSignIn() {
         let storyboard = UIStoryboard(name: "Main", bundle: nil)
         let signInVC = storyboard.instantiateViewController(withIdentifier: "SignInViewController")
@@ -382,6 +414,7 @@ class ProfileTableViewController: UITableViewController {
         }
     }
     
+    // Handle Dark Mode Switch
     func darkModeToggled(isOn: Bool) {
         UserDefaults.standard.set(isOn, forKey: "isDarkMode")
         UserDefaults.standard.synchronize()
@@ -389,6 +422,7 @@ class ProfileTableViewController: UITableViewController {
         tableView.reloadData()
     }
     
+    // Iterates through all windows to apply the interface style
     func applyDarkModeToAllWindows(_ isDark: Bool) {
         let style: UIUserInterfaceStyle = isDark ? .dark : .light
         UIApplication.shared.connectedScenes.forEach { scene in
@@ -448,6 +482,7 @@ class ProfileTableViewController: UITableViewController {
         present(contentVC, animated: true)
     }
     
+    // MARK: - Static Content Text
     func getAboutText() -> String {
         return """
         Welcome to Masar!
@@ -530,39 +565,39 @@ class ProfileTableViewController: UITableViewController {
     }
 }
 
-// MARK: - ☁️ Cloudinary Upload Extension
+// MARK: - Cloudinary Upload Extension
+// Handles selecting images from the library and uploading them to the cloud
 extension ProfileTableViewController: PHPickerViewControllerDelegate {
     
-    // MARK: - 🖼️ Profile Image Actions
+    // MARK: - Profile Image Actions
     @objc func avatarTapped() {
         let alert = UIAlertController(title: "Profile Picture", message: nil, preferredStyle: .actionSheet)
-        
-        // 1. خيار اختيار صورة (نفس الكود القديم)
+       
+        // Option 1: Choose Photo
         alert.addAction(UIAlertAction(title: "Change Photo", style: .default) { _ in
             self.openPhotoPicker()
         })
-        
-        // 2. خيار حذف الصورة (يظهر فقط إذا كان المستخدم قد وضع صورة بالفعل)
-        // هذا الخيار سيعيد الصورة إلى الـ Default
+       
+        // Option 2: Remove Photo (only shows if one exists)
         if currentProfileImage != nil {
             alert.addAction(UIAlertAction(title: "Remove Photo", style: .destructive) { _ in
                 self.removeProfilePhoto()
             })
         }
-        
+       
         alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
-        
-        // لتجنب المشاكل في الآيباد
+       
+        // iPad Support
         if let popover = alert.popoverPresentationController {
             popover.sourceView = self.view
             popover.sourceRect = CGRect(x: self.view.bounds.midX, y: self.view.bounds.midY, width: 0, height: 0)
             popover.permittedArrowDirections = []
         }
-        
+       
         present(alert, animated: true)
     }
 
-    // دالة مساعدة لفتح الاستوديو (فصلنا الكود ليكون أرتب)
+    // Opens the native photo picker
     func openPhotoPicker() {
         var config = PHPickerConfiguration()
         config.filter = .images
@@ -572,71 +607,72 @@ extension ProfileTableViewController: PHPickerViewControllerDelegate {
         present(picker, animated: true)
     }
 
-    // دالة حذف الصورة والعودة للافتراضي
+    // Removes the photo and resets to default
     func removeProfilePhoto() {
-        // 1. تحديث الواجهة فوراً (إزالة الصورة الحالية)
+        // 1. Update UI immediately
         self.currentProfileImage = nil
-        self.tableView.reloadData() // سيعود الكود تلقائياً لاستخدام "person.fill" الموجود في viewForHeaderInSection
-        
-        // 2. حذف من البيانات (Backend/Storage)
+        self.tableView.reloadData()
+       
+        // 2. Remove from backend storage
         if isAdmin {
             UserDefaults.standard.removeObject(forKey: "adminProfileImage")
             UserDefaults.standard.synchronize()
         } else {
             guard let uid = Auth.auth().currentUser?.uid else { return }
-            // حذف حقل الصورة من فايربيس
+            // Delete field from Firestore
             Firestore.firestore().collection("users").document(uid).updateData([
                 "profileImageURL": FieldValue.delete()
             ]) { error in
                 if let error = error {
-                    print("❌ Error removing photo: \(error.localizedDescription)")
+                    print("Error removing photo: \(error.localizedDescription)")
                 } else {
-                    print("✅ Photo removed successfully (Reverted to default)")
+                    print("Photo removed successfully (Reverted to default)")
                 }
             }
         }
     }
     
+    // Delegate method called when user selects an image
     func picker(_ picker: PHPickerViewController, didFinishPicking results: [PHPickerResult]) {
         picker.dismiss(animated: true)
-        
+       
         guard let result = results.first else {
-            print("❌ No image selected")
+            print("No image selected")
             return
         }
-        
-        print("📸 Image selected, loading...")
-        
+       
+        print("Image selected, loading...")
+       
         result.itemProvider.loadObject(ofClass: UIImage.self) { [weak self] (object, error) in
             guard let self = self else { return }
-            
+           
             if let error = error {
-                print("❌ Error loading image: \(error.localizedDescription)")
+                print("Error loading image: \(error.localizedDescription)")
                 DispatchQueue.main.async {
                     self.showAlert("Failed to load image: \(error.localizedDescription)")
                 }
                 return
             }
-            
+           
             guard let image = object as? UIImage else {
-                print("❌ Failed to convert to UIImage")
+                print("Failed to convert to UIImage")
                 DispatchQueue.main.async {
                     self.showAlert("Failed to process selected image")
                 }
                 return
             }
-            
-            print("✅ Image loaded successfully, size: \(image.size)")
-            
+           
+            print("Image loaded successfully, size: \(image.size)")
+           
             DispatchQueue.main.async {
                 // Update UI immediately
                 self.currentProfileImage = image
                 self.tableView.reloadData()
-                
+              
                 // Check if admin
                 if self.isAdmin {
                     // Save admin image locally
-                    print("👑 Saving admin profile image locally...")
+                    print("Saving admin profile image locally...")
                     self.saveAdminImageLocally(image: image)
                 } else {
                     // Upload regular user image to Cloudinary
@@ -651,34 +687,34 @@ extension ProfileTableViewController: PHPickerViewControllerDelegate {
     // Save admin profile image to UserDefaults
     func saveAdminImageLocally(image: UIImage) {
         guard let imageData = image.jpegData(compressionQuality: 0.7) else {
-            print("❌ Failed to convert admin image to JPEG")
+            print("Failed to convert admin image to JPEG")
             showAlert("Failed to save profile picture")
             return
         }
-        
+       
         let base64String = imageData.base64EncodedString()
         UserDefaults.standard.set(base64String, forKey: "adminProfileImage")
         UserDefaults.standard.synchronize()
-        
-        print("✅ Admin profile image saved locally (\(imageData.count) bytes)")
-        showAlert("✅ Admin profile picture saved successfully!")
+       
+        print("Admin profile image saved locally (\(imageData.count) bytes)")
+        showAlert("Admin profile picture saved successfully!")
     }
     
-    // 🔥 Improved Cloudinary Upload with extensive debugging
+    // Improved Cloudinary Upload with extensive debugging
     func uploadToCloudinary(image: UIImage, loadingAlert: UIAlertController) {
-        print("🚀 Starting Cloudinary upload...")
-        print("📋 Cloud Name: \(cloudinaryCloudName)")
-        print("📋 Upload Preset: \(cloudinaryUploadPreset)")
-        
+        print("Starting Cloudinary upload...")
+        print("Cloud Name: \(cloudinaryCloudName)")
+        print("Upload Preset: \(cloudinaryUploadPreset)")
+       
         // 1. Validate configuration
         guard !cloudinaryCloudName.isEmpty,
               cloudinaryCloudName != "YOUR_CLOUD_NAME",
               !cloudinaryUploadPreset.isEmpty,
               cloudinaryUploadPreset != "YOUR_UPLOAD_PRESET" else {
-            print("❌ Invalid Cloudinary configuration")
+            print("Invalid Cloudinary configuration")
             DispatchQueue.main.async {
                 loadingAlert.dismiss(animated: true) {
-                    self.showAlert("⚠️ Cloudinary not configured properly")
+                    self.showAlert("Cloudinary not configured properly")
                 }
             }
             return
@@ -687,148 +723,148 @@ extension ProfileTableViewController: PHPickerViewControllerDelegate {
         // 2. Build URL
         let urlString = "https://api.cloudinary.com/v1_1/\(cloudinaryCloudName)/image/upload"
         guard let url = URL(string: urlString) else {
-            print("❌ Invalid URL: \(urlString)")
+            print("Invalid URL: \(urlString)")
             DispatchQueue.main.async {
                 loadingAlert.dismiss(animated: true) {
-                    self.showAlert("❌ Invalid Cloudinary URL")
+                    self.showAlert("Invalid Cloudinary URL")
                 }
             }
             return
         }
-        
-        print("🌐 Upload URL: \(urlString)")
-        
+       
+        print("Upload URL: \(urlString)")
+       
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.timeoutInterval = 60
-        
+       
         // 3. Convert image
         guard let imageData = image.jpegData(compressionQuality: 0.7) else {
-            print("❌ Failed to convert image to JPEG")
+            print("Failed to convert image to JPEG")
             DispatchQueue.main.async {
                 loadingAlert.dismiss(animated: true) {
-                    self.showAlert("❌ Failed to process image")
+                    self.showAlert("Failed to process image")
                 }
             }
             return
         }
-        
-        print("📦 Image data size: \(imageData.count) bytes (\(imageData.count / 1024) KB)")
-        
+       
+        print("Image data size: \(imageData.count) bytes (\(imageData.count / 1024) KB)")
+       
         // 4. Build multipart form data
         let boundary = "Boundary-\(UUID().uuidString)"
         request.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
-        
+       
         var body = Data()
-        
+       
         // Add upload_preset
         body.append("--\(boundary)\r\n".data(using: .utf8)!)
         body.append("Content-Disposition: form-data; name=\"upload_preset\"\r\n\r\n".data(using: .utf8)!)
         body.append("\(cloudinaryUploadPreset)\r\n".data(using: .utf8)!)
-        
+       
         // Add file
         body.append("--\(boundary)\r\n".data(using: .utf8)!)
         body.append("Content-Disposition: form-data; name=\"file\"; filename=\"profile.jpg\"\r\n".data(using: .utf8)!)
         body.append("Content-Type: image/jpeg\r\n\r\n".data(using: .utf8)!)
         body.append(imageData)
         body.append("\r\n".data(using: .utf8)!)
-        
+       
         // Close boundary
         body.append("--\(boundary)--\r\n".data(using: .utf8)!)
-        
+       
         request.httpBody = body
-        print("📤 Total request size: \(body.count) bytes (\(body.count / 1024) KB)")
-        print("⏳ Sending request to Cloudinary...")
-        
+        print("Total request size: \(body.count) bytes (\(body.count / 1024) KB)")
+        print("Sending request to Cloudinary...")
+       
         // 5. Send request
         URLSession.shared.dataTask(with: request) { [weak self] data, response, error in
             guard let self = self else { return }
-            
+           
             // Check for network error
             if let error = error {
-                print("❌ Network error: \(error.localizedDescription)")
+                print("Network error: \(error.localizedDescription)")
                 DispatchQueue.main.async {
                     loadingAlert.dismiss(animated: true) {
-                        self.showAlert("❌ Upload failed: Network error")
+                        self.showAlert("Upload failed: Network error")
                     }
                 }
                 return
             }
-            
+           
             // Check HTTP response
             if let httpResponse = response as? HTTPURLResponse {
-                print("📡 HTTP Status Code: \(httpResponse.statusCode)")
-                
+                print("HTTP Status Code: \(httpResponse.statusCode)")
+              
                 if httpResponse.statusCode != 200 {
-                    print("⚠️ Unexpected status code: \(httpResponse.statusCode)")
+                    print("Unexpected status code: \(httpResponse.statusCode)")
                 }
             }
-            
+           
             // Check data
             guard let data = data else {
-                print("❌ No data received from server")
+                print("No data received from server")
                 DispatchQueue.main.async {
                     loadingAlert.dismiss(animated: true) {
-                        self.showAlert("❌ No response from server")
+                        self.showAlert("No response from server")
                     }
                 }
                 return
             }
-            
-            print("📥 Received data: \(data.count) bytes")
-            
+           
+            print("Received data: \(data.count) bytes")
+           
             // Parse JSON response
             do {
                 if let json = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any] {
-                    print("📋 Response JSON keys: \(json.keys)")
-                    
+                    print("Response JSON keys: \(json.keys)")
+                   
                     // Check for error in response
                     if let errorDict = json["error"] as? [String: Any],
                        let message = errorDict["message"] as? String {
-                        print("❌ Cloudinary error: \(message)")
+                        print("Cloudinary error: \(message)")
                         DispatchQueue.main.async {
                             loadingAlert.dismiss(animated: true) {
-                                self.showAlert("❌ Upload failed: \(message)")
+                                self.showAlert("Upload failed: \(message)")
                             }
                         }
                         return
                     }
-                    
+                   
                     // Extract secure URL
                     if let secureUrl = json["secure_url"] as? String {
-                        print("✅ Upload successful!")
-                        print("🔗 Image URL: \(secureUrl)")
-                        
+                        print("Upload successful!")
+                        print("Image URL: \(secureUrl)")
+                       
                         // Save to Firebase
                         self.saveImageURLToFirestore(url: secureUrl, loadingAlert: loadingAlert)
                     } else {
-                        print("❌ No secure_url in response")
-                        print("📋 Full response: \(json)")
+                        print("No secure_url in response")
+                        print("Full response: \(json)")
                         DispatchQueue.main.async {
                             loadingAlert.dismiss(animated: true) {
-                                self.showAlert("❌ Invalid response from Cloudinary")
+                                self.showAlert("Invalid response from Cloudinary")
                             }
                         }
                     }
                 } else {
-                    print("❌ Response is not JSON")
+                    print("Response is not JSON")
                     if let responseString = String(data: data, encoding: .utf8) {
-                        print("📋 Raw response: \(responseString)")
+                        print("Raw response: \(responseString)")
                     }
                     DispatchQueue.main.async {
                         loadingAlert.dismiss(animated: true) {
-                            self.showAlert("❌ Invalid response format")
+                            self.showAlert("Invalid response format")
                         }
                     }
                 }
             } catch {
-                print("❌ JSON parsing error: \(error.localizedDescription)")
+                print("JSON parsing error: \(error.localizedDescription)")
                 if let responseString = String(data: data, encoding: .utf8) {
-                    print("📋 Raw response: \(responseString)")
+                    print("Raw response: \(responseString)")
                 }
                 DispatchQueue.main.async {
                     loadingAlert.dismiss(animated: true) {
-                        self.showAlert("❌ Failed to parse server response")
+                        self.showAlert("Failed to parse server response")
                     }
                 }
             }
@@ -836,35 +872,35 @@ extension ProfileTableViewController: PHPickerViewControllerDelegate {
     }
     
     func saveImageURLToFirestore(url: String, loadingAlert: UIAlertController) {
-        print("💾 Saving image URL to Firestore...")
-        print("🔗 URL to save: \(url)")
-        
+        print("Saving image URL to Firestore...")
+        print("URL to save: \(url)")
+       
         guard let uid = Auth.auth().currentUser?.uid else {
-            print("❌ No user ID found")
+            print("No user ID found")
             DispatchQueue.main.async {
                 loadingAlert.dismiss(animated: true) {
-                    self.showAlert("❌ User not logged in")
+                    self.showAlert("User not logged in")
                 }
             }
             return
         }
-        
-        print("👤 User ID: \(uid)")
-        
+       
+        print("User ID: \(uid)")
+       
         let userData: [String: Any] = [
             "profileImageURL": url,
             "profileImageUpdatedAt": FieldValue.serverTimestamp()
         ]
-        
+       
         Firestore.firestore().collection("users").document(uid).setData(userData, merge: true) { error in
             DispatchQueue.main.async {
                 loadingAlert.dismiss(animated: true) {
                     if let error = error {
-                        print("❌ Firestore save error: \(error.localizedDescription)")
-                        self.showAlert("❌ Failed to save: \(error.localizedDescription)")
+                        print("Firestore save error: \(error.localizedDescription)")
+                        self.showAlert("Failed to save: \(error.localizedDescription)")
                     } else {
-                        print("✅ Profile image URL saved successfully!")
-                        self.showAlert("✅ Profile picture updated successfully!")
+                        print("Profile image URL saved successfully!")
+                        self.showAlert("Profile picture updated successfully!")
                     }
                 }
             }
@@ -873,18 +909,20 @@ extension ProfileTableViewController: PHPickerViewControllerDelegate {
 }
 
 // MARK: - Helper Classes
+
+// Custom Cell for the Dark Mode Toggle
 class SwitchCell: UITableViewCell {
     private let iconImageView = UIImageView()
     private let titleLabel = UILabel()
     private let switchControl = UISwitch()
     var switchToggled: ((Bool) -> Void)?
-    
+   
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
         setupViews()
     }
     required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
-    
+   
     private func setupViews() {
         iconImageView.translatesAutoresizingMaskIntoConstraints = false
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
@@ -893,7 +931,7 @@ class SwitchCell: UITableViewCell {
         contentView.addSubview(titleLabel)
         contentView.addSubview(switchControl)
         switchControl.addTarget(self, action: #selector(switchValueChanged), for: .valueChanged)
-        
+       
         NSLayoutConstraint.activate([
             iconImageView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
             iconImageView.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
@@ -914,29 +952,30 @@ class SwitchCell: UITableViewCell {
     @objc private func switchValueChanged() { switchToggled?(switchControl.isOn) }
 }
 
+// Custom View Controller for the "Report Issue" sheet
 class ReportSheetViewController: UIViewController, UITextViewDelegate {
     private let titleLabel = UILabel()
     private let subjectField = UITextField()
     private let descriptionTextView = UITextView()
     private let submitButton = UIButton(type: .system)
     private let activityIndicator = UIActivityIndicatorView(style: .medium)
-    
+   
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .systemBackground
         setupUI()
     }
-    
+   
     func setupUI() {
         titleLabel.text = "Report an Issue"; titleLabel.font = .boldSystemFont(ofSize: 22); titleLabel.textAlignment = .center
         subjectField.placeholder = "Subject"; subjectField.borderStyle = .roundedRect; subjectField.heightAnchor.constraint(equalToConstant: 50).isActive = true
         descriptionTextView.text = "Describe your issue..."; descriptionTextView.textColor = .lightGray; descriptionTextView.layer.borderWidth = 1; descriptionTextView.layer.borderColor = UIColor.systemGray5.cgColor; descriptionTextView.layer.cornerRadius = 8; descriptionTextView.delegate = self
         submitButton.setTitle("Submit", for: .normal); submitButton.backgroundColor = UIColor(red: 98/255, green: 84/255, blue: 243/255, alpha: 1.0); submitButton.setTitleColor(.white, for: .normal); submitButton.layer.cornerRadius = 10; submitButton.heightAnchor.constraint(equalToConstant: 50).isActive = true; submitButton.addTarget(self, action: #selector(submitTapped), for: .touchUpInside)
-        
+       
         let stack = UIStackView(arrangedSubviews: [titleLabel, subjectField, descriptionTextView, submitButton])
         stack.axis = .vertical; stack.spacing = 20; stack.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(stack); view.addSubview(activityIndicator); activityIndicator.translatesAutoresizingMaskIntoConstraints = false
-        
+       
         NSLayoutConstraint.activate([
             stack.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 30),
             stack.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
@@ -946,7 +985,7 @@ class ReportSheetViewController: UIViewController, UITextViewDelegate {
             activityIndicator.centerYAnchor.constraint(equalTo: view.centerYAnchor)
         ])
     }
-    
+   
     @objc func submitTapped() {
         guard let sub = subjectField.text, !sub.isEmpty else { return }
         activityIndicator.startAnimating()
@@ -955,7 +994,7 @@ class ReportSheetViewController: UIViewController, UITextViewDelegate {
             self.dismiss(animated: true)
         }
     }
-    
+   
     func textViewDidBeginEditing(_ textView: UITextView) {
         if textView.textColor == .lightGray { textView.text = ""; textView.textColor = .label }
     }

@@ -1,7 +1,10 @@
 import UIKit
 import FirebaseFirestore
 
-// 1. مودل البيانات (يجب أن يطابق الحقول في الفايربيس)
+// 1. Data Model (DTO)
+/// VerificationItem: Represents the essential data for a provider's verification request.
+/// OOD Principle: Abstraction - This struct provides a simplified view of the
+/// complex document stored in Firestore.
 struct VerificationItem {
     let uid: String
     let providerName: String
@@ -9,7 +12,9 @@ struct VerificationItem {
     let status: String
 }
 
-// 2. كلاس الخلية المخصصة (كما هو بتصميمك الممتاز)
+// 2. Custom Cell Class
+/// VerificationItemCell: Encapsulates the visual design for a single verification row.
+/// OOD Principle: Encapsulation - The cell manages its own subviews and layout constraints.
 class VerificationItemCell: UITableViewCell {
     
     private let containerView = UIView()
@@ -27,10 +32,12 @@ class VerificationItemCell: UITableViewCell {
         setupUI()
     }
     
+    /// setupUI: Builds the card-based design with shadows and programmatic Auto Layout.
     private func setupUI() {
         backgroundColor = .clear
         selectionStyle = .none
         
+        // Container styling (Card effect)
         containerView.backgroundColor = .white
         containerView.layer.cornerRadius = 12
         containerView.layer.shadowColor = UIColor.black.cgColor
@@ -59,6 +66,7 @@ class VerificationItemCell: UITableViewCell {
         containerView.addSubview(categoryLabel)
         containerView.addSubview(chevronImageView)
         
+        // MARK: - Auto Layout Constraints
         NSLayoutConstraint.activate([
             containerView.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 8),
             containerView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
@@ -80,11 +88,13 @@ class VerificationItemCell: UITableViewCell {
         ])
     }
     
+    /// Maps the model data to the UI components.
     func configure(with item: VerificationItem) {
         nameLabel.text = item.providerName
         categoryLabel.text = item.providerCategory
     }
     
+    /// OOD Polish: Provides a scale animation when the user taps the cell.
     override func setHighlighted(_ highlighted: Bool, animated: Bool) {
         super.setHighlighted(highlighted, animated: animated)
         UIView.animate(withDuration: 0.2) {
@@ -93,10 +103,13 @@ class VerificationItemCell: UITableViewCell {
     }
 }
 
-// 3. الكنترولر الرئيسي
+// 3. Main Controller
+/// VerificationVC: Monitors and displays pending provider verification requests.
+/// OOD Principle: Separation of Concerns - This controller handles the list view and Firebase listener,
+/// while the cell handles the display.
 class VerificationVC: UITableViewController {
     
-    // مصفوفة البيانات الحية
+    /// requests: Local source of truth for the table view data.
     var requests: [VerificationItem] = []
     let db = Firestore.firestore()
     
@@ -107,20 +120,22 @@ class VerificationVC: UITableViewController {
         setupDesign()
         tableView.register(VerificationItemCell.self, forCellReuseIdentifier: "VerificationItemCell")
         
-        // جلب البيانات فور تحميل الشاشة
+        // Initial Data Fetch
         fetchPendingRequests()
     }
     
-    // دالة جلب البيانات من الفايربيس
+    /// fetchPendingRequests: Sets up a real-time listener on the provider_requests collection.
+    /// OOD Principle: Reactive Programming - The UI is synchronized with the remote database state.
     func fetchPendingRequests() {
         db.collection("provider_requests")
-            .whereField("status", isEqualTo: "pending") // جلب المعلقين فقط
+            .whereField("status", isEqualTo: "pending") // Filter to show only pending items
             .addSnapshotListener { snapshot, error in
                 if let error = error {
                     print("Error fetching requests: \(error)")
                     return
                 }
                 
+                // Transforming Firestore documents into local Swift models
                 self.requests = snapshot?.documents.compactMap { doc -> VerificationItem? in
                     let data = doc.data()
                     let name = data["name"] as? String ?? "Unknown"
@@ -131,10 +146,12 @@ class VerificationVC: UITableViewController {
                     return VerificationItem(uid: uid, providerName: name, providerCategory: category, status: status)
                 } ?? []
                 
+                // Refreshing the table view on the main thread
                 self.tableView.reloadData()
             }
     }
     
+    /// Global UI styling for the navigation bar and background.
     func setupDesign() {
         self.title = "Verification"
         let appearance = UINavigationBarAppearance()
@@ -155,7 +172,7 @@ class VerificationVC: UITableViewController {
         tableView.tableFooterView = UIView()
     }
     
-    // MARK: - Table view data source
+    // MARK: - Table view data source (OOD Protocol Implementation)
     
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return requests.count
@@ -174,19 +191,23 @@ class VerificationVC: UITableViewController {
     // MARK: - Navigation
     
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        // Small delay to let the user see the touch animation
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
             self.tableView.deselectRow(at: indexPath, animated: true)
-            // تمرير الـ UID للصفحة التالية
+            
+            // Passing the specific UID to the detail page
             let selectedRequest = self.requests[indexPath.row]
             self.performSegue(withIdentifier: "showProviderRequest", sender: selectedRequest.uid)
         }
     }
     
+    /// OOD Principle: Dependency Injection - Passing the specific document ID
+    /// required by the next screen.
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
         if segue.identifier == "showProviderRequest",
            let destinationVC = segue.destination as? ProviderRequestTVC,
            let uid = sender as? String {
-            destinationVC.requestUID = uid // تمرير رقم المستخدم
+            destinationVC.requestUID = uid
         }
     }
 }

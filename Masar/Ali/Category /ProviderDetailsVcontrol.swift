@@ -9,8 +9,8 @@ class ProviderDetailsVcontrol: UIViewController {
     var providerPhone: String = ""
     var providerEmail: String = ""
     var categoryName: String = ""
+    var providerImageURL: String = "" // ✅ Added property to receive the URL
     
-    // ✅ مراقب ذكي: يحدث النص فور وصوله من Firebase
     var providerUsername: String = "" {
         didSet {
             DispatchQueue.main.async {
@@ -23,7 +23,6 @@ class ProviderDetailsVcontrol: UIViewController {
     private let scrollView = UIScrollView()
     private let contentView = UIView()
     
-    // ✅ اللابل الأساسي الذي سيتم تحديثه
     private let usernameValueLabel: UILabel = {
         let label = UILabel()
         label.font = UIFont.systemFont(ofSize: 16, weight: .semibold)
@@ -33,17 +32,15 @@ class ProviderDetailsVcontrol: UIViewController {
         return label
     }()
 
-    // MARK: - Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = UIColor(red: 248/255, green: 248/255, blue: 252/255, alpha: 1.0)
         title = "Provider Details"
-        usernameValueLabel.text = providerUsername // تعيين النص الأولي (Loading...)
+        usernameValueLabel.text = providerUsername
         setupNavigationBar()
         setupUI()
     }
     
-    // MARK: - Setup
     private func setupNavigationBar() {
         let appearance = UINavigationBarAppearance()
         appearance.configureWithOpaqueBackground()
@@ -94,8 +91,26 @@ class ProviderDetailsVcontrol: UIViewController {
         card.layer.shadowOpacity = 0.08; card.layer.shadowOffset = CGSize(width: 0, height: 4)
         card.translatesAutoresizingMaskIntoConstraints = false
         
-        let iconView = UIImageView(image: UIImage(systemName: "person.circle.fill"))
-        iconView.tintColor = brandColor; iconView.translatesAutoresizingMaskIntoConstraints = false
+        // Setup UIImageView for profile picture
+        let iconView = UIImageView()
+        iconView.contentMode = .scaleAspectFill
+        iconView.clipsToBounds = true
+        iconView.layer.cornerRadius = 40 // Make it a circle
+        iconView.tintColor = brandColor
+        iconView.translatesAutoresizingMaskIntoConstraints = false
+        
+        // ✅ LOGIC TO LOAD IMAGE FROM URL
+        if let url = URL(string: providerImageURL) {
+            URLSession.shared.dataTask(with: url) { data, _, _ in
+                if let data = data, let image = UIImage(data: data) {
+                    DispatchQueue.main.async {
+                        iconView.image = image
+                    }
+                }
+            }.resume()
+        } else {
+            iconView.image = UIImage(systemName: "person.circle.fill")
+        }
         
         let nameLabel = UILabel()
         nameLabel.text = providerName; nameLabel.font = .boldSystemFont(ofSize: 24)
@@ -139,7 +154,6 @@ class ProviderDetailsVcontrol: UIViewController {
         let phoneRow = createInfoRow(icon: "phone.fill", title: "Phone", value: providerPhone)
         let emailRow = createInfoRow(icon: "envelope.fill", title: "Email", value: providerEmail)
         
-        // الصف الخاص باليوزرنيم باستخدام اللابل العام
         let usernameRow = UIView(); usernameRow.translatesAutoresizingMaskIntoConstraints = false
         let icon = UIImageView(image: UIImage(systemName: "person.text.rectangle.fill"))
         icon.tintColor = brandColor; icon.translatesAutoresizingMaskIntoConstraints = false

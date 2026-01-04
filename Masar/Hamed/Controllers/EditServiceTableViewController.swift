@@ -1,3 +1,15 @@
+// ===================================================================================
+// EDIT SERVICE VIEW CONTROLLER
+// ===================================================================================
+// PURPOSE: Allows providers to Create new services or Update/Delete existing ones.
+//
+// KEY FEATURES:
+// 1. Dual Mode: Handles both "Add New" and "Edit Existing" modes based on input.
+// 2. Data Persistence: Saves changes directly to Firestore via callbacks.
+// 3. Validation: Ensures all required fields (Name, Price, Description) are filled.
+// 4. Safe Navigation: Warns the user if they try to leave with unsaved changes.
+// ===================================================================================
+
 import UIKit
 import FirebaseFirestore
 
@@ -5,8 +17,12 @@ class EditServiceTableViewController: UITableViewController {
     
     // MARK: - Properties
     var serviceToEdit: ServiceModel?
+    
+    // Callbacks to notify the parent controller of changes
     var onSaveComplete: ((ServiceModel) -> Void)?
     var onDeleteComplete: (() -> Void)?
+    
+    // Stores the list of selected tags/add-ons
     var selectedSubServices: [String] = []
     
     // MARK: - Outlets
@@ -32,8 +48,10 @@ class EditServiceTableViewController: UITableViewController {
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
         if segue.identifier == "showItemsSelection" {
             if let destVC = segue.destination as? ServiceItemsSelectionTableViewController {
+                // Pass current selection to the picker
                 destVC.previouslySelectedItems = self.selectedSubServices
                 
+                // Handle the selection callback
                 destVC.onSelectionComplete = { [weak self] selectedNames in
                     guard let self = self else { return }
                     
@@ -63,6 +81,7 @@ class EditServiceTableViewController: UITableViewController {
     }
         
     func setupNavigationBar() {
+        // Change title based on mode (Add vs Edit)
         title = serviceToEdit == nil ? "Add Service" : "Edit Service"
         
         let appearance = UINavigationBarAppearance()
@@ -88,6 +107,7 @@ class EditServiceTableViewController: UITableViewController {
     }
     
     // MARK: - Setup Delete Button
+    // Only shows the delete button if we are in "Edit" mode
     func setupDeleteButton() {
         guard serviceToEdit != nil else { return }
         
@@ -134,6 +154,7 @@ class EditServiceTableViewController: UITableViewController {
     }
         
     // MARK: - Populate Data
+    // Fills the form if editing an existing service
     func populateData() {
         packageItemsLabel?.font = UIFont.systemFont(ofSize: 15, weight: .regular)
         
@@ -173,6 +194,7 @@ class EditServiceTableViewController: UITableViewController {
     }
         
     @objc func saveTapped() {
+        // Validation Logic
         guard let name = serviceNameTextField?.text, !name.isEmpty else {
             showAlert(title: "Error", message: "Please enter a service name")
             return
@@ -190,6 +212,7 @@ class EditServiceTableViewController: UITableViewController {
             return
         }
         
+        // Save or Update Object
         if var service = serviceToEdit {
             service.name = name
             service.price = priceValue
@@ -228,14 +251,14 @@ class EditServiceTableViewController: UITableViewController {
         present(alert, animated: true)
     }
     
-    // MARK: - Firebase Delete
+    // MARK: - Firebase Delete Logic
     func deleteServiceFromFirebase() {
         guard let service = serviceToEdit else {
             showAlert(title: "Error", message: "No service to delete")
             return
         }
         
-        // عرض loading
+        // Show loading indicator
         let loadingAlert = UIAlertController(title: nil, message: "Deleting service...", preferredStyle: .alert)
         let loadingIndicator = UIActivityIndicatorView(frame: CGRect(x: 10, y: 5, width: 50, height: 50))
         loadingIndicator.hidesWhenStopped = true
@@ -244,27 +267,27 @@ class EditServiceTableViewController: UITableViewController {
         loadingAlert.view.addSubview(loadingIndicator)
         present(loadingAlert, animated: true)
         
-        // الطريقة الأولى: إذا عندنا ID
+        // Strategy 1: Delete by ID (Preferred)
         if let serviceId = service.id, !serviceId.isEmpty {
-            print("🔥 Deleting service with ID: \(serviceId)")
+            print("Deleting service with ID: \(serviceId)")
             
             db.collection("services").document(serviceId).delete { [weak self] error in
                 guard let self = self else { return }
                 
                 loadingAlert.dismiss(animated: true) {
                     if let error = error {
-                        print("❌ Delete error: \(error.localizedDescription)")
+                        print("Delete error: \(error.localizedDescription)")
                         self.showAlert(title: "Error", message: "Failed to delete: \(error.localizedDescription)")
                     } else {
-                        print("✅ Service deleted successfully!")
+                        print("Service deleted successfully!")
                         self.onDeleteComplete?()
                         self.navigationController?.popViewController(animated: true)
                     }
                 }
             }
         } else {
-            // الطريقة الثانية: إذا ما عندنا ID، نبحث بالاسم
-            print("⚠️ No ID found, searching by name: \(service.name)")
+            // Strategy 2: Fallback search by Name if ID is missing (Legacy support)
+            print("No ID found, searching by name: \(service.name)")
             
             db.collection("services")
                 .whereField("title", isEqualTo: service.name)
@@ -273,7 +296,7 @@ class EditServiceTableViewController: UITableViewController {
                     
                     if let error = error {
                         loadingAlert.dismiss(animated: true) {
-                            print("❌ Search error: \(error.localizedDescription)")
+                            print("Search error: \(error.localizedDescription)")
                             self.showAlert(title: "Error", message: "Failed to find service: \(error.localizedDescription)")
                         }
                         return
@@ -281,21 +304,21 @@ class EditServiceTableViewController: UITableViewController {
                     
                     guard let document = snapshot?.documents.first else {
                         loadingAlert.dismiss(animated: true) {
-                            print("❌ Service not found in Firebase")
+                            print("Service not found in Firebase")
                             self.showAlert(title: "Error", message: "Service not found in database")
                         }
                         return
                     }
                     
-                    print("🔥 Found service, deleting document: \(document.documentID)")
+                    print("Found service, deleting document: \(document.documentID)")
                     
                     document.reference.delete { error in
                         loadingAlert.dismiss(animated: true) {
                             if let error = error {
-                                print("❌ Delete error: \(error.localizedDescription)")
+                                print("Delete error: \(error.localizedDescription)")
                                 self.showAlert(title: "Error", message: "Failed to delete: \(error.localizedDescription)")
                             } else {
-                                print("✅ Service deleted successfully!")
+                                print("Service deleted successfully!")
                                 self.onDeleteComplete?()
                                 self.navigationController?.popViewController(animated: true)
                             }
@@ -306,6 +329,7 @@ class EditServiceTableViewController: UITableViewController {
     }
     
     // MARK: - Helper Methods
+    // Checks if form values differ from the original object
     func hasUnsavedChanges() -> Bool {
         guard let service = serviceToEdit else {
             let hasName = !(serviceNameTextField?.text?.isEmpty ?? true)

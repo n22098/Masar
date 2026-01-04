@@ -4,9 +4,7 @@ import FirebaseFirestore
 struct ServiceModel: Codable, Identifiable {
     
     // MARK: - Properties
-    
-    // تم الإبقاء عليه كما هو، وسيتم تعبئته تلقائياً من Firestore
-    @DocumentID var id: String?
+        @DocumentID var id: String?
     
     var name: String
     var price: Double
@@ -27,7 +25,6 @@ struct ServiceModel: Codable, Identifiable {
     
     // MARK: - Coding Keys
     enum CodingKeys: String, CodingKey {
-        // حذفت الـ id من هنا لأنه @DocumentID
         case name = "title"
         case price
         case description
@@ -54,7 +51,6 @@ struct ServiceModel: Codable, Identifiable {
          features: [String]? = nil,
          isActive: Bool? = true) {
         
-        // لا نحتاج لتعيين id يدوياً هنا
         self.name = name
         self.price = price
         self.description = description

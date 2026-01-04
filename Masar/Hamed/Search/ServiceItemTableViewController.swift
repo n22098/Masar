@@ -1,3 +1,15 @@
+// ===================================================================================
+// SERVICE ITEM TABLE VIEW CONTROLLER
+// ===================================================================================
+// PURPOSE: This is the Provider's Profile Page as seen by the Seeker.
+//
+// KEY FEATURES:
+// 1. Profile Overview: Displays the provider's image, name, role, and skills.
+// 2. Service List: Shows all services offered by this provider in a list.
+// 3. Performance Metrics: Fetches real-time stats (Jobs done, Rating) from Firestore.
+// 4. Action Buttons: Allows viewing Portfolio, Chatting, or Booking a service.
+// ===================================================================================
+
 import UIKit
 import FirebaseFirestore
 
@@ -5,11 +17,14 @@ import FirebaseFirestore
 class ServiceItemTableViewController: UITableViewController {
     
     // MARK: - Properties
+    // Data passed from the Search/Home screen
     var providerData: ServiceProviderModel?
+    
     let brandColor = UIColor(red: 0.35, green: 0.34, blue: 0.91, alpha: 1.0)
     private var isFavorite: Bool = false
     let db = Firestore.firestore()
     
+    // Computed property to safely access the services list
     var services: [ServiceModel] {
         if let realServices = providerData?.services, !realServices.isEmpty {
             return realServices
@@ -18,16 +33,19 @@ class ServiceItemTableViewController: UITableViewController {
     }
     
     // MARK: - UI Components
+    // Programmatic Header View containing the profile card
     private lazy var headerView: UIView = {
         let view = UIView(frame: CGRect(x: 0, y: 0, width: self.view.frame.width, height: 290))
         view.backgroundColor = UIColor(red: 248/255, green: 248/255, blue: 252/255, alpha: 1.0)
         return view
     }()
     
+    // The main card container
     private lazy var cardView: UIView = {
         let view = UIView()
         view.backgroundColor = .white
         view.layer.cornerRadius = 16
+        // Shadow configuration
         view.layer.shadowColor = UIColor.black.cgColor
         view.layer.shadowOffset = CGSize(width: 0, height: 4)
         view.layer.shadowRadius = 8
@@ -99,7 +117,7 @@ class ServiceItemTableViewController: UITableViewController {
         return stack
     }()
     
-    // --- Buttons ---
+    // --- Action Buttons ---
     private lazy var viewPortfolioButton: UIButton = {
         let btn = UIButton(type: .system)
         btn.setTitle("Portfolio", for: .normal)
@@ -166,12 +184,15 @@ class ServiceItemTableViewController: UITableViewController {
         tableView.register(ModernBookingCell.self, forCellReuseIdentifier: "ModernBookingCell")
     }
     
+    // MARK: - Image Loading
+    // Fetches the provider's profile picture from Firebase Storage URL
     private func fetchProviderRealImage() {
         guard let providerId = providerData?.id else { return }
         db.collection("users").document(providerId).getDocument { [weak self] snapshot, error in
             guard let self = self, let data = snapshot?.data(), error == nil else { return }
             if let imageUrlString = data["profileImageURL"] as? String,
                let url = URL(string: imageUrlString) {
+                // Background download
                 DispatchQueue.global().async {
                     if let imageData = try? Data(contentsOf: url),
                        let image = UIImage(data: imageData) {
@@ -222,6 +243,7 @@ class ServiceItemTableViewController: UITableViewController {
         tableView.tableHeaderView = headerView
     }
     
+    // Configures the custom header with Profile Card and Stats
     private func setupHeaderView() {
         headerView.addSubview(cardView)
         
@@ -232,16 +254,11 @@ class ServiceItemTableViewController: UITableViewController {
         let availabilityView = createInfoItem(icon: "clock.fill", text: providerData?.availability ?? "Sat-Thu")
         let locationView = createInfoItem(icon: "mappin.circle.fill", text: providerData?.location ?? "Online")
         
-        // 🔥 1. إنشاء الفيو الخاص بالهاتف
+        // Phone View Configuration
         let phoneView = createInfoItem(icon: "phone.fill", text: providerData?.phone ?? "Contact")
-        
-        // 🔥 2. تفعيل التفاعل (اللمس) على أيقونة الهاتف
         phoneView.isUserInteractionEnabled = true
         let phoneTapGesture = UITapGestureRecognizer(target: self, action: #selector(handlePhoneCall))
         phoneView.addGestureRecognizer(phoneTapGesture)
-        
-        // إضافة مؤشر بصري (اختياري) ليدل على أنه قابل للضغط
-        // phoneView.backgroundColor = UIColor.systemBlue.withAlphaComponent(0.05) // لو حبيت تميزه بلون خفيف
         
         [availabilityView, locationView, phoneView].forEach { infoStackView.addArrangedSubview($0) }
         
@@ -328,25 +345,23 @@ class ServiceItemTableViewController: UITableViewController {
     
     // MARK: - Actions & Navigation
     
-    // 🔥 3. دالة التعامل مع ضغط زر الاتصال (المحاكاة)
+    // Simulates a phone call
     @objc private func handlePhoneCall() {
         guard let phoneNumber = providerData?.phone, !phoneNumber.isEmpty else { return }
         
-        // تنظيف الرقم من أي مسافات أو رموز
         let cleanNumber = phoneNumber.components(separatedBy: CharacterSet.decimalDigits.inverted).joined()
         
-        // محاولة الاتصال
         if let url = URL(string: "tel://\(cleanNumber)"), UIApplication.shared.canOpenURL(url) {
             UIApplication.shared.open(url)
         } else {
-            // ✅ إذا كنا في السيميوليتر (لا يوجد هاتف)، نعرض رسالة محاكاة
+            // Simulator fallback
             let alert = UIAlertController(
                 title: "Call Provider?",
                 message: "Simulating call to: \(phoneNumber)",
                 preferredStyle: .alert
             )
             alert.addAction(UIAlertAction(title: "Call", style: .default, handler: { _ in
-                print("📞 Calling \(phoneNumber)...")
+                print("Calling \(phoneNumber)...")
             }))
             alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
             present(alert, animated: true)
@@ -408,22 +423,27 @@ class ServiceItemTableViewController: UITableViewController {
     
     private func toggleFavorite() {
         isFavorite.toggle()
-        let message = isFavorite ? "✅ Added to Favorites!" : "❌ Removed from Favorites"
+        let message = isFavorite ? "Added to Favorites!" : "Removed from Favorites"
         let alert = UIAlertController(title: nil, message: message, preferredStyle: .alert)
         present(alert, animated: true)
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) { alert.dismiss(animated: true) }
     }
     
+    // MARK: - Performance Statistics
+    // Fetches live data from Firestore bookings to show real performance
     @objc private func fetchRealStatsAndShow() {
         let loadingAlert = UIAlertController(title: nil, message: "Fetching Stats...", preferredStyle: .alert)
         present(loadingAlert, animated: true)
         let providerId = providerData?.id ?? ""
+        
+        // Query: Count bookings where status == "completed"
         db.collection("bookings")
             .whereField("providerId", isEqualTo: providerId)
             .whereField("status", isEqualTo: "completed")
             .getDocuments { [weak self] (snapshot, error) in
                 loadingAlert.dismiss(animated: true) {
                     let completedJobs = snapshot?.documents.count ?? 0
+                    // Mock data for rate/time for demo purposes
                     self?.showStatistics(jobs: completedJobs, rate: 95, repeatC: 40, time: 1)
                 }
             }
@@ -531,10 +551,10 @@ class ServiceItemTableViewController: UITableViewController {
            let destVC = segue.destination as? ServiceInformationTableViewController,
            let service = sender as? ServiceModel {
             
-            // ✅ 1. تمرير الخدمة كاملة (هذا أهم سطر)
+            // Pass the entire Service Object
             destVC.service = service
             
-            // البيانات القديمة (لا تحذفها)
+            // Pass broken-down properties for compatibility
             destVC.receivedServiceName = service.name
             destVC.receivedServicePrice = String(format: "BHD %.3f", service.price)
             destVC.receivedServiceDetails = service.description

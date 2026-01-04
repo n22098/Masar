@@ -1,3 +1,15 @@
+// ===================================================================================
+// PROVIDER SERVICES VIEW CONTROLLER
+// ===================================================================================
+// PURPOSE: Allows a Service Provider to manage (Add, Edit, Delete) their services.
+//
+// KEY FEATURES:
+// 1. CRUD Operations: Full capability to Create, Read, Update, and Delete services.
+// 2. Real-Time Fetching: Pulls the latest service list from Firestore.
+// 3. Swipe Actions: Supports "Swipe to Delete" and "Swipe to Edit" gestures.
+// 4. Custom Animations: Adds a subtle bounce animation when selecting a row.
+// ===================================================================================
+
 import UIKit
 import FirebaseAuth
 import FirebaseFirestore
@@ -8,6 +20,7 @@ class ProviderServicesTableViewController: UITableViewController {
     let brandColor = UIColor(red: 0.35, green: 0.34, blue: 0.91, alpha: 1.0)
     let db = Firestore.firestore()
     
+    // Data Source
     var myServices: [ServiceModel] = []
     var selectedServiceIndex: Int?
     
@@ -17,6 +30,7 @@ class ProviderServicesTableViewController: UITableViewController {
         setupUI()
     }
     
+    // Reload data every time the view appears to reflect recent edits/adds
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         setupNavigationBar()
@@ -24,6 +38,7 @@ class ProviderServicesTableViewController: UITableViewController {
     }
     
     // MARK: - Firebase Fetching
+    // Retrieves services specifically created by the currently logged-in Provider
     func fetchServicesFromFirebase() {
         self.title = "Updating..."
         
@@ -43,6 +58,7 @@ class ProviderServicesTableViewController: UITableViewController {
         setupNavigationBar()
         setupTableView()
         
+        // Add "Pull to Refresh" functionality
         let refreshControl = UIRefreshControl()
         refreshControl.addTarget(self, action: #selector(handleRefresh), for: .valueChanged)
         tableView.refreshControl = refreshControl
@@ -72,6 +88,7 @@ class ProviderServicesTableViewController: UITableViewController {
         navigationController?.navigationBar.compactAppearance = appearance
         navigationController?.navigationBar.tintColor = .white
         
+        // Add Button (+)
         let addButton = UIBarButtonItem(
             image: UIImage(systemName: "plus"),
             style: .plain,
@@ -89,6 +106,7 @@ class ProviderServicesTableViewController: UITableViewController {
         tableView.estimatedRowHeight = 80
         tableView.contentInset = UIEdgeInsets(top: 16, left: 0, bottom: 16, right: 0)
         
+        // Register the custom cell class
         tableView.register(ServiceCell.self, forCellReuseIdentifier: "ServiceCell")
     }
     
@@ -103,10 +121,8 @@ class ProviderServicesTableViewController: UITableViewController {
     
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "ServiceCell", for: indexPath) as! ServiceCell
-        
         let service = myServices[indexPath.row]
         cell.configure(with: service, brandColor: brandColor)
-        
         return cell
     }
     
@@ -114,9 +130,11 @@ class ProviderServicesTableViewController: UITableViewController {
         return 90
     }
     
+    // MARK: - Interaction Handling
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
         
+        // Custom Bounce Animation on selection
         if let cell = tableView.cellForRow(at: indexPath) {
             UIView.animate(withDuration: 0.1, animations: {
                 cell.transform = CGAffineTransform(scaleX: 0.97, y: 0.97)
@@ -130,14 +148,18 @@ class ProviderServicesTableViewController: UITableViewController {
         performSegue(withIdentifier: "editService", sender: indexPath)
     }
     
-    // MARK: - Delete & Swipe Actions
+    // MARK: - Swipe Actions (Delete & Edit)
+    // Standard delete implementation
     override func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
         if editingStyle == .delete {
             deleteService(at: indexPath)
         }
     }
     
+    // Custom Swipe Actions configuration
     override func tableView(_ tableView: UITableView, trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
+        
+        // Delete Action
         let deleteAction = UIContextualAction(style: .destructive, title: "Delete") { [weak self] _, _, completionHandler in
             self?.deleteService(at: indexPath)
             completionHandler(true)
@@ -145,6 +167,7 @@ class ProviderServicesTableViewController: UITableViewController {
         deleteAction.image = UIImage(systemName: "trash.fill")
         deleteAction.backgroundColor = .systemRed
         
+        // Edit Action
         let editAction = UIContextualAction(style: .normal, title: "Edit") { [weak self] _, _, completionHandler in
             self?.performSegue(withIdentifier: "editService", sender: indexPath)
             completionHandler(true)
@@ -155,12 +178,11 @@ class ProviderServicesTableViewController: UITableViewController {
         return UISwipeActionsConfiguration(actions: [deleteAction, editAction])
     }
     
-    // MARK: - Delete Service (🔥 تم الإصلاح هنا)
+    // MARK: - Delete Logic
     private func deleteService(at indexPath: IndexPath) {
         let service = myServices[indexPath.row]
-        let serviceName = service.name
         
-        // إظهار Alert للتأكيد
+        // Confirmation Alert
         let alert = UIAlertController(
             title: "Delete Service",
             message: "Do you want to delete this service?",
@@ -172,7 +194,7 @@ class ProviderServicesTableViewController: UITableViewController {
         alert.addAction(UIAlertAction(title: "Delete", style: .destructive) { [weak self] _ in
             guard let self = self else { return }
             
-            // عرض loading indicator
+            // Show Loading
             let loadingAlert = UIAlertController(title: nil, message: "Deleting service...", preferredStyle: .alert)
             let loadingIndicator = UIActivityIndicatorView(frame: CGRect(x: 10, y: 5, width: 50, height: 50))
             loadingIndicator.hidesWhenStopped = true
@@ -181,7 +203,7 @@ class ProviderServicesTableViewController: UITableViewController {
             loadingAlert.view.addSubview(loadingIndicator)
             self.present(loadingAlert, animated: true)
             
-            // الحذف من Firebase
+            // Perform Delete via API
             self.deleteServiceFromFirebase(service: service, at: indexPath, loadingAlert: loadingAlert)
         })
         
@@ -190,27 +212,27 @@ class ProviderServicesTableViewController: UITableViewController {
     
     private func deleteServiceFromFirebase(service: ServiceModel, at indexPath: IndexPath, loadingAlert: UIAlertController) {
         
-        // الطريقة الأولى: إذا عندنا ID
+        // Scenario 1: Service has a valid ID (Standard Case)
         if let serviceId = service.id, !serviceId.isEmpty {
-            print("🔥 Deleting service with ID: \(serviceId)")
+            print("Deleting service with ID: \(serviceId)")
             
             db.collection("services").document(serviceId).delete { [weak self] error in
                 guard let self = self else { return }
                 
                 loadingAlert.dismiss(animated: true) {
                     if let error = error {
-                        print("❌ Delete error: \(error.localizedDescription)")
+                        print("Delete error: \(error.localizedDescription)")
                         self.showAlert(title: "Error", message: "Failed to delete: \(error.localizedDescription)")
                     } else {
-                        print("✅ Service deleted successfully!")
+                        print("Service deleted successfully!")
                         self.myServices.remove(at: indexPath.row)
                         self.tableView.deleteRows(at: [indexPath], with: .fade)
                     }
                 }
             }
         } else {
-            // الطريقة الثانية: البحث بالاسم إذا ما فيه ID
-            print("⚠️ No ID found, searching by name: \(service.name)")
+            // Scenario 2: ID missing, fallback to search by Name (Legacy Support)
+            print("No ID found, searching by name: \(service.name)")
             
             db.collection("services")
                 .whereField("title", isEqualTo: service.name)
@@ -219,7 +241,7 @@ class ProviderServicesTableViewController: UITableViewController {
                     
                     if let error = error {
                         loadingAlert.dismiss(animated: true) {
-                            print("❌ Search error: \(error.localizedDescription)")
+                            print("Search error: \(error.localizedDescription)")
                             self.showAlert(title: "Error", message: "Failed to find service: \(error.localizedDescription)")
                         }
                         return
@@ -227,21 +249,20 @@ class ProviderServicesTableViewController: UITableViewController {
                     
                     guard let document = snapshot?.documents.first else {
                         loadingAlert.dismiss(animated: true) {
-                            print("❌ Service not found in Firebase")
+                            print("Service not found in Firebase")
                             self.showAlert(title: "Error", message: "Service not found")
                         }
                         return
                     }
                     
-                    print("🔥 Found service, deleting document: \(document.documentID)")
-                    
+                    // Delete the found document
                     document.reference.delete { error in
                         loadingAlert.dismiss(animated: true) {
                             if let error = error {
-                                print("❌ Delete error: \(error.localizedDescription)")
+                                print("Delete error: \(error.localizedDescription)")
                                 self.showAlert(title: "Error", message: "Failed to delete: \(error.localizedDescription)")
                             } else {
-                                print("✅ Service deleted successfully!")
+                                print("Service deleted successfully!")
                                 self.myServices.remove(at: indexPath.row)
                                 self.tableView.deleteRows(at: [indexPath], with: .fade)
                             }
@@ -256,6 +277,7 @@ class ProviderServicesTableViewController: UITableViewController {
         if segue.identifier == "editService" {
             if let destVC = segue.destination as? EditServiceTableViewController {
                 
+                // Pass existing data if editing, or nil if adding new
                 if let indexPath = sender as? IndexPath {
                     let selectedService = myServices[indexPath.row]
                     destVC.serviceToEdit = selectedService
@@ -265,30 +287,26 @@ class ProviderServicesTableViewController: UITableViewController {
                     selectedServiceIndex = nil
                 }
                 
-                // التعامل مع الحفظ
+                // Define Save Callback
                 destVC.onSaveComplete = { [weak self] updatedService in
                     guard let self = self else { return }
                     
                     if let _ = updatedService.id {
+                        // Update Existing
                         ServiceManager.shared.updateService(updatedService) { error in
-                            if let error = error {
-                                print("Error updating: \(error)")
-                            } else {
-                                self.fetchServicesFromFirebase()
-                            }
+                            if let error = error { print("Error updating: \(error)") }
+                            else { self.fetchServicesFromFirebase() }
                         }
                     } else {
+                        // Create New
                         ServiceManager.shared.addService(updatedService) { error in
-                            if let error = error {
-                                print("Error adding: \(error)")
-                            } else {
-                                self.fetchServicesFromFirebase()
-                            }
+                            if let error = error { print("Error adding: \(error)") }
+                            else { self.fetchServicesFromFirebase() }
                         }
                     }
                 }
                 
-                // التعامل مع الحذف من صفحة Edit
+                // Define Delete Callback (from Edit Screen)
                 destVC.onDeleteComplete = { [weak self] in
                     self?.fetchServicesFromFirebase()
                 }
@@ -308,9 +326,10 @@ class ProviderServicesTableViewController: UITableViewController {
     }
 }
 
-// MARK: - Service Cell Class
+// MARK: - Service Cell (Programmatic Layout)
 class ServiceCell: UITableViewCell {
     
+    // Container card for shadow and corner radius
     private let containerView: UIView = {
         let view = UIView()
         view.backgroundColor = .white
@@ -370,6 +389,7 @@ class ServiceCell: UITableViewCell {
         return iv
     }()
     
+    // MARK: - Initializers
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
         setupUI()
@@ -380,6 +400,7 @@ class ServiceCell: UITableViewCell {
         setupUI()
     }
     
+    // MARK: - Layout Setup
     private func setupUI() {
         backgroundColor = .clear
         selectionStyle = .none
@@ -427,6 +448,7 @@ class ServiceCell: UITableViewCell {
         ])
     }
     
+    // MARK: - Configuration
     func configure(with service: ServiceModel, brandColor: UIColor) {
         nameLabel.text = service.name
         priceLabel.text = service.formattedPrice
@@ -436,6 +458,7 @@ class ServiceCell: UITableViewCell {
         let iconName = service.icon ?? "briefcase.fill"
         iconImageView.image = UIImage(systemName: iconName)
         
+        // Apply Brand Color with transparency to the icon background
         iconBackgroundView.backgroundColor = brandColor.withAlphaComponent(0.15)
         iconImageView.tintColor = brandColor
     }

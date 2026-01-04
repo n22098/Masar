@@ -1,34 +1,51 @@
+// ===================================================================================
+// PROVIDER HUB VIEW CONTROLLER
+// ===================================================================================
+// PURPOSE: The main dashboard for Service Providers.
+//
+// KEY FEATURES:
+// 1. Dashboard Metrics: Shows Total Bookings, Completed Jobs, and Response Time.
+// 2. Navigation Hub: Central point to access Services, Bookings, and Portfolio.
+// 3. Real-Time Data: Updates the dashboard instantly when new bookings arrive.
+// 4. Custom UI: Programmatically builds the stats cards for a polished look.
+// ===================================================================================
+
 import UIKit
 
 class ProviderHubTableViewController: UITableViewController {
 
     // MARK: - Outlets
+    // Connections to the static cells in the Storyboard
     @IBOutlet weak var serviceCell: ActionItemCell!
     @IBOutlet weak var bookingCell: ActionItemCell!
     @IBOutlet weak var portfolioCell: ActionItemCell!
 
     let brandColor = UIColor(red: 98/255, green: 84/255, blue: 243/255, alpha: 1.0)
     
-    // Dashboard data
+    // MARK: - Dashboard Data
+    // Local variables to hold statistics fetched from Firestore
     var totalBookings: Int = 0
     var completedBookings: Int = 0
     var averageResponseTime: String = "0h"
 
+    // MARK: - Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
         setupNavigationBar()
         setupTableView()
-        setupCellsData()
-        setupDashboardHeader()
-        fetchDashboardData()
+        setupCellsData() // Configures the static cells
+        setupDashboardHeader() // Draws the initial dashboard
+        fetchDashboardData() // Starts fetching live data
     }
         
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         setupNavigationBar()
+        // Refresh data every time the screen appears
         fetchDashboardData()
     }
 
+    // MARK: - UI Setup
     func setupTableView() {
         tableView.backgroundColor = UIColor.systemGroupedBackground
         tableView.separatorStyle = .none
@@ -37,6 +54,7 @@ class ProviderHubTableViewController: UITableViewController {
         tableView.estimatedRowHeight = 100
     }
 
+    // Configure the static cells using our custom 'ActionItemCell' methods
     func setupCellsData() {
         serviceCell.configure(title: "Services",
                             iconName: "briefcase.fill",
@@ -71,7 +89,8 @@ class ProviderHubTableViewController: UITableViewController {
         navigationController?.navigationBar.tintColor = .white
     }
     
-    // MARK: - Setup Dashboard as Header
+    // MARK: - Dashboard Header
+    // Programmatically creates and inserts the statistics view at the top of the table
     func setupDashboardHeader() {
         let headerView = UIView(frame: CGRect(x: 0, y: 0, width: view.bounds.width, height: 220))
         headerView.backgroundColor = .clear
@@ -90,26 +109,27 @@ class ProviderHubTableViewController: UITableViewController {
         tableView.tableHeaderView = headerView
     }
     
-    // MARK: - Fetch Real Dashboard Data (🔥 تم الإصلاح هنا)
+    // MARK: - Data Fetching
+    // Uses ServiceManager to get all bookings for THIS provider
     func fetchDashboardData() {
-        // نستخدم fetchProviderBookings بدلاً من fetchAllBookings
         ServiceManager.shared.fetchProviderBookings { [weak self] bookings in
             guard let self = self else { return }
             
-            // البيانات القادمة هي فقط لهذا المزود، لا داعي للفلترة بالاسم
+            // Calculate metrics based on the fetched array
             self.totalBookings = bookings.count
             self.completedBookings = bookings.filter { $0.status == .completed }.count
             
-            // Calculate average response time
+            // Calculate logic for response time
             self.averageResponseTime = self.calculateAverageResponseTime(bookings: bookings)
             
+            // Update the UI on main thread
             DispatchQueue.main.async {
-                // Recreate dashboard header with new data
                 self.setupDashboardHeader()
             }
         }
     }
     
+    // Mock logic for response time calculation (for demonstration)
     func calculateAverageResponseTime(bookings: [BookingModel]) -> String {
         if bookings.isEmpty { return "0h" }
         
@@ -120,22 +140,24 @@ class ProviderHubTableViewController: UITableViewController {
         return "\(avgHours)h"
     }
     
-    // MARK: - TableView Height Override
+    // MARK: - TableView Configuration
     override func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
-        return 100 // Action cells height
+        return 100 // Standard height for action cells
     }
     
-    // MARK: - Create Dashboard View
+    // MARK: - Programmatic UI Components
+    // Creates the white card containing the 3 stats
     func createDashboardView() -> UIView {
         let container = UIView()
         container.backgroundColor = .white
         container.layer.cornerRadius = 16
+        // Shadow for depth
         container.layer.shadowColor = UIColor.black.cgColor
         container.layer.shadowOpacity = 0.08
         container.layer.shadowOffset = CGSize(width: 0, height: 2)
         container.layer.shadowRadius = 12
         
-        // Title
+        // Title Label
         let titleLabel = UILabel()
         titleLabel.text = "Dashboard"
         titleLabel.font = UIFont.boldSystemFont(ofSize: 20)
@@ -143,7 +165,7 @@ class ProviderHubTableViewController: UITableViewController {
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
         container.addSubview(titleLabel)
         
-        // Stats Stack
+        // Horizontal Stack for Stats
         let statsStack = UIStackView()
         statsStack.axis = .horizontal
         statsStack.distribution = .fillEqually
@@ -151,7 +173,7 @@ class ProviderHubTableViewController: UITableViewController {
         statsStack.translatesAutoresizingMaskIntoConstraints = false
         container.addSubview(statsStack)
         
-        // Stat 1: Total Bookings
+        // 1. Total Bookings
         let totalBookingsStat = createStatView(
             title: "Total Bookings",
             value: "\(totalBookings)",
@@ -159,7 +181,7 @@ class ProviderHubTableViewController: UITableViewController {
         )
         statsStack.addArrangedSubview(totalBookingsStat)
         
-        // Stat 2: Completed
+        // 2. Completed Jobs
         let completedStat = createStatView(
             title: "Completed",
             value: "\(completedBookings)",
@@ -167,7 +189,7 @@ class ProviderHubTableViewController: UITableViewController {
         )
         statsStack.addArrangedSubview(completedStat)
         
-        // Stat 3: Response Time
+        // 3. Response Time
         let responseTimeStat = createStatView(
             title: "Response Time",
             value: averageResponseTime,
@@ -175,7 +197,7 @@ class ProviderHubTableViewController: UITableViewController {
         )
         statsStack.addArrangedSubview(responseTimeStat)
         
-        // Constraints
+        // Auto Layout Constraints
         NSLayoutConstraint.activate([
             titleLabel.topAnchor.constraint(equalTo: container.topAnchor, constant: 20),
             titleLabel.leadingAnchor.constraint(equalTo: container.leadingAnchor, constant: 20),
@@ -189,9 +211,10 @@ class ProviderHubTableViewController: UITableViewController {
         return container
     }
     
+    // Helper to create individual stat squares
     func createStatView(title: String, value: String, color: UIColor) -> UIView {
         let container = UIView()
-        container.backgroundColor = color.withAlphaComponent(0.1)
+        container.backgroundColor = color.withAlphaComponent(0.1) // Light background
         container.layer.cornerRadius = 12
         
         let titleLabel = UILabel()

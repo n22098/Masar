@@ -1,29 +1,43 @@
+// ===================================================================================
+// SERVICE INFORMATION VIEW CONTROLLER
+// ===================================================================================
+// PURPOSE: Displays detailed information about a specific service and the provider.
+//
+// KEY FEATURES:
+// 1. Programmatic UI: The entire layout (Header & Footer) is built using code, not Storyboard cells.
+// 2. Provider Profile: Fetches and displays the provider's real image and skills.
+// 3. Service Details: Shows the price, description, and breakdown of the selected service.
+// 4. Data Passing: Acts as a middle-man, passing data from the Search screen to the Booking screen.
+// ===================================================================================
+
 import UIKit
+import FirebaseFirestore
 
 class ServiceInformationTableViewController: UITableViewController {
     
     // MARK: - Properties
+    // Data variables receiving information from the previous screen (Search/Home)
     var receivedServiceName: String?
     var receivedServicePrice: String?
     var receivedServiceDetails: String?
-    var service: ServiceModel? // أضف هذا المتغير
-    
-    // Variable to hold the Service Items (Add-ons)
+    var service: ServiceModel?
     var receivedServiceItems: [String]?
-    
     var providerData: ServiceProviderModel?
     
+    private let db = Firestore.firestore()
     let brandColor = UIColor(red: 98/255, green: 84/255, blue: 243/255, alpha: 1.0)
     
-    // MARK: - ✅ THE FIX IS HERE
-    // This initializer is required to prevent the "Fatal error: init(coder:) has not been implemented" crash.
+    // MARK: - Initializer
     required init?(coder: NSCoder) {
         super.init(coder: coder)
     }
     
-    // MARK: - Header View
+    // MARK: - UI Components (Programmatic)
+    // We use lazy initialization to create views only when they are needed.
+    
+    // The top section containing Provider Information
     private lazy var headerView: UIView = {
-        let view = UIView(frame: CGRect(x: 0, y: 0, width: self.view.frame.width, height: 200))
+        let view = UIView(frame: CGRect(x: 0, y: 0, width: self.view.frame.width, height: 220))
         view.backgroundColor = .white
         return view
     }()
@@ -50,6 +64,7 @@ class ServiceInformationTableViewController: UITableViewController {
         let label = UILabel()
         label.font = UIFont.systemFont(ofSize: 15, weight: .medium)
         label.textColor = .darkGray
+        label.numberOfLines = 0
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
     }()
@@ -58,11 +73,12 @@ class ServiceInformationTableViewController: UITableViewController {
         let label = UILabel()
         label.font = UIFont.systemFont(ofSize: 13, weight: .regular)
         label.textColor = UIColor(red: 0.35, green: 0.34, blue: 0.91, alpha: 1)
-        label.numberOfLines = 2
+        label.numberOfLines = 0
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
     }()
     
+    // Horizontal stack to show Availability, Location, and Phone
     private lazy var infoStackView: UIStackView = {
         let stack = UIStackView()
         stack.axis = .horizontal
@@ -72,27 +88,19 @@ class ServiceInformationTableViewController: UITableViewController {
         return stack
     }()
     
-    // MARK: - Service Card
+    // The bottom card containing Service Details
     private let serviceCardView: UIView = {
         let view = UIView()
         view.backgroundColor = .white
         view.layer.cornerRadius = 24
         view.layer.cornerCurve = .continuous
+        // Card Shadow
         view.layer.shadowColor = UIColor.black.cgColor
         view.layer.shadowOpacity = 0.08
         view.layer.shadowOffset = CGSize(width: 0, height: 8)
         view.layer.shadowRadius = 16
         view.translatesAutoresizingMaskIntoConstraints = false
         return view
-    }()
-    
-    private let serviceIconView: UIImageView = {
-        let iv = UIImageView()
-        iv.image = UIImage(systemName: "briefcase.fill")
-        iv.contentMode = .scaleAspectFit
-        iv.tintColor = UIColor(red: 0.35, green: 0.34, blue: 0.91, alpha: 1)
-        iv.translatesAutoresizingMaskIntoConstraints = false
-        return iv
     }()
     
     private let serviceNameLabel: UILabel = {
@@ -117,9 +125,6 @@ class ServiceInformationTableViewController: UITableViewController {
         label.font = UIFont.systemFont(ofSize: 15, weight: .regular)
         label.textColor = .darkGray
         label.numberOfLines = 0
-        let style = NSMutableParagraphStyle()
-        style.lineSpacing = 4
-        label.attributedText = NSAttributedString(string: "Details", attributes: [.paragraphStyle: style])
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
     }()
@@ -143,56 +148,87 @@ class ServiceInformationTableViewController: UITableViewController {
         setupHeaderView()
         setupServiceCard()
         populateData()
+        fetchProviderRealImage()
     }
     
-    // لجعل شريط الحالة (الساعة والبطارية) أبيض
-    override var preferredStatusBarStyle: UIStatusBarStyle {
-        return .lightContent
+    // Dynamic Height Calculation
+    // Calculates the required height for the header/footer based on text content size
+    override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+        
+        if let header = tableView.tableHeaderView {
+            let width = tableView.bounds.width
+            let size = header.systemLayoutSizeFitting(CGSize(width: width, height: UIView.layoutFittingCompressedSize.height))
+            if header.frame.size.height != size.height {
+                header.frame.size.height = size.height
+                tableView.tableHeaderView = header
+            }
+        }
+        
+        if let footer = tableView.tableFooterView {
+            let width = tableView.bounds.width
+            let size = footer.systemLayoutSizeFitting(CGSize(width: width, height: UIView.layoutFittingCompressedSize.height))
+            if footer.frame.size.height != size.height {
+                footer.frame.size.height = size.height
+                tableView.tableFooterView = footer
+            }
+        }
     }
     
-    // MARK: - Setup UI
+    // MARK: - Data Logic
+    
+    // Asynchronous network call to fetch the provider's profile image from Firebase Storage URL
+    private func fetchProviderRealImage() {
+        guard let providerId = providerData?.id else { return }
+        db.collection("users").document(providerId).getDocument { [weak self] snapshot, _ in
+            guard let self = self, let data = snapshot?.data(),
+                  let urlString = data["profileImageURL"] as? String,
+                  let url = URL(string: urlString) else { return }
+            
+            // Download image data in background
+            URLSession.shared.dataTask(with: url) { data, _, _ in
+                if let data = data, let image = UIImage(data: data) {
+                    DispatchQueue.main.async {
+                        self.providerImageView.image = image
+                    }
+                }
+            }.resume()
+        }
+    }
+    
+    // Populates the UI labels with the data passed from the previous screen
+    private func populateData() {
+        if let provider = providerData {
+            providerNameLabel.text = provider.name
+            providerRoleLabel.text = provider.role
+            providerSkillsLabel.text = provider.skills.joined(separator: " • ")
+            providerImageView.image = UIImage(systemName: "person.circle.fill") // Placeholder
+        }
+        
+        serviceNameLabel.text = receivedServiceName ?? "Service Package"
+        servicePriceLabel.text = receivedServicePrice ?? "BHD 0.000"
+        serviceDetailsLabel.text = receivedServiceDetails ?? "No details provided"
+    }
+    
+    // MARK: - Setup UI Methods
     private func setupUI() {
         let appearance = UINavigationBarAppearance()
         appearance.configureWithOpaqueBackground()
         appearance.backgroundColor = brandColor
-        
-        // 🔥 إجبار العنوان الصغير على اللون الأبيض
-        appearance.titleTextAttributes = [
-            .foregroundColor: UIColor.white,
-            .font: UIFont.systemFont(ofSize: 18, weight: .semibold)
-        ]
-        
-        // 🔥 إجبار العنوان الكبير على اللون الأبيض
-        appearance.largeTitleTextAttributes = [
-            .foregroundColor: UIColor.white,
-            .font: UIFont.systemFont(ofSize: 34, weight: .bold)
-        ]
-        
-        appearance.shadowColor = .clear
+        appearance.titleTextAttributes = [.foregroundColor: UIColor.white]
+        appearance.largeTitleTextAttributes = [.foregroundColor: UIColor.white]
         
         navigationController?.navigationBar.standardAppearance = appearance
         navigationController?.navigationBar.scrollEdgeAppearance = appearance
-        navigationController?.navigationBar.compactAppearance = appearance
-        
-        // 🔥 جعل زر الرجوع والأيقونات باللون الأبيض
         navigationController?.navigationBar.tintColor = .white
-        
-        // تفعيل العنوان الكبير
         navigationController?.navigationBar.prefersLargeTitles = true
         
-        // 🔥 التصحيح هنا: إزالة كود الـ IT Solutions ووضع الاسم الحقيقي للكاتيجوري
-        // سيأخذ الـ Role (التخصص) من بيانات البروفايدر مباشرة
         title = receivedServiceName ?? providerData?.role ?? "Service Details"
-        
         tableView.backgroundColor = UIColor(red: 248/255, green: 248/255, blue: 252/255, alpha: 1.0)
         tableView.separatorStyle = .none
-        tableView.contentInset = UIEdgeInsets(top: 0, left: 0, bottom: 20, right: 0)
-        tableView.tableHeaderView = headerView
-        
-        tableView.isScrollEnabled = true
-        tableView.bounces = true
     }
     
+    // Layout logic for the Provider Header
     private func setupHeaderView() {
         headerView.addSubview(providerImageView)
         headerView.addSubview(providerNameLabel)
@@ -220,185 +256,108 @@ class ServiceInformationTableViewController: UITableViewController {
             
             providerRoleLabel.topAnchor.constraint(equalTo: providerNameLabel.bottomAnchor, constant: 3),
             providerRoleLabel.leadingAnchor.constraint(equalTo: providerNameLabel.leadingAnchor),
-            providerRoleLabel.trailingAnchor.constraint(equalTo: providerNameLabel.trailingAnchor),
+            providerRoleLabel.trailingAnchor.constraint(equalTo: headerView.trailingAnchor, constant: -20),
             
             providerSkillsLabel.topAnchor.constraint(equalTo: providerRoleLabel.bottomAnchor, constant: 5),
             providerSkillsLabel.leadingAnchor.constraint(equalTo: providerNameLabel.leadingAnchor),
-            providerSkillsLabel.trailingAnchor.constraint(equalTo: providerNameLabel.trailingAnchor),
+            providerSkillsLabel.trailingAnchor.constraint(equalTo: headerView.trailingAnchor, constant: -20),
             
-            infoStackView.topAnchor.constraint(equalTo: providerImageView.bottomAnchor, constant: 18),
+            infoStackView.topAnchor.constraint(equalTo: providerImageView.bottomAnchor, constant: 24),
             infoStackView.leadingAnchor.constraint(equalTo: headerView.leadingAnchor, constant: 20),
             infoStackView.trailingAnchor.constraint(equalTo: headerView.trailingAnchor, constant: -20),
             infoStackView.heightAnchor.constraint(equalToConstant: 64),
             infoStackView.bottomAnchor.constraint(equalTo: headerView.bottomAnchor, constant: -16)
         ])
+        
+        tableView.tableHeaderView = headerView
     }
     
+    // Layout logic for the Service Footer Card
     private func setupServiceCard() {
-        let containerView = UIView()
-        containerView.backgroundColor = .clear
+        let container = UIView(frame: CGRect(x: 0, y: 0, width: view.frame.width, height: 400))
+        container.addSubview(serviceCardView)
         
-        containerView.addSubview(serviceCardView)
-        serviceCardView.addSubview(serviceIconView)
-        serviceCardView.addSubview(serviceNameLabel)
-        serviceCardView.addSubview(servicePriceLabel)
-        serviceCardView.addSubview(serviceDetailsLabel)
-        serviceCardView.addSubview(requestButton)
-        
-        // Ensure the container is large enough to fit content + padding
-        containerView.frame = CGRect(x: 0, y: 0, width: view.frame.width, height: 340)
-        tableView.tableFooterView = containerView
+        [serviceNameLabel, servicePriceLabel, serviceDetailsLabel, requestButton].forEach { serviceCardView.addSubview($0) }
         
         NSLayoutConstraint.activate([
-            serviceCardView.topAnchor.constraint(equalTo: containerView.topAnchor, constant: 12),
-            serviceCardView.leadingAnchor.constraint(equalTo: containerView.leadingAnchor, constant: 20),
-            serviceCardView.trailingAnchor.constraint(equalTo: containerView.trailingAnchor, constant: -20),
-            serviceCardView.bottomAnchor.constraint(equalTo: containerView.bottomAnchor, constant: -20),
+            serviceCardView.topAnchor.constraint(equalTo: container.topAnchor, constant: 12),
+            serviceCardView.leadingAnchor.constraint(equalTo: container.leadingAnchor, constant: 20),
+            serviceCardView.trailingAnchor.constraint(equalTo: container.trailingAnchor, constant: -20),
+            serviceCardView.bottomAnchor.constraint(equalTo: container.bottomAnchor, constant: -20),
             
-            serviceIconView.topAnchor.constraint(equalTo: serviceCardView.topAnchor, constant: 24),
-            serviceIconView.leadingAnchor.constraint(equalTo: serviceCardView.leadingAnchor, constant: 24),
-            serviceIconView.widthAnchor.constraint(equalToConstant: 36),
-            serviceIconView.heightAnchor.constraint(equalToConstant: 36),
-            
-            serviceNameLabel.centerYAnchor.constraint(equalTo: serviceIconView.centerYAnchor, constant: -4),
-            serviceNameLabel.leadingAnchor.constraint(equalTo: serviceIconView.trailingAnchor, constant: 14),
+            serviceNameLabel.topAnchor.constraint(equalTo: serviceCardView.topAnchor, constant: 24),
+            serviceNameLabel.leadingAnchor.constraint(equalTo: serviceCardView.leadingAnchor, constant: 24),
             serviceNameLabel.trailingAnchor.constraint(equalTo: serviceCardView.trailingAnchor, constant: -24),
             
-            servicePriceLabel.topAnchor.constraint(equalTo: serviceIconView.bottomAnchor, constant: 16),
+            servicePriceLabel.topAnchor.constraint(equalTo: serviceNameLabel.bottomAnchor, constant: 16),
             servicePriceLabel.leadingAnchor.constraint(equalTo: serviceCardView.leadingAnchor, constant: 24),
-            servicePriceLabel.trailingAnchor.constraint(equalTo: serviceCardView.trailingAnchor, constant: -24),
             
             serviceDetailsLabel.topAnchor.constraint(equalTo: servicePriceLabel.bottomAnchor, constant: 18),
             serviceDetailsLabel.leadingAnchor.constraint(equalTo: serviceCardView.leadingAnchor, constant: 24),
             serviceDetailsLabel.trailingAnchor.constraint(equalTo: serviceCardView.trailingAnchor, constant: -24),
             
+            requestButton.topAnchor.constraint(equalTo: serviceDetailsLabel.bottomAnchor, constant: 30),
             requestButton.bottomAnchor.constraint(equalTo: serviceCardView.bottomAnchor, constant: -20),
             requestButton.leadingAnchor.constraint(equalTo: serviceCardView.leadingAnchor, constant: 24),
             requestButton.trailingAnchor.constraint(equalTo: serviceCardView.trailingAnchor, constant: -24),
-            requestButton.heightAnchor.constraint(equalToConstant: 54),
-            
-            serviceDetailsLabel.bottomAnchor.constraint(lessThanOrEqualTo: requestButton.topAnchor, constant: -20)
+            requestButton.heightAnchor.constraint(equalToConstant: 54)
         ])
+        
+        tableView.tableFooterView = container
     }
     
+    // Helper to create small info boxes (Time, Location, Phone)
     private func createInfoItem(icon: String, text: String) -> UIView {
         let container = UIView()
-        container.backgroundColor = UIColor(red: 0.35, green: 0.34, blue: 0.91, alpha: 0.08)
+        container.backgroundColor = brandColor.withAlphaComponent(0.08)
         container.layer.cornerRadius = 10
         
-        let iconImageView = UIImageView()
-        iconImageView.image = UIImage(systemName: icon)
-        iconImageView.tintColor = brandColor
-        iconImageView.contentMode = .scaleAspectFit
-        iconImageView.translatesAutoresizingMaskIntoConstraints = false
+        let iv = UIImageView(image: UIImage(systemName: icon))
+        iv.tintColor = brandColor
+        iv.translatesAutoresizingMaskIntoConstraints = false
         
-        let label = UILabel()
-        label.text = text
-        label.font = UIFont.systemFont(ofSize: 11, weight: .medium)
-        label.textColor = brandColor
-        label.textAlignment = .center
-        label.numberOfLines = 2
-        label.adjustsFontSizeToFitWidth = true
-        label.minimumScaleFactor = 0.8
-        label.translatesAutoresizingMaskIntoConstraints = false
+        let l = UILabel()
+        l.text = text
+        l.font = .systemFont(ofSize: 11)
+        l.textColor = brandColor
+        l.translatesAutoresizingMaskIntoConstraints = false
         
-        container.addSubview(iconImageView)
-        container.addSubview(label)
+        container.addSubview(iv)
+        container.addSubview(l)
         
         NSLayoutConstraint.activate([
-            iconImageView.topAnchor.constraint(equalTo: container.topAnchor, constant: 8),
-            iconImageView.centerXAnchor.constraint(equalTo: container.centerXAnchor),
-            iconImageView.widthAnchor.constraint(equalToConstant: 20),
-            iconImageView.heightAnchor.constraint(equalToConstant: 20),
-            
-            label.topAnchor.constraint(equalTo: iconImageView.bottomAnchor, constant: 4),
-            label.leadingAnchor.constraint(equalTo: container.leadingAnchor, constant: 4),
-            label.trailingAnchor.constraint(equalTo: container.trailingAnchor, constant: -4),
-            label.bottomAnchor.constraint(lessThanOrEqualTo: container.bottomAnchor, constant: -8)
+            iv.topAnchor.constraint(equalTo: container.topAnchor, constant: 8),
+            iv.centerXAnchor.constraint(equalTo: container.centerXAnchor),
+            l.topAnchor.constraint(equalTo: iv.bottomAnchor, constant: 4),
+            l.centerXAnchor.constraint(equalTo: container.centerXAnchor)
         ])
-        
         return container
     }
-    
-    private func populateData() {
-        if let provider = providerData {
-            providerNameLabel.text = provider.name
-            providerRoleLabel.text = provider.role
-            providerSkillsLabel.text = provider.skills.joined(separator: " • ")
-            
-            if let image = UIImage(named: provider.imageName) {
-                providerImageView.image = image
-            } else {
-                providerImageView.image = UIImage(systemName: "person.circle.fill")
-                providerImageView.tintColor = brandColor
-            }
-        }
-        
-        serviceNameLabel.text = receivedServiceName ?? "Service Package"
-        servicePriceLabel.text = receivedServicePrice ?? "BHD 0.000"
-        
-        if let details = receivedServiceDetails, !details.isEmpty {
-            let lines = details.components(separatedBy: ".")
-                .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
-                .filter { !$0.isEmpty }
-            
-            if lines.count > 1 {
-                let bulletPoints = lines.map { "• \($0)" }.joined(separator: "\n\n")
-                serviceDetailsLabel.text = bulletPoints
-            } else {
-                serviceDetailsLabel.text = details
-            }
-        } else {
-            // Default text logic if empty
-            serviceDetailsLabel.text = "Complete service package with professional delivery"
-        }
-    }
-    
+
     @objc private func requestButtonTapped() {
-        UIView.animate(withDuration: 0.1, animations: {
-            self.requestButton.transform = CGAffineTransform(scaleX: 0.95, y: 0.95)
-        }) { _ in
-            UIView.animate(withDuration: 0.1) {
-                self.requestButton.transform = .identity
-            }
-        }
         performSegue(withIdentifier: "showBooking", sender: nil)
     }
     
     // MARK: - Navigation
+    // Prepares the Booking View Controller by passing all necessary data forward
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-        if segue.identifier == "showBooking" {
-            if let destVC = segue.destination as? ServiceDetailsBookingTableViewController {
-                
-                // ✅✅✅ هذا هو الحل: تمرير الآيدي للشاشة الأخيرة ✅✅✅
-                if let serviceId = self.service?.id {
-                    print("🚀 Passing Service ID to Booking: \(serviceId)")
-                    destVC.serviceId = serviceId // لازم يكون عندك متغير serviceId هناك
-                } else {
-                    print("⚠️ Warning: Service ID is nil in Info Screen")
-                }
-                
-                // باقي البيانات (اتركها كما هي)
-                destVC.receivedServiceName = self.receivedServiceName
-                destVC.receivedServicePrice = self.receivedServicePrice
-                destVC.receivedServiceDetails = self.serviceDetailsLabel.text
-                destVC.providerData = self.providerData
-                
-                if let items = receivedServiceItems {
-                    destVC.receivedServiceItems = items.joined(separator: ", ")
-                } else {
-                    destVC.receivedServiceItems = "None"
-                }
+        if segue.identifier == "showBooking", let destVC = segue.destination as? ServiceDetailsBookingTableViewController {
+            destVC.serviceId = self.service?.id
+            destVC.providerData = self.providerData
+            
+            // Passing the individual strings to the next controller
+            destVC.receivedServiceName = self.receivedServiceName
+            destVC.receivedServicePrice = self.receivedServicePrice
+            destVC.receivedServiceDetails = self.receivedServiceDetails
+            
+            // Converting [String] array to a single formatted String for the next screen
+            if let items = self.receivedServiceItems {
+                destVC.receivedServiceItems = items.joined(separator: "\n")
             }
         }
     }
     
-    // TableView Config (Empty because you are using Header/Footer for content)
-    override func numberOfSections(in tableView: UITableView) -> Int {
-        return 0
-    }
-    
-    override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return 0
-    }
+    // TableView is used as a ScrollView wrapper here, so we return 0 rows
+    override func numberOfSections(in tableView: UITableView) -> Int { return 0 }
+    override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int { return 0 }
 }

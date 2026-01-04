@@ -1,12 +1,24 @@
-import UIKit
-import FirebaseAuth      // 🔥 Required for fetching User ID
-import FirebaseFirestore // 🔥 Required for fetching User Data
+// ===================================================================================
+// SERVICE DETAILS BOOKING VIEW CONTROLLER
+// ===================================================================================
+// PURPOSE: Displays the final details of a service before the user confirms the booking.
+//
+// KEY FEATURES:
+// 1. Date & Time Selection: Users pick when they want the service.
+// 2. Data Safety: Ensures user profile data exists before allowing a booking to proceed.
+// 3. Data Transfer: Packages all service and user information into a BookingModel.
+// 4. Dynamic Layout: Uses a TableView with automatic dimensioning for variable text lengths.
+// ===================================================================================
 
-// MARK: - Service Details Booking Table View Controller
+import UIKit
+import FirebaseAuth      // Required for fetching User ID
+import FirebaseFirestore // Required for fetching User Data
+
 class ServiceDetailsBookingTableViewController: UITableViewController {
     
     // MARK: - Outlets
-    // "weak" and "?" prevent memory leaks and crashes if the outlet is missing
+    // Connections to the Interface Builder elements.
+    // "weak" prevents memory leaks (retain cycles).
     @IBOutlet weak var datePicker: UIDatePicker?
     @IBOutlet weak var serviceNameLabel: UILabel!
     @IBOutlet weak var priceLabel: UILabel!
@@ -15,38 +27,49 @@ class ServiceDetailsBookingTableViewController: UITableViewController {
     @IBOutlet weak var confirmButton: UIButton!
     
     // MARK: - Data Variables
+    // Variables to hold data passed from the previous Search/Service list screen.
     var receivedServiceName: String?
     var receivedServicePrice: String?
     var receivedServiceDetails: String?
     var receivedServiceItems: String?
     var serviceId: String?
     var providerData: ServiceProviderModel?
+    
     let brandColor = UIColor(red: 98/255, green: 84/255, blue: 243/255, alpha: 1.0)
     
-    // 🔥 Activity Indicator for loading user data
+    // Activity Indicator: Shows loading state when fetching missing user data.
     let activityIndicator = UIActivityIndicatorView(style: .large)
     
+    // MARK: - Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        // Initialize UI components
         setupUI()
         setupNavigationBar()
-        fillData()
+        fillData() // Populate labels with passed data
+        
+        // Configure TableView resizing behavior
         tableView.estimatedRowHeight = 100
         tableView.rowHeight = UITableView.automaticDimension
         
-        // Setup Loader
+        // Setup Loader placement
         activityIndicator.center = view.center
         activityIndicator.color = brandColor
         activityIndicator.hidesWhenStopped = true
         view.addSubview(activityIndicator)
     }
     
+    // MARK: - UI Setup
     func setupUI() {
         tableView.backgroundColor = UIColor(red: 248/255, green: 248/255, blue: 252/255, alpha: 1.0)
         view.backgroundColor = UIColor(red: 248/255, green: 248/255, blue: 252/255, alpha: 1.0)
         tableView.separatorStyle = .none
+        
+        // Fix for iOS 15+ extra padding
         if #available(iOS 15.0, *) { tableView.sectionHeaderTopPadding = 12 }
         
+        // Style Confirm Button
         if let btn = confirmButton {
             btn.layer.cornerRadius = 12
             btn.backgroundColor = brandColor
@@ -54,47 +77,50 @@ class ServiceDetailsBookingTableViewController: UITableViewController {
             btn.setTitleColor(.white, for: .normal)
         }
         
-        // 🔥 التعديل هنا: تفعيل اختيار الوقت والتاريخ معاً
+        // Configure Date Picker
         if let picker = datePicker {
-            picker.datePickerMode = .dateAndTime // ✅ يضيف خيار الوقت
+            picker.datePickerMode = .dateAndTime // Allows selecting both date and specific time
             picker.preferredDatePickerStyle = .compact
             picker.tintColor = brandColor
             picker.contentHorizontalAlignment = .trailing
-            picker.minimumDate = Date() // ✅ يمنع اختيار وقت في الماضي
+            picker.minimumDate = Date() // Prevents booking in the past
         }
     }
     
     func setupNavigationBar() {
         self.title = "Booking"
-        // 🔥 Point to the new safe booking function
+        // The bar button triggers the safe booking check
         let bookButton = UIBarButtonItem(title: "Book", style: .done, target: self, action: #selector(attemptBooking))
         bookButton.tintColor = .white
         navigationItem.rightBarButtonItem = bookButton
     }
     
-    // MARK: - 🔥 CRITICAL FIX: Fetch User Data Before Booking
+    // MARK: - Booking Logic (Critical Safety Check)
     @IBAction func bookButtonPressed(_ sender: Any) {
         attemptBooking()
     }
     
+    // Validates if the user's profile data is loaded before allowing them to book.
+    // This prevents bookings with "Unknown" names or missing IDs.
     @objc func attemptBooking() {
-        // 1. If user is already loaded, proceed normally
+        // Scenario 1: User data is already loaded in the Singleton
         if UserManager.shared.currentUser != nil {
             showBookingConfirmation()
             return
         }
         
-        // 2. If not loaded, but logged in with Auth, fetch data now
+        // Scenario 2: User is authenticated but data is missing locally.
+        // We must fetch it from Firestore now.
         guard let uid = Auth.auth().currentUser?.uid else {
             showAlert(title: "Error", message: "You must be logged in to book.")
             return
         }
         
-        // Show loading
+        // UI Feedback: Start loading, disable button
         activityIndicator.startAnimating()
         confirmButton?.isEnabled = false
         
-        print("🔧 User data missing (Guest). Fetching from Firestore for ID: \(uid)...")
+        print("User data missing (Guest). Fetching from Firestore for ID: \(uid)...")
         
         Firestore.firestore().collection("users").document(uid).getDocument { [weak self] snapshot, error in
             guard let self = self else { return }
@@ -102,10 +128,10 @@ class ServiceDetailsBookingTableViewController: UITableViewController {
             self.confirmButton?.isEnabled = true
             
             if let data = snapshot?.data(), error == nil {
-                // Create the user object from the database data
+                // Construct the User object from the database response
                 let fetchedUser = AppUser(
                     id: uid,
-                    name: data["name"] as? String ?? (data["username"] as? String ?? "Unknown"), // Try name then username
+                    name: data["name"] as? String ?? (data["username"] as? String ?? "Unknown"),
                     email: data["email"] as? String ?? (Auth.auth().currentUser?.email ?? ""),
                     phone: data["phone"] as? String ?? "",
                     role: data["role"] as? String ?? "seeker",
@@ -114,20 +140,21 @@ class ServiceDetailsBookingTableViewController: UITableViewController {
                     providerProfile: nil
                 )
                 
-                // Save it to the Manager so it persists
+                // Save it to the Singleton for future use in the session
                 UserManager.shared.setCurrentUser(fetchedUser)
-                print("✅ User data fetched and saved: \(fetchedUser.name)")
+                print("User data fetched and saved: \(fetchedUser.name)")
                 
-                // Now proceed with booking
+                // Proceed to confirmation
                 self.showBookingConfirmation()
                 
             } else {
-                print("❌ Failed to fetch user: \(error?.localizedDescription ?? "Unknown error")")
+                print("Failed to fetch user: \(error?.localizedDescription ?? "Unknown error")")
                 self.showAlert(title: "Error", message: "Failed to load user profile. Please try logging in again.")
             }
         }
     }
     
+    // Populate UI with data passed from previous controller
     func fillData() {
         serviceNameLabel?.text = receivedServiceName ?? "Unknown"
         
@@ -150,11 +177,13 @@ class ServiceDetailsBookingTableViewController: UITableViewController {
         serviceItemLabel?.numberOfLines = 0
     }
     
+    // Adjust row height manually for specific rows
     override func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
         if indexPath.row <= 2 { return 90 }
         return UITableView.automaticDimension
     }
     
+    // Prompt user for final confirmation
     func showBookingConfirmation() {
         let alert = UIAlertController(title: "Confirm Booking", message: "Proceed with booking?", preferredStyle: .alert)
         alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
@@ -164,27 +193,29 @@ class ServiceDetailsBookingTableViewController: UITableViewController {
         present(alert, animated: true)
     }
     
-    // MARK: - Payment Screen
+    // MARK: - Navigation
     func showPaymentScreen() {
         let paymentVC = PaymentViewController()
+        // Create the booking object to pass to the payment screen
         paymentVC.bookingData = createBookingModel()
         paymentVC.modalPresentationStyle = .fullScreen
         navigationController?.pushViewController(paymentVC, animated: true)
     }
     
-    // MARK: - Create Booking Model
+    // MARK: - Data Model Creation
+    // Aggregates all data (Service info + User info + Date) into one object
     func createBookingModel() -> BookingModel {
         let serviceName = receivedServiceName ?? "Unknown"
         let priceString = receivedServicePrice?.replacingOccurrences(of: "BHD ", with: "") ?? "0"
         let price = Double(priceString) ?? 0.0
         
-        // 🛡 بما أننا فعلنا التاريخ والوقت في الأعلى، هذا المتغير الآن يحمل الوقت المختار أيضاً
+        // Captures selected Date AND Time
         let date = datePicker?.date ?? Date()
         
         let providerName = providerData?.name ?? "Unknown"
         let providerId = providerData?.id ?? ""
         
-        // 🔥 NOW THIS WILL HAVE DATA because of the 'attemptBooking' fetch
+        // Data is guaranteed to exist here due to 'attemptBooking' check
         let currentUser = UserManager.shared.currentUser
         let seekerName = currentUser?.name ?? "Guest"
         let seekerEmail = currentUser?.email ?? "no-email"
@@ -195,7 +226,6 @@ class ServiceDetailsBookingTableViewController: UITableViewController {
         var itemsText = receivedServiceItems ?? "None"
         if itemsText.isEmpty { itemsText = "None" }
         
-        // عند حفظ هذا المودل، الفايربيس سيحفظ (date) كاملاً مع الساعة والدقيقة تلقائياً
         return BookingModel(
             id: UUID().uuidString,
             serviceName: serviceName,
@@ -206,7 +236,7 @@ class ServiceDetailsBookingTableViewController: UITableViewController {
             totalPrice: price,
             notes: itemsText,
             email: seekerEmail,
-            phoneNumber: seekerPhone, 
+            phoneNumber: seekerPhone,
             providerId: providerId,
             seekerId: seekerId,
             serviceId: self.serviceId ?? "",
@@ -214,6 +244,7 @@ class ServiceDetailsBookingTableViewController: UITableViewController {
         )
     }
     
+    // TableView Cell Styling (White background with rounded corners)
     override func tableView(_ tableView: UITableView, willDisplay cell: UITableViewCell, forRowAt indexPath: IndexPath) {
         cell.backgroundColor = .clear
         cell.contentView.backgroundColor = .clear
@@ -233,9 +264,20 @@ class ServiceDetailsBookingTableViewController: UITableViewController {
     }
 }
 
-// MARK: - Payment View Controller (نفسه لم يتغير، فقط وضعته ليكون الملف مكتملاً)
+// ===================================================================================
+// PAYMENT VIEW CONTROLLER
+// ===================================================================================
+// PURPOSE: Handles payment method selection and final booking submission.
+//
+// KEY FEATURES:
+// 1. Payment Methods: Supports Credit Card, Apple Pay, and Benefit Pay.
+// 2. Dynamic UI: Switches input fields based on the selected payment method.
+// 3. Validation: Ensures card numbers/IBANs are formatted correctly before submission.
+// ===================================================================================
+
 class PaymentViewController: UIViewController {
     
+    // Styling Properties
     let brandColor = UIColor(red: 98/255, green: 84/255, blue: 243/255, alpha: 1.0)
     let lightBg = UIColor(red: 248/255, green: 248/255, blue: 252/255, alpha: 1.0)
     
@@ -246,6 +288,7 @@ class PaymentViewController: UIViewController {
         case creditCard, applePay, benefitPay
     }
     
+    // MARK: - UI Components (Programmatic Layout)
     private let scrollView: UIScrollView = {
         let sv = UIScrollView()
         sv.translatesAutoresizingMaskIntoConstraints = false
@@ -267,11 +310,12 @@ class PaymentViewController: UIViewController {
         return label
     }()
     
+    // Custom Buttons for payment selection
     private lazy var creditCardButton = createPaymentButton(title: "Credit Card", tag: 0)
     private lazy var applePayButton = createPaymentButton(title: "Apple Pay", tag: 1)
     private lazy var benefitPayButton = createPaymentButton(title: "Benefit Pay", tag: 2)
     
-    // MARK: - Credit Card UI
+    // MARK: - Credit Card Input Views
     private let cardDetailsContainer: UIView = {
         let view = UIView()
         view.backgroundColor = .white
@@ -326,7 +370,7 @@ class PaymentViewController: UIViewController {
         return tf
     }()
     
-    // MARK: - Benefit Pay UI
+    // MARK: - Benefit Pay Input Views
     private let benefitPayContainer: UIView = {
         let view = UIView()
         view.backgroundColor = .white
@@ -336,7 +380,7 @@ class PaymentViewController: UIViewController {
         view.layer.shadowOffset = CGSize(width: 0, height: 2)
         view.layer.shadowRadius = 8
         view.translatesAutoresizingMaskIntoConstraints = false
-        view.isHidden = true
+        view.isHidden = true // Hidden by default
         return view
     }()
     
@@ -391,6 +435,7 @@ class PaymentViewController: UIViewController {
         return tf
     }()
     
+    // StackView to manage swapping containers (Credit Card vs Benefit)
     private let formsStackView: UIStackView = {
         let stack = UIStackView()
         stack.axis = .vertical
@@ -411,13 +456,15 @@ class PaymentViewController: UIViewController {
         return btn
     }()
     
+    // MARK: - Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
         setupUI()
         setupConstraints()
-        updatePaymentMethodSelection()
+        updatePaymentMethodSelection() // Init default selection state
     }
     
+    // MARK: - UI Setup
     private func setupUI() {
         title = "Payment"
         view.backgroundColor = lightBg
@@ -431,12 +478,14 @@ class PaymentViewController: UIViewController {
         
         benefitSegmentControl.addTarget(self, action: #selector(benefitSegmentChanged(_:)), for: .valueChanged)
         
+        // Set delegates for validation
         cardNumberTextField.delegate = self
         validThruTextField.delegate = self
         cvcTextField.delegate = self
         pinTextField.delegate = self
         ibanSuffixTextField.delegate = self
         
+        // Add Subviews
         view.addSubview(scrollView)
         scrollView.addSubview(contentView)
         
@@ -451,12 +500,14 @@ class PaymentViewController: UIViewController {
         
         contentView.addSubview(purchaseButton)
         
+        // Setup Credit Card inputs
         cardDetailsContainer.addSubview(cardNumberTextField)
         cardDetailsContainer.addSubview(validThruTextField)
         cardDetailsContainer.addSubview(cvcTextField)
         cardDetailsContainer.addSubview(pinTextField)
         addTextFieldSeparators()
         
+        // Setup Benefit Pay inputs
         benefitPayContainer.addSubview(benefitSegmentControl)
         benefitPayContainer.addSubview(ibanWrapperView)
         benefitPayContainer.addSubview(phoneWrapperView)
@@ -597,6 +648,7 @@ class PaymentViewController: UIViewController {
         ])
     }
     
+    // Handle switching between Credit Card, Apple Pay, and Benefit Pay
     @objc private func paymentMethodTapped(_ sender: UIButton) {
         switch sender.tag {
         case 0: selectedPaymentMethod = .creditCard
@@ -607,6 +659,7 @@ class PaymentViewController: UIViewController {
         updatePaymentMethodSelection()
     }
     
+    // Handle switching between IBAN and Phone for Benefit Pay
     @objc private func benefitSegmentChanged(_ sender: UISegmentedControl) {
         if sender.selectedSegmentIndex == 0 {
             ibanWrapperView.isHidden = false
@@ -617,6 +670,7 @@ class PaymentViewController: UIViewController {
         }
     }
     
+    // Updates UI visibility and border colors based on selection
     private func updatePaymentMethodSelection() {
         [creditCardButton, applePayButton, benefitPayButton].forEach { btn in
             btn.layer.borderColor = UIColor.lightGray.withAlphaComponent(0.3).cgColor
@@ -633,6 +687,7 @@ class PaymentViewController: UIViewController {
         selectedButton.layer.borderColor = brandColor.cgColor
         selectedButton.layer.borderWidth = 3
         
+        // Show/Hide input forms based on selection
         UIView.animate(withDuration: 0.3) {
             switch self.selectedPaymentMethod {
             case .creditCard:
@@ -648,11 +703,12 @@ class PaymentViewController: UIViewController {
         }
     }
     
+    // MARK: - Purchase Action
     @objc private func purchaseButtonTapped() {
         view.endEditing(true)
         
+        // 1. Validation Logic
         if selectedPaymentMethod == .creditCard {
-            // Basic Validation
             if (cardNumberTextField.text ?? "").count < 13 { showAlert(title: "Error", message: "Invalid Card Number"); return }
             if (validThruTextField.text ?? "").isEmpty { showAlert(title: "Error", message: "Invalid Date"); return }
             if (cvcTextField.text ?? "").isEmpty { showAlert(title: "Error", message: "Invalid CVC"); return }
@@ -665,7 +721,7 @@ class PaymentViewController: UIViewController {
             }
         }
         
-        // Save booking to Firebase
+        // 2. Save booking to Firebase via ServiceManager
         if let booking = bookingData {
             ServiceManager.shared.saveBooking(booking: booking) { [weak self] success in
                 DispatchQueue.main.async {
@@ -688,6 +744,8 @@ class PaymentViewController: UIViewController {
     }
 }
 
+// MARK: - TextField Delegate
+// Restricts input length and character types for security and UX
 extension PaymentViewController: UITextFieldDelegate {
     func textField(_ textField: UITextField, shouldChangeCharactersIn range: NSRange, replacementString string: String) -> Bool {
         let currentText = textField.text ?? ""
