@@ -197,6 +197,7 @@
                                         <constraints>
                                             <constraint firstAttribute="height" constant="38.333333333333371" id="E6M-kn-Btk"/>
                                         </constraints>
+                                        <color key="tintColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                         <state key="normal" title="Button"/>
                                         <buttonConfiguration key="configuration" style="gray" title="Sign Up"/>
                                         <connections>

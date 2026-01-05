@@ -2,7 +2,7 @@ import UIKit
 import FirebaseFirestore
 
 // MARK: - Protocol
-// بروتوكول اختياري لتحديث البيانات
+// Optional protocol to update data
 protocol CategoryManagerDelegate: AnyObject {
     func didUpdateCategories()
 }
@@ -28,7 +28,7 @@ class CategoryCardCell: UITableViewCell {
         backgroundColor = .clear
         selectionStyle = .none
         
-        // 1. إعداد الحاوية (الكارد)
+        // 1. Setup Container (Card)
         containerView.backgroundColor = .white
         containerView.layer.cornerRadius = 12
         containerView.layer.shadowColor = UIColor.black.cgColor
@@ -39,12 +39,12 @@ class CategoryCardCell: UITableViewCell {
         
         contentView.addSubview(containerView)
         
-        // 2. إعداد النص
+        // 2. Setup Label
         titleLabel.font = .systemFont(ofSize: 16, weight: .semibold)
         titleLabel.textColor = .black
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
         
-        // 3. إعداد الأيقونة
+        // 3. Setup Icon
         let config = UIImage.SymbolConfiguration(weight: .semibold)
         chevronImageView.image = UIImage(systemName: "chevron.right", withConfiguration: config)
         chevronImageView.tintColor = UIColor.lightGray.withAlphaComponent(0.6)
@@ -54,7 +54,7 @@ class CategoryCardCell: UITableViewCell {
         containerView.addSubview(titleLabel)
         containerView.addSubview(chevronImageView)
         
-        // 4. القيود (Constraints)
+        // 4. Constraints
         NSLayoutConstraint.activate([
             containerView.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 6),
             containerView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
@@ -76,7 +76,7 @@ class CategoryCardCell: UITableViewCell {
         titleLabel.text = name
     }
     
-    // أنيميشن عند الضغط
+    // Tap Animation
     override func setHighlighted(_ highlighted: Bool, animated: Bool) {
         super.setHighlighted(highlighted, animated: animated)
         UIView.animate(withDuration: 0.2) {
@@ -93,7 +93,7 @@ class CategoryManagementTVC: UITableViewController {
     private var categories: [QueryDocumentSnapshot] = []
     weak var delegate: CategoryManagerDelegate?
     
-    // لون التطبيق الأساسي
+    // Main App Brand Color
     let brandColor = UIColor(red: 98/255, green: 84/255, blue: 243/255, alpha: 1.0)
     
     // MARK: - Lifecycle
@@ -101,14 +101,14 @@ class CategoryManagementTVC: UITableViewController {
         super.viewDidLoad()
         setupUI()
         
-        // 🛠️ هام جداً: ضبط ارتفاع الصفوف لتظهر بشكل صحيح
+        // 🛠️ Note: Adjust row height for correct card display
         tableView.rowHeight = UITableView.automaticDimension
         tableView.estimatedRowHeight = 70
         
-        // تسجيل الخلية
+        // Register Cell
         tableView.register(CategoryCardCell.self, forCellReuseIdentifier: "CategoryCardCell")
         
-        // بدء الاستماع لقاعدة البيانات
+        // Initialize Firebase Listener
         startFirebaseListener()
     }
     
@@ -127,7 +127,7 @@ class CategoryManagementTVC: UITableViewController {
         navigationController?.navigationBar.tintColor = .white
         navigationController?.navigationBar.prefersLargeTitles = true
         
-        // زر الإضافة (+)
+        // Add Button (+)
         navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .add, target: self, action: #selector(addCategoryTapped))
         
         tableView.backgroundColor = UIColor(red: 248/255, green: 248/255, blue: 252/255, alpha: 1.0)
@@ -217,23 +217,23 @@ class CategoryManagementTVC: UITableViewController {
         }
     }
 
-    // MARK: - Table View Delegate (الانتقال للبروفايدرز)
+    // MARK: - Table View Delegate (Transition to Providers)
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        // 1. استخراج بيانات التصنيف المختار
+        // 1. Extract selected category data
         let doc = categories[indexPath.row]
         let categoryName = doc.get("name") as? String ?? "Unknown"
         let categoryID = doc.documentID
         
         print("➡️ Selected Category: \(categoryName) (ID: \(categoryID))")
         
-        // 2. تجهيز صفحة البروفايدرز
+        // 2. Prepare Providers Page
         let providersVC = ProvidersTableViewController()
         
-        // 3. تمرير البيانات (الربط)
+        // 3. Pass Data (Binding)
         providersVC.selectedCategory = categoryName
         providersVC.categoryID = categoryID
         
-        // 4. الانتقال للشاشة التالية
+        // 4. Navigate to the next screen
         navigationController?.pushViewController(providersVC, animated: true)
     }
 }

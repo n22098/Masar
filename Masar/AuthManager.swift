@@ -8,7 +8,6 @@ class AuthManager {
     static let shared = AuthManager()
     private init() {}
     
-    // MARK: - 📍 Flexible Persistence
         func saveCurrentState(storyboardName: String, viewControllerId: String) {
             UserDefaults.standard.set(storyboardName, forKey: "lastStoryboardName")
             UserDefaults.standard.set(viewControllerId, forKey: "lastViewControllerId")
@@ -24,7 +23,6 @@ class AuthManager {
     // MARK: - 🚪 Logout Function
     
     func signOut(completion: ((Bool, String?) -> Void)? = nil) {
-        // مسح بيانات الدخول والحالة المحفوظة
         let keys = ["isUserLoggedIn", "userId", "userRole", "userEmail", "lastStoryboardName", "lastViewControllerId"]
         keys.forEach { UserDefaults.standard.removeObject(forKey: $0) }
         UserDefaults.standard.synchronize()
