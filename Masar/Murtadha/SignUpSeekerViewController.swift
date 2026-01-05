@@ -53,8 +53,40 @@ class SignUpSeekerViewController: UIViewController, UITextFieldDelegate {
     // MARK: - Data Constants
     private let privacyPolicyText = """
         Masar operates the Local Skills & Services Exchange application.
-        This page is used to inform Masar users regarding our policies with the collection, use, and disclosure of personal information.
-        ... (Privacy Policy Content) ...
+        This page is used to inform Masar users regarding our policies with the collection, use, and disclosure of personal information if anyone decides to use our Service.
+
+        By using the Masar app, you agree to the collection and use of information in accordance with this policy. The personal information that we collect is used for providing, improving, and personalizing our Service. We will not use or share your information with anyone except as described in this Privacy Policy.
+
+        Information Collection and Use
+        To enhance your experience while using our Service, we may require you to provide certain personally identifiable information, including but not limited to your full name, phone number, location, and service preferences. The information we collect will be used to:
+        • Help match users seeking skills or services with those providing them.
+        • Facilitate communication between users.
+        • Improve and personalize your experience in the app.
+
+        Service Providers
+        We may employ third-party companies and individuals for the following purposes:
+        • To assist in improving our Service;
+        • To provide the Service on our behalf;
+        • To analyze app usage and performance.
+
+        These third parties may have access to your personal information only to perform these tasks on our behalf and are obligated not to disclose or use it for any other purpose.
+
+        Security
+        We value your trust in providing your personal information and strive to use commercially acceptable means to protect it. However, please remember that no method of transmission over the internet, or method of electronic storage, is 100% secure.
+
+        Links to Other Sites
+        Our Service may contain links to third-party sites. If you click on a third-party link, you will be directed to that site. We are not responsible for the content or privacy policies of these websites and strongly advise you to review their policies.
+
+        Children's Privacy
+        Our Service does not address anyone under the age of 13. We do not knowingly collect personal information from children under 13.
+
+        Changes to This Privacy Policy
+        We may update this Privacy Policy from time to time. You are advised to review this page periodically for any changes. Changes are effective immediately after being posted on this page.
+
+        Contact Us
+        If you have any questions or suggestions about our Privacy Policy, feel free to contact us at:
+        Masar@gmail.com
+        +973-39871234
         """
 
     let db = Firestore.firestore()
